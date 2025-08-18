@@ -30,8 +30,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# local env files
+.env*.local
+.env
+
+# Python files (not needed for deployment)
+src/app/eurovision2023/votes/build/
+src/app/eurovision2023/votes/dist/
+src/app/eurovision2023/votes/*.exe
+src/app/eurovision2023/votes/*.spec
+src/app/eurovision2023/votes/__pycache__/
 
 # vercel
 .vercel
