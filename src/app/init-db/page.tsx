@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function InitDbPage() {
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
 
   const initializeDatabase = async () => {
@@ -12,7 +12,7 @@ export default function InitDbPage() {
       const response = await fetch('/api/init-db', { method: 'POST' });
       const data = await response.json();
       setResult(data);
-    } catch (error) {
+    } catch {
       setResult({ error: 'Failed to initialize database' });
     }
     setLoading(false);
@@ -24,7 +24,7 @@ export default function InitDbPage() {
       const response = await fetch('/api/debug');
       const data = await response.json();
       setResult(data);
-    } catch (error) {
+    } catch {
       setResult({ error: 'Failed to check database' });
     }
     setLoading(false);

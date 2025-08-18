@@ -142,7 +142,7 @@ export class DatabaseStorage {
 
       return {
         userId: vote.userId,
-        userName: vote.userName,
+        userName: vote.userName || vote.userEmail, // Fallback to email if userName is null
         userEmail: vote.userEmail,
         votes: vote.votes as string[],
         timestamp: vote.updatedAt
