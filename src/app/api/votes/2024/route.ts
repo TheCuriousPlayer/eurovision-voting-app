@@ -4,10 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
 
-// Legacy cookie-based storage constants (kept for reference)
-// const VOTES_KEY = 'eurovision2023:votes';
-// const USER_VOTES_PREFIX = 'eurovision2023:user:';
-
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,8 +26,8 @@ export async function POST(request: Request) {
       timestamp: new Date(),
     };
 
-    // Store vote in database
-    await dbStorage.addOrUpdateVote(vote, 2023);
+    // Store vote in database for Eurovision 2024
+    await dbStorage.addOrUpdateVote(vote, 2024);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -51,11 +47,11 @@ export async function GET() {
     // Initialize competitions
     await dbStorage.initializeCompetitions();
     
-    // Get cumulative results from database
-    const cumulativeResults = await dbStorage.getCumulativeResults(2023);
+    // Get cumulative results from database for Eurovision 2024
+    const cumulativeResults = await dbStorage.getCumulativeResults(2024);
     
     // Get user's individual vote
-    const userVote = await dbStorage.getUserVote(session.user.email!, 2023);
+    const userVote = await dbStorage.getUserVote(session.user.email!, 2024);
 
     const resultsData: ResultsData = {
       totalVotes: cumulativeResults.totalVotes,

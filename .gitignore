@@ -52,3 +52,5 @@ src/app/eurovision2023/votes/cumulative_results.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma

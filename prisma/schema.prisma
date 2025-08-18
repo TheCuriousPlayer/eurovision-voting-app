@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model for Eurovision competitions (each year)
+model Competition {
+  id          String   @id @default(cuid())
+  year        Int      @unique
+  name        String   // e.g., "Eurovision 2023", "Eurovision 2024"
+  isActive    Boolean  @default(true)
+  countries   String[] // Array of participating countries
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  votes       Vote[]
+  
+  @@map("competitions")
+}
+
+// Model for individual user votes
+model Vote {
+  id            String      @id @default(cuid())
+  userId        String      // User's email or ID
+  userName      String?     // User's display name
+  userEmail     String      // User's email
+  competitionId String      // Which Eurovision year
+  votes         Json        // JSON array of countries in voting order [country1, country2, ...]
+  points        Json        // JSON object of country -> points mapping
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  
+  // Each user can only vote once per competition
+  @@unique([userId, competitionId])
+  @@map("votes")
+}
+
+// Model for cached cumulative results (performance optimization)
+model CumulativeResult {
+  id            String      @id @default(cuid())
+  competitionId String      @unique
+  results       Json        // JSON object of country -> total points
+  totalVotes    Int         @default(0)
+  lastUpdated   DateTime    @default(now())
+  
+  @@map("cumulative_results")
+}
