@@ -9,7 +9,7 @@ export default function InitDbPage() {
   const initializeDatabase = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/init-db', { method: 'POST' });
+      const response = await fetch('/api/setup-fresh', { method: 'POST' });
       const data = await response.json();
       setResult(data);
     } catch {
@@ -30,6 +30,18 @@ export default function InitDbPage() {
     setLoading(false);
   };
 
+  const testEndpoints = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/test-endpoints');
+      const data = await response.json();
+      setResult(data);
+    } catch {
+      setResult({ error: 'Failed to test endpoints' });
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Database Management</h1>
@@ -40,7 +52,7 @@ export default function InitDbPage() {
           disabled={loading}
           className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          {loading ? 'Loading...' : 'Initialize Database'}
+          {loading ? 'Loading...' : 'Setup Fresh Database'}
         </button>
         
         <button 
@@ -49,6 +61,14 @@ export default function InitDbPage() {
           className="bg-green-500 text-white px-4 py-2 rounded disabled:opacity-50"
         >
           {loading ? 'Loading...' : 'Check Database'}
+        </button>
+
+        <button 
+          onClick={testEndpoints}
+          disabled={loading}
+          className="bg-purple-500 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Test Endpoints'}
         </button>
       </div>
 
