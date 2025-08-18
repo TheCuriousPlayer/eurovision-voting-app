@@ -33,6 +33,16 @@ export async function POST(request: Request) {
     // Store vote only in global storage (file-based)
     voteStorage.addOrUpdateVote(vote);
 
+    // Trigger cumulative results calculation
+    try {
+      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/calculate`, {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Error triggering calculation:', error);
+      // Don't fail the vote if calculation fails
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error processing vote:', error);
