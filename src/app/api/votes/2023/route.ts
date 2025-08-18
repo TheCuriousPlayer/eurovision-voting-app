@@ -57,7 +57,7 @@ export async function GET() {
     const resultsData: ResultsData = {
       totalVotes: cumulativeResults.totalVotes,
       countryPoints: cumulativeResults.countryPoints,
-      userVote
+      ...(userVote && { userVote }) // Only include userVote if it's not null
     };
 
     return NextResponse.json(resultsData);

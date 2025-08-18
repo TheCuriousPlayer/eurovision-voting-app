@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { ResultsData } from '@/types/votes';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const countryToCode: { [key: string]: string } = {
   'Albania': 'AL',
@@ -60,18 +60,6 @@ const countryToCode: { [key: string]: string } = {
   'United Kingdom': 'GB',
 //   'Yugoslavia': 'YU'
 };
-
-interface DragResult {
-  draggableId: string;
-  source: {
-    droppableId: string;
-    index: number;
-  };
-  destination?: {
-    droppableId: string;
-    index: number;
-  };
-}
 
 export default function Eurovision2023Test() {
   const { data: session, status } = useSession();
@@ -249,7 +237,7 @@ export default function Eurovision2023Test() {
     }
   };
 
-  const handleDragEnd = (result: DragResult) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const sourceId = result.source.droppableId;
@@ -327,7 +315,7 @@ export default function Eurovision2023Test() {
         setResults({
           countryPoints: {},
           totalVotes: 0,
-          userVote: null
+          // userVote omitted (undefined) for fallback
         });
       }
     } finally {
@@ -413,7 +401,7 @@ export default function Eurovision2023Test() {
         .sort(([, pointsA], [, pointsB]) => (pointsB as number) - (pointsA as number) || 0)
     : allCountries
         .map(country => [country, results.countryPoints[country] || 0])
-        .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
+        .sort(([countryA], [countryB]) => (countryA as string).localeCompare(countryB as string));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
@@ -528,7 +516,7 @@ export default function Eurovision2023Test() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(0, Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index}>
+                              <Draggable key={country as string} draggableId={country as string} index={index}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -591,7 +579,7 @@ export default function Eurovision2023Test() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)}>
+                              <Draggable key={country as string} draggableId={country as string} index={index + Math.ceil(sortedCountries.length / 2)}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}

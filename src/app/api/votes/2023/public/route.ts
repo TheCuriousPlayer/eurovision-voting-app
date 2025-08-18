@@ -24,7 +24,7 @@ export async function GET() {
     const results: ResultsData = {
       countryPoints: cumulativeResults.countryPoints,
       totalVotes: cumulativeResults.totalVotes,
-      userVote: null // No user vote for public endpoint
+      // No userVote for public endpoint (omitting the property)
     };
 
     console.log('Public API: Returning cumulative results with total votes:', results.totalVotes);

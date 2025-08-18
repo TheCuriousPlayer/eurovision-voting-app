@@ -76,7 +76,7 @@ export default function Eurovision2023Test() {
   const [results, setResults] = useState<ResultsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
-  const [updateTrigger, setUpdateTrigger] = useState(0); // Force re-render trigger
+  // const [updateTrigger, setUpdateTrigger] = useState(0); // Force re-render trigger - not currently used
   const [showResults, setShowResults] = useState(false); // Toggle for showing results with points
 
   useEffect(() => {
