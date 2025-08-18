@@ -51,13 +51,7 @@ export async function GET() {
     const cumulativeResults = await dbStorage.getCumulativeResults(2024);
     
     // Get user's individual vote
-    const userVoteRaw = await dbStorage.getUserVote(session.user.email!, 2024);
-    
-    // Convert to match Vote interface (handle null userName)
-    const userVote = userVoteRaw ? {
-      ...userVoteRaw,
-      userName: userVoteRaw.userName || session.user.name || 'Anonymous'
-    } : undefined;
+    const userVote = await dbStorage.getUserVote(session.user.email!, 2024);
 
     const resultsData: ResultsData = {
       totalVotes: cumulativeResults.totalVotes,
