@@ -41,6 +41,11 @@ src/app/eurovision2023/votes/*.exe
 src/app/eurovision2023/votes/*.spec
 src/app/eurovision2023/votes/__pycache__/
 
+# Vote files (private user data)
+src/app/eurovision2023/votes/*.json
+src/app/eurovision2023/votes/vote_*.json
+src/app/eurovision2023/votes/cumulative_results.json
+
 # vercel
 .vercel
 
