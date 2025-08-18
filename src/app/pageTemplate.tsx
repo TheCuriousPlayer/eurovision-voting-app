@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ResultsData } from '@/types/votes';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const countryToCode: { [key: string]: string } = {
   'Albania': 'AL',
@@ -59,18 +59,6 @@ const countryToCode: { [key: string]: string } = {
   'United Kingdom': 'GB',
   'Yugoslavia': 'YU'
 };
-
-interface DragResult {
-  draggableId: string;
-  source: {
-    droppableId: string;
-    index: number;
-  };
-  destination?: {
-    droppableId: string;
-    index: number;
-  };
-}
 
 export default function Eurovision2023Test() {
   const [results, setResults] = useState<ResultsData | null>(null);
@@ -162,7 +150,7 @@ export default function Eurovision2023Test() {
 
     console.log('New results:', newResults.countryPoints);
     setResults(newResults);
-    setUpdateTrigger(prev => prev + 1); // Force re-render
+    // setUpdateTrigger(prev => prev + 1); // Force re-render - not currently used
 
     // Save to database (optional - don't block UI if it fails)
     try {
@@ -191,7 +179,7 @@ export default function Eurovision2023Test() {
     }
   };
 
-  const handleDragEnd = (result: DragResult) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const sourceId = result.source.droppableId;
@@ -275,12 +263,12 @@ export default function Eurovision2023Test() {
   
   // Create array of all countries with their points (including 0 points)
   // Sort alphabetically when results are hidden, by points when shown
-  const sortedCountries = showResults 
+  const sortedCountries: [string, number][] = showResults 
     ? allCountries
-        .map(country => [country, results.countryPoints[country] || 0])
-        .sort(([, pointsA], [, pointsB]) => (pointsB as number) - (pointsA as number) || 0)
+        .map(country => [country, results.countryPoints[country] || 0] as [string, number])
+        .sort(([, pointsA], [, pointsB]) => pointsB - pointsA || 0)
     : allCountries
-        .map(country => [country, results.countryPoints[country] || 0])
+        .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
 
   return (

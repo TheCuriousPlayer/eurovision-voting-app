@@ -395,13 +395,13 @@ export default function Eurovision2023Test() {
   
   // Create array of all countries with their points (including 0 points)
   // Sort alphabetically when results are hidden, by points when shown
-  const sortedCountries = showResults 
+  const sortedCountries: [string, number][] = showResults 
     ? allCountries
-        .map(country => [country, results.countryPoints[country] || 0])
-        .sort(([, pointsA], [, pointsB]) => (pointsB as number) - (pointsA as number) || 0)
+        .map(country => [country, results.countryPoints[country] || 0] as [string, number])
+        .sort(([, pointsA], [, pointsB]) => pointsB - pointsA || 0)
     : allCountries
-        .map(country => [country, results.countryPoints[country] || 0])
-        .sort(([countryA], [countryB]) => (countryA as string).localeCompare(countryB as string));
+        .map(country => [country, results.countryPoints[country] || 0] as [string, number])
+        .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
@@ -516,7 +516,7 @@ export default function Eurovision2023Test() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(0, Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country as string} draggableId={country as string} index={index}>
+                              <Draggable key={country} draggableId={country} index={index}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -579,7 +579,7 @@ export default function Eurovision2023Test() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country as string} draggableId={country as string} index={index + Math.ceil(sortedCountries.length / 2)}>
+                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}

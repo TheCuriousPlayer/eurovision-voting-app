@@ -1,4 +1,4 @@
-import { DraggableLocation } from 'react-beautiful-dnd';
+import { DraggableLocation } from '@hello-pangea/dnd';
 
 export interface DragEndResult {
   draggableId: string;

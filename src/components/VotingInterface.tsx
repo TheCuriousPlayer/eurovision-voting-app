@@ -1,7 +1,7 @@
 'use client'; // Template for dev
 
 import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Image from 'next/image';
 
 const points = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
@@ -80,7 +80,7 @@ export default function VotingInterface() {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [availableCountries, setAvailableCountries] = useState<string[]>(countries);
 
-  const handleDragEnd = (result: { destination?: { droppableId: string; index: number }; source: { droppableId: string; index: number } }): void => {
+  const handleDragEnd = (result: DropResult): void => {
     if (!result.destination) return;
 
     const sourceIndex = result.source.index;
