@@ -1,25 +1,15 @@
 import { NextResponse } from 'next/server';
 import { ResultsData } from '@/types/votes';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import * as memoryStorage from '@/lib/memory-storage';
 
 export async function GET() {
   try {
-    const CUMULATIVE_FILE = join(process.cwd(), 'src', 'app', 'eurovision2023', 'votes', 'cumulativevotes.json');
+    // Initialize default countries
+    memoryStorage.initializeDefaultCountries();
     
-    // Read cumulative results from Python-generated file
-    let cumulativeResults = { countryPoints: {}, totalVotes: 0 };
-    try {
-      if (existsSync(CUMULATIVE_FILE)) {
-        const data = readFileSync(CUMULATIVE_FILE, 'utf-8');
-        cumulativeResults = JSON.parse(data);
-        console.log('Public API: Read cumulative results with', cumulativeResults.totalVotes, 'total votes');
-      } else {
-        console.log('Public API: Cumulative results file does not exist at:', CUMULATIVE_FILE);
-      }
-    } catch (error) {
-      console.error('Public API: Error reading cumulative results from file:', error);
-    }
+    // Get cumulative results from memory storage
+    const cumulativeResults = memoryStorage.getCumulativeResults();
+    console.log('Public API: Read cumulative results with', cumulativeResults.totalVotes, 'total votes');
 
     const results: ResultsData = {
       countryPoints: cumulativeResults.countryPoints,

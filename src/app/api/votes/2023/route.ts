@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
-import voteStorage from '@/lib/storage';
+import * as memoryStorage from '@/lib/memory-storage';
 
 // Legacy cookie-based storage constants (kept for reference)
 // const VOTES_KEY = 'eurovision2023:votes';
@@ -30,18 +30,8 @@ export async function POST(request: Request) {
       timestamp: new Date(),
     };
 
-    // Store vote only in global storage (file-based)
-    voteStorage.addOrUpdateVote(vote);
-
-    // Trigger cumulative results calculation
-    try {
-      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/calculate`, {
-        method: 'POST',
-      });
-    } catch (error) {
-      console.error('Error triggering calculation:', error);
-      // Don't fail the vote if calculation fails
-    }
+    // Store vote in memory storage
+    memoryStorage.addOrUpdateVote(vote);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -58,11 +48,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get cumulative results from Python-generated file
-    const cumulativeResults = voteStorage.getCumulativeResults();
+    // Initialize default countries
+    memoryStorage.initializeDefaultCountries();
+    
+    // Get cumulative results from memory storage
+    const cumulativeResults = memoryStorage.getCumulativeResults();
     
     // Get user's individual vote
-    const userVote = voteStorage.getUserVote(session.user.email!);
+    const userVote = memoryStorage.getUserVote(session.user.email!);
 
     const resultsData: ResultsData = {
       totalVotes: cumulativeResults.totalVotes,
