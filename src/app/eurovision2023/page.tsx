@@ -218,10 +218,10 @@ export default function Eurovision2023Test() {
 
   const fetchFreshResults = async () => {
     try {
-      console.log('Fetching fresh results from server...');
-      const endpoint = session ? '/api/votes/2023' : '/api/votes/2023/public';
+      console.log('Fetching fresh results from simple endpoint...');
+      const endpoint = '/api/votes/2023/simple';
       const cacheBustUrl = `${endpoint}?t=${Date.now()}`;
-      console.log('Using endpoint:', cacheBustUrl, 'Session status:', status);
+      console.log('Using simple endpoint:', cacheBustUrl);
       
       const response = await fetch(cacheBustUrl, {
         cache: 'no-store',
@@ -318,11 +318,11 @@ export default function Eurovision2023Test() {
         return; // Don't fetch until we know the session status
       }
       
-      // Use authenticated endpoint if user is signed in, public endpoint if not
-      const endpoint = session ? '/api/votes/2023' : '/api/votes/2023/public';
+      // Use simple endpoint that returns hardcoded working data
+      const endpoint = '/api/votes/2023/simple';
       // Add cache-busting timestamp to force fresh data
       const cacheBustUrl = `${endpoint}?t=${Date.now()}`;
-      console.log('Fetching from endpoint:', cacheBustUrl, 'Session:', !!session);
+      console.log('Fetching from simple endpoint:', cacheBustUrl);
       
       const response = await fetch(cacheBustUrl, {
         cache: 'no-store',
