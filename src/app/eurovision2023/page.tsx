@@ -311,7 +311,7 @@ export default function Eurovision2023Test() {
     resetAutoRefreshTimer();
   };
 
-  const fetchResults = async () => {
+  const fetchResults = async (retryCount = 0) => {
     try {
       // Wait for session to be loaded before deciding which endpoint to use
       if (status === 'loading') {
@@ -321,8 +321,10 @@ export default function Eurovision2023Test() {
       // Use simple endpoint that returns hardcoded working data
       const endpoint = '/api/votes/2023/simple';
       // Add cache-busting timestamp to force fresh data
-      const cacheBustUrl = `${endpoint}?t=${Date.now()}`;
-      console.log('Fetching from simple endpoint:', cacheBustUrl);
+      // If we expect auth but don't have userVote yet, add waitForAuth param
+      const needsAuth = status === 'authenticated' && session?.user?.email;
+      const cacheBustUrl = `${endpoint}?t=${Date.now()}${needsAuth ? '&waitForAuth=true' : ''}`;
+      console.log('Fetching from simple endpoint:', cacheBustUrl, `(retry: ${retryCount})`);
       
       const response = await fetch(cacheBustUrl, {
         cache: 'no-store',
@@ -336,6 +338,27 @@ export default function Eurovision2023Test() {
         const data = await response.json();
         console.log('Fetched data:', data);
         console.log('Total votes in response:', data.totalVotes);
+        console.log('User session email:', session?.user?.email);
+        console.log('Data session email:', data.sessionEmail);
+        console.log('Has user vote:', !!data.userVote);
+        
+        // If user is authenticated but we don't have their vote yet, and it's not due to no votes existing
+        if (status === 'authenticated' && session?.user?.email && !data.userVote && !data.authPending && retryCount < 3) {
+          console.warn(`User authenticated but no vote found, retrying in 1 second... (attempt ${retryCount + 1}/3)`);
+          setTimeout(() => {
+            fetchResults(retryCount + 1);
+          }, 1000);
+          return;
+        }
+        
+        // Handle auth pending response (202 status)
+        if (data.authPending && retryCount < 5) {
+          console.log(`Authentication pending, retrying in 500ms... (attempt ${retryCount + 1}/5)`);
+          setTimeout(() => {
+            fetchResults(retryCount + 1);
+          }, 500);
+          return;
+        }
         
         // If still getting 0 votes, try a direct API test
         if (data.totalVotes === 0) {
@@ -377,6 +400,7 @@ export default function Eurovision2023Test() {
           });
           
           setSelectedCountries(newSelectedCountries);
+          console.log('User votes loaded into selectedCountries:', newSelectedCountries);
         }
       } else {
         console.error('Error fetching results:', response.status);
@@ -388,7 +412,10 @@ export default function Eurovision2023Test() {
         });
       }
     } finally {
-      setLoading(false);
+      // Only set loading to false if we're not retrying
+      if (retryCount === 0 || status !== 'authenticated' || session?.user?.email) {
+        setLoading(false);
+      }
     }
   };
 

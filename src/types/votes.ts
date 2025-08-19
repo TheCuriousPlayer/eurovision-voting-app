@@ -10,4 +10,6 @@ export interface ResultsData {
   totalVotes: number;
   countryPoints: { [country: string]: number };
   userVote?: Vote;
+  sessionEmail?: string; // For debugging session state
+  authPending?: boolean; // When auth is still loading
 }

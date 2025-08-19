@@ -9,9 +9,25 @@ export const dynamic = 'force-dynamic';
 // Cache for last known valid results
 let lastValidResults: ResultsData | null = null;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    
+    // Check if this is a request specifically asking for user data
+    const url = new URL(request.url);
+    const waitForAuth = url.searchParams.get('waitForAuth') === 'true';
+    
+    // If waiting for auth and no session, return early to allow retry
+    if (waitForAuth && !session?.user?.email) {
+      return NextResponse.json({
+        countryPoints: {},
+        totalVotes: 0,
+        authPending: true
+      }, { 
+        status: 202, // Accepted but processing
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      });
+    }
     
     // Use a single raw SQL query to get all needed data at once
     const [cumulativeData, userData] = await Promise.all([
@@ -61,6 +77,7 @@ export async function GET() {
     const results: ResultsData = {
       countryPoints: typeof countryPoints === 'string' ? JSON.parse(countryPoints) : countryPoints,
       totalVotes,
+      sessionEmail: session?.user?.email, // Add session info for debugging
     };
 
     // Process user vote if authenticated and exists
