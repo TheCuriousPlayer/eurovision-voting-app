@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // Cache for last known valid results
-let lastValidResults: ResultsData | null = null;
+const lastValidResults: ResultsData | null = null;
 
 export async function GET(request: Request) {
   try {
@@ -68,86 +68,44 @@ export async function GET(request: Request) {
 
     console.log('Session user email:', session?.user?.email);
     console.log('User data query result:', userData);
-    
-    // If no user data found, let's check what userIds exist in the votes table
-    if (session?.user?.email && (!Array.isArray(userData) || userData.length === 0)) {
-      try {
-        const allUserIds = await prisma.$queryRaw`
-          SELECT DISTINCT v."userId"
-          FROM votes v
-          JOIN competitions c ON c.id = v."competitionId"
-          WHERE c.year = 2023
-          LIMIT 10
-        `;
-        console.log('All userIds in votes table for 2023:', allUserIds);
-      } catch (debugError) {
-        console.log('Debug query failed:', debugError);
-      }
-    }
+    console.log('Cumulative data query result:', cumulativeData);
+    console.log('User data query result:', userData);
 
-    // Process cumulative results
+    // Fallback logic for cumulative results
     const cumulativeRow = Array.isArray(cumulativeData) && cumulativeData.length > 0 ? 
       cumulativeData[0] as { results: Record<string, number>; totalVotes: number } : null;
     const countryPoints = cumulativeRow?.results || {};
     const totalVotes = cumulativeRow?.totalVotes || 0;
 
-    const results: ResultsData = {
+    if (!cumulativeRow) {
+      console.warn('No cumulative results found for 2023 competition. Returning empty results.');
+      return NextResponse.json({
+        countryPoints: {},
+        totalVotes: 0,
+        authPending: false,
+        sessionEmail: session?.user?.email || null
+      }, {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      });
+    }
+
+    // Process user data if available
+    const userVote = Array.isArray(userData) && userData.length > 0 ? userData[0] : null;
+    if (!userVote) {
+      console.warn('No user vote found for the authenticated user.');
+    }
+
+    return NextResponse.json({
       countryPoints: typeof countryPoints === 'string' ? JSON.parse(countryPoints) : countryPoints,
       totalVotes,
-      sessionEmail: session?.user?.email, // Add session info for debugging
-    };
-
-    // Process user vote if authenticated and exists
-    if (session?.user && Array.isArray(userData) && userData.length > 0) {
-      const userRow = userData[0] as { 
-        votes: string[] | string; 
-        userName: string; 
-        userEmail: string; 
-        updatedAt: Date;
-        userId: string;
-      };
-      
-      console.log('Found user vote data:', {
-        userId: userRow.userId,
-        userName: userRow.userName,
-        userEmail: userRow.userEmail,
-        votesType: typeof userRow.votes,
-        votesValue: userRow.votes,
-        votesLength: Array.isArray(userRow.votes) ? userRow.votes.length : 'not array'
-      });
-      
-      // Parse votes if it's a string
-      let parsedVotes: string[];
-      try {
-        parsedVotes = typeof userRow.votes === 'string' ? JSON.parse(userRow.votes) : userRow.votes;
-      } catch (e) {
-        console.error('Error parsing votes:', e);
-        parsedVotes = [];
-      }
-      
-      results.userVote = {
-        userId: userRow.userId,
-        userName: userRow.userName || session.user.name || session.user.email!,
-        userEmail: userRow.userEmail,
-        votes: parsedVotes,
-        timestamp: userRow.updatedAt
-      };
-      console.log('Simple API: Found real user vote for', userRow.userEmail, 'with', parsedVotes.length, 'countries');
-    } else if (session?.user) {
-      console.log('Simple API: No user vote found for', session.user.email);
-    }
-
-    // Cache the valid results for fallback
-    if (totalVotes > 0) {
-      lastValidResults = { ...results };
-      delete lastValidResults.userVote; // Don't cache user-specific data
-    }
-
-    console.log('Simple API: Returning real data - totalVotes:', totalVotes, 'userVote:', !!results.userVote);
-
-    const response = NextResponse.json(results);
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    return response;
+      userVote,
+      authPending: false,
+      sessionEmail: session?.user?.email || null
+    }, {
+      status: 200,
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+    });
   } catch (error) {
     console.error('Error in simple API:', error);
     
