@@ -91,20 +91,39 @@ export async function GET(request: Request) {
     }
 
     // Process user data if available
-    const userVote = Array.isArray(userData) && userData.length > 0 ? userData[0] : null;
-    if (!userVote) {
+    const rawUserVote = Array.isArray(userData) && userData.length > 0 ? userData[0] as { votes: string | string[] } : null;
+    let userVote = null;
+
+    if (rawUserVote) {
+      console.log('Raw user vote found:', rawUserVote);
+      try {
+        userVote = {
+          ...rawUserVote,
+          // The 'votes' property from the DB is a JSON string, so we need to parse it.
+          votes: typeof rawUserVote.votes === 'string' ? JSON.parse(rawUserVote.votes) : rawUserVote.votes,
+        };
+        console.log('Processed user vote:', userVote);
+      } catch (e) {
+        console.error('Failed to parse user vote data:', e);
+        // If parsing fails, we'll proceed without user-specific vote data.
+      }
+    } else {
       console.warn('No user vote found for the authenticated user.');
     }
 
-    return NextResponse.json({
+    const responsePayload = {
       countryPoints: typeof countryPoints === 'string' ? JSON.parse(countryPoints) : countryPoints,
       totalVotes,
       userVote,
       authPending: false,
-      sessionEmail: session?.user?.email || null
-    }, {
+      sessionEmail: session?.user?.email || null,
+    };
+
+    console.log('Final API response payload:', responsePayload);
+
+    return NextResponse.json(responsePayload, {
       status: 200,
-      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
     });
   } catch (error) {
     console.error('Error in simple API:', error);
