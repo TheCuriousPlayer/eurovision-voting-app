@@ -23,15 +23,34 @@ export async function GET() {
         WHERE c.year = 2023
         LIMIT 1
       `,
-      // Get user vote if authenticated
+      // Get user vote if authenticated - try both userId and userEmail matching
       session?.user?.email ? prisma.$queryRaw`
-        SELECT v.votes, v."userName", v."userEmail", v."updatedAt"
+        SELECT v.votes, v."userName", v."userEmail", v."updatedAt", v."userId"
         FROM votes v
         JOIN competitions c ON c.id = v."competitionId"
-        WHERE c.year = 2023 AND v."userId" = ${session.user.email}
+        WHERE c.year = 2023 AND (v."userId" = ${session.user.email} OR v."userEmail" = ${session.user.email})
         LIMIT 1
       ` : Promise.resolve([])
     ]);
+
+    console.log('Session user email:', session?.user?.email);
+    console.log('User data query result:', userData);
+    
+    // If no user data found, let's check what userIds exist in the votes table
+    if (session?.user?.email && (!Array.isArray(userData) || userData.length === 0)) {
+      try {
+        const allUserIds = await prisma.$queryRaw`
+          SELECT DISTINCT v."userId"
+          FROM votes v
+          JOIN competitions c ON c.id = v."competitionId"
+          WHERE c.year = 2023
+          LIMIT 10
+        `;
+        console.log('All userIds in votes table for 2023:', allUserIds);
+      } catch (debugError) {
+        console.log('Debug query failed:', debugError);
+      }
+    }
 
     // Process cumulative results
     const cumulativeRow = Array.isArray(cumulativeData) && cumulativeData.length > 0 ? 
@@ -50,16 +69,38 @@ export async function GET() {
         votes: string[] | string; 
         userName: string; 
         userEmail: string; 
-        updatedAt: Date 
+        updatedAt: Date;
+        userId: string;
       };
+      
+      console.log('Found user vote data:', {
+        userId: userRow.userId,
+        userName: userRow.userName,
+        userEmail: userRow.userEmail,
+        votesType: typeof userRow.votes,
+        votesValue: userRow.votes,
+        votesLength: Array.isArray(userRow.votes) ? userRow.votes.length : 'not array'
+      });
+      
+      // Parse votes if it's a string
+      let parsedVotes: string[];
+      try {
+        parsedVotes = typeof userRow.votes === 'string' ? JSON.parse(userRow.votes) : userRow.votes;
+      } catch (e) {
+        console.error('Error parsing votes:', e);
+        parsedVotes = [];
+      }
+      
       results.userVote = {
-        userId: session.user.email!,
+        userId: userRow.userId,
         userName: userRow.userName || session.user.name || session.user.email!,
-        userEmail: session.user.email!,
-        votes: typeof userRow.votes === 'string' ? JSON.parse(userRow.votes) : userRow.votes,
+        userEmail: userRow.userEmail,
+        votes: parsedVotes,
         timestamp: userRow.updatedAt
       };
-      console.log('Simple API: Found real user vote for', session.user.email);
+      console.log('Simple API: Found real user vote for', userRow.userEmail, 'with', parsedVotes.length, 'countries');
+    } else if (session?.user) {
+      console.log('Simple API: No user vote found for', session.user.email);
     }
 
     // Cache the valid results for fallback
