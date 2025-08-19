@@ -33,33 +33,42 @@ export class DatabaseStorage {
   // Initialize competitions (run once)
   async initializeCompetitions() {
     try {
-      // Create Eurovision 2023 if not exists
-      await prisma.competition.upsert({
-        where: { year: 2023 },
-        update: {},
-        create: {
-          year: 2023,
-          name: 'Eurovision 2023',
-          countries: EUROVISION_2023_COUNTRIES,
-          isActive: true
-        }
+      // Check if competitions already exist first to avoid unnecessary upserts
+      const existing2023 = await prisma.competition.findUnique({
+        where: { year: 2023 }
       });
 
+      if (!existing2023) {
+        await prisma.competition.create({
+          data: {
+            year: 2023,
+            name: 'Eurovision 2023',
+            countries: EUROVISION_2023_COUNTRIES,
+            isActive: true
+          }
+        });
+      }
+
       // Create Eurovision 2024 if not exists
-      await prisma.competition.upsert({
-        where: { year: 2024 },
-        update: {},
-        create: {
-          year: 2024,
-          name: 'Eurovision 2024',
-          countries: EUROVISION_2024_COUNTRIES,
-          isActive: true
-        }
+      const existing2024 = await prisma.competition.findUnique({
+        where: { year: 2024 }
       });
+
+      if (!existing2024) {
+        await prisma.competition.create({
+          data: {
+            year: 2024,
+            name: 'Eurovision 2024',
+            countries: EUROVISION_2024_COUNTRIES,
+            isActive: true
+          }
+        });
+      }
 
       console.log('Competitions initialized successfully');
     } catch (error) {
       console.error('Error initializing competitions:', error);
+      // Continue without throwing - competitions may already exist
     }
   }
 
@@ -161,6 +170,7 @@ export class DatabaseStorage {
       });
 
       if (!competition) {
+        console.log(`Competition for year ${year} not found`);
         return { countryPoints: {}, totalVotes: 0 };
       }
 
@@ -170,6 +180,7 @@ export class DatabaseStorage {
       });
 
       if (cached) {
+        console.log(`Found cached results for ${year}: ${cached.totalVotes} votes`);
         return {
           countryPoints: cached.results as { [country: string]: number },
           totalVotes: cached.totalVotes
@@ -177,9 +188,11 @@ export class DatabaseStorage {
       }
 
       // Calculate if not cached
+      console.log(`No cached results found for ${year}, calculating...`);
       return await this.updateCumulativeResults(year);
     } catch (error) {
       console.error('Error getting cumulative results:', error);
+      // Return empty results instead of throwing
       return { countryPoints: {}, totalVotes: 0 };
     }
   }
