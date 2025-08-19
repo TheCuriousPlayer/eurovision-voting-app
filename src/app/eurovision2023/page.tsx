@@ -345,20 +345,26 @@ export default function Eurovision2023Test() {
         // If user is authenticated but we don't have their vote yet, and it's not due to no votes existing
         if (status === 'authenticated' && session?.user?.email && !data.userVote && !data.authPending && retryCount < 3) {
           console.warn(`User authenticated but no vote found, retrying in 1 second... (attempt ${retryCount + 1}/3)`);
+          
+          // Set results with cumulative data so user sees something while waiting
+          setResults(data);
+          
           setTimeout(() => {
             fetchResults(retryCount + 1);
           }, 1000);
-          // Don't set results yet, wait for retry
           return;
         }
         
         // Handle auth pending response (202 status)
         if (data.authPending && retryCount < 5) {
           console.log(`Authentication pending, retrying in 500ms... (attempt ${retryCount + 1}/5)`);
+          
+          // Set results with cumulative data so user sees something while waiting
+          setResults(data);
+          
           setTimeout(() => {
             fetchResults(retryCount + 1);
           }, 500);
-          // Don't set results yet, wait for retry
           return;
         }
         
@@ -448,6 +454,7 @@ export default function Eurovision2023Test() {
   }
 
   // Show loading during authentication if we expect user data but don't have results yet
+  // Only show this if we have absolutely no data to display
   if (status === 'authenticated' && !results) {
     return <div className="flex items-center justify-center min-h-screen">Loading your votes...</div>;
   }
