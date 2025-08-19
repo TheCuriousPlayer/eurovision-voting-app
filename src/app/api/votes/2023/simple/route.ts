@@ -19,10 +19,27 @@ export async function GET(request: Request) {
     
     // If waiting for auth and no session, return early to allow retry
     if (waitForAuth && !session?.user?.email) {
+      // Get cumulative data to show at least that while waiting for auth
+      const [cumulativeData] = await Promise.all([
+        prisma.$queryRaw`
+          SELECT cr.results, cr."totalVotes"
+          FROM cumulative_results cr
+          JOIN competitions c ON c.id = cr."competitionId"
+          WHERE c.year = 2023
+          LIMIT 1
+        `
+      ]);
+      
+      const cumulativeRow = Array.isArray(cumulativeData) && cumulativeData.length > 0 ? 
+        cumulativeData[0] as { results: Record<string, number>; totalVotes: number } : null;
+      const countryPoints = cumulativeRow?.results || {};
+      const totalVotes = cumulativeRow?.totalVotes || 0;
+      
       return NextResponse.json({
-        countryPoints: {},
-        totalVotes: 0,
-        authPending: true
+        countryPoints: typeof countryPoints === 'string' ? JSON.parse(countryPoints) : countryPoints,
+        totalVotes,
+        authPending: true,
+        sessionEmail: null
       }, { 
         status: 202, // Accepted but processing
         headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }

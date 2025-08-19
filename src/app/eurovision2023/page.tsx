@@ -348,6 +348,7 @@ export default function Eurovision2023Test() {
           setTimeout(() => {
             fetchResults(retryCount + 1);
           }, 1000);
+          // Don't set results yet, wait for retry
           return;
         }
         
@@ -357,6 +358,7 @@ export default function Eurovision2023Test() {
           setTimeout(() => {
             fetchResults(retryCount + 1);
           }, 500);
+          // Don't set results yet, wait for retry
           return;
         }
         
@@ -404,16 +406,20 @@ export default function Eurovision2023Test() {
         }
       } else {
         console.error('Error fetching results:', response.status);
-        // Fallback for unauthenticated users
-        setResults({
-          countryPoints: {},
-          totalVotes: 0,
-          // userVote omitted (undefined) for fallback
-        });
+        
+        // Only show fallback if we're not retrying
+        if (retryCount === 0) {
+          // Fallback for unauthenticated users or final failure
+          setResults({
+            countryPoints: {},
+            totalVotes: 0,
+            // userVote omitted (undefined) for fallback
+          });
+        }
       }
     } finally {
-      // Only set loading to false if we're not retrying
-      if (retryCount === 0 || status !== 'authenticated' || session?.user?.email) {
+      // Only set loading to false if we're done with retries
+      if (retryCount === 0 || status !== 'authenticated' || !session?.user?.email) {
         setLoading(false);
       }
     }
@@ -441,7 +447,12 @@ export default function Eurovision2023Test() {
     return <div className="flex items-center justify-center min-h-screen">Loading results...</div>;
   }
 
-  if (!results) {
+  // Show loading during authentication if we expect user data but don't have results yet
+  if (status === 'authenticated' && !results) {
+    return <div className="flex items-center justify-center min-h-screen">Loading your votes...</div>;
+  }
+
+  if (!results && status !== 'loading') {
     return <div className="flex items-center justify-center min-h-screen">Error loading results</div>;
   }
 
