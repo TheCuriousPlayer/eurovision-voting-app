@@ -6,6 +6,9 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+// Cache for last known valid results
+let lastValidResults: ResultsData | null = null;
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -59,6 +62,12 @@ export async function GET() {
       console.log('Simple API: Found real user vote for', session.user.email);
     }
 
+    // Cache the valid results for fallback
+    if (totalVotes > 0) {
+      lastValidResults = { ...results };
+      delete lastValidResults.userVote; // Don't cache user-specific data
+    }
+
     console.log('Simple API: Returning real data - totalVotes:', totalVotes, 'userVote:', !!results.userVote);
 
     const response = NextResponse.json(results);
@@ -67,20 +76,15 @@ export async function GET() {
   } catch (error) {
     console.error('Error in simple API:', error);
     
-    // Fallback to the working hardcoded data if database fails
-    const fallbackResults = {
-      "Italy": 0, "Malta": 6, "Spain": 1, "Cyprus": 0, "France": 12, "Greece": 0, 
-      "Israel": 2, "Latvia": 0, "Norway": 24, "Poland": 10, "Serbia": 0, "Sweden": 34, 
-      "Albania": 0, "Armenia": 5, "Austria": 14, "Belgium": 7, "Croatia": 0, "Czechia": 2, 
-      "Denmark": 0, "Estonia": 5, "Finland": 9, "Georgia": 0, "Germany": 0, "Iceland": 0, 
-      "Ireland": 0, "Moldova": 19, "Romania": 0, "Ukraine": 0, "Portugal": 0, "Slovenia": 10, 
-      "Australia": 6, "Lithuania": 0, "Azerbaijan": 0, "San Marino": 0, "Netherlands": 0, 
-      "Switzerland": 8, "United Kingdom": 0
-    };
+    // Return last known valid results if available, otherwise empty
+    if (lastValidResults) {
+      console.log('Simple API: Returning cached valid results as fallback');
+      return NextResponse.json(lastValidResults);
+    }
     
     return NextResponse.json({
-      countryPoints: fallbackResults,
-      totalVotes: 3,
-    });
+      countryPoints: {},
+      totalVotes: 0,
+    }, { status: 500 });
   }
 }
