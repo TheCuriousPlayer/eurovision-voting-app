@@ -181,6 +181,21 @@ export class DatabaseStorage {
 
       if (cached) {
         console.log(`Found cached results for ${year}: ${cached.totalVotes} votes`);
+        // If cached shows 0 votes, double-check if there are actually votes in DB (defensive)
+        if (cached.totalVotes === 0) {
+          try {
+            const voteCount = await prisma.vote.count({ where: { competitionId: competition.id } });
+            if (voteCount > 0) {
+              console.warn(`Cached cumulative results show 0 but found ${voteCount} votes. Recomputing...`);
+              const recomputed = await this.updateCumulativeResults(year);
+              if (recomputed.totalVotes > 0) {
+                return recomputed;
+              }
+            }
+          } catch (innerErr) {
+            console.warn('Secondary verification of votes failed:', innerErr);
+          }
+        }
         return {
           countryPoints: cached.results as { [country: string]: number },
           totalVotes: cached.totalVotes
@@ -192,7 +207,18 @@ export class DatabaseStorage {
       return await this.updateCumulativeResults(year);
     } catch (error) {
       console.error('Error getting cumulative results:', error);
-      // Return empty results instead of throwing
+      // Attempt a last-chance recompute before giving up
+      try {
+        console.warn('Attempting fallback recomputation of cumulative results...');
+        const fallback = await this.updateCumulativeResults(year);
+        if (fallback.totalVotes > 0) {
+          console.warn('Fallback recomputation succeeded with', fallback.totalVotes, 'votes');
+          return fallback;
+        }
+      } catch (recomputeErr) {
+        console.warn('Fallback recomputation also failed:', recomputeErr);
+      }
+      // Return empty results if everything failed
       return { countryPoints: {}, totalVotes: 0 };
     }
   }
