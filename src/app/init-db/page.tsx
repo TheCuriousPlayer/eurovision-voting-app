@@ -45,11 +45,11 @@ export default function InitDbPage() {
   const cleanupVotes = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/cleanup-votes', { method: 'POST' });
+      const response = await fetch('/api/recalculate', { method: 'POST' });
       const data = await response.json();
       setResult(data);
     } catch {
-      setResult({ error: 'Failed to cleanup votes' });
+      setResult({ error: 'Failed to recalculate results' });
     }
     setLoading(false);
   };
@@ -88,7 +88,7 @@ export default function InitDbPage() {
           disabled={loading}
           className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          {loading ? 'Loading...' : 'Cleanup Duplicate Votes'}
+          {loading ? 'Loading...' : 'Fix Vote Counting'}
         </button>
       </div>
 

@@ -3,59 +3,53 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST() {
   try {
-    // Get all votes to see what we have
-    const allVotes = await prisma.vote.findMany({
-      include: {
-        competition: true
-      }
-    });
-
-    console.log('All votes before cleanup:', allVotes);
-
     // Get all competitions
     const competitions = await prisma.competition.findMany();
 
-    // For each competition, ensure we only have unique votes per user
+    // For each competition, just recalculate the cumulative results properly
     for (const competition of competitions) {
       // Get all votes for this competition
       const votes = await prisma.vote.findMany({
-        where: { competitionId: competition.id },
-        orderBy: { createdAt: 'desc' } // Keep the latest vote for each user
+        where: { competitionId: competition.id }
       });
 
       console.log(`Competition ${competition.year} has ${votes.length} votes`);
 
-      // Group votes by userId and keep only the latest one
-      const userVotes = new Map();
+      // Check for actual duplicates (same userId in same competition)
+      const userVoteMap = new Map();
+      const duplicates = [];
+      
       votes.forEach(vote => {
-        if (!userVotes.has(vote.userId) || vote.createdAt > userVotes.get(vote.userId).createdAt) {
-          userVotes.set(vote.userId, vote);
+        if (userVoteMap.has(vote.userId)) {
+          // This is a duplicate - keep the newer one
+          const existingVote = userVoteMap.get(vote.userId);
+          if (vote.createdAt > existingVote.createdAt) {
+            duplicates.push(existingVote.id);
+            userVoteMap.set(vote.userId, vote);
+          } else {
+            duplicates.push(vote.id);
+          }
+        } else {
+          userVoteMap.set(vote.userId, vote);
         }
       });
 
-      // Delete all votes for this competition
-      await prisma.vote.deleteMany({
+      // Delete only actual duplicates
+      if (duplicates.length > 0) {
+        await prisma.vote.deleteMany({
+          where: {
+            id: { in: duplicates }
+          }
+        });
+        console.log(`Deleted ${duplicates.length} duplicate votes`);
+      }
+
+      // Get remaining votes after cleanup
+      const cleanVotes = await prisma.vote.findMany({
         where: { competitionId: competition.id }
       });
 
-      // Re-insert only the unique latest votes
-      const uniqueVotes = Array.from(userVotes.values());
-      for (const vote of uniqueVotes) {
-        await prisma.vote.create({
-          data: {
-            userId: vote.userId,
-            userName: vote.userName,
-            userEmail: vote.userEmail,
-            competitionId: vote.competitionId,
-            votes: vote.votes,
-            points: vote.points
-          }
-        });
-      }
-
-      console.log(`Competition ${competition.year} now has ${uniqueVotes.length} unique votes`);
-
-      // Recalculate cumulative results
+      // Recalculate cumulative results with clean data
       const countryPoints: { [country: string]: number } = {};
       
       // Initialize all countries to 0
@@ -63,8 +57,8 @@ export async function POST() {
         countryPoints[country as string] = 0;
       });
 
-      // Sum up all unique votes
-      uniqueVotes.forEach(vote => {
+      // Sum up all clean votes
+      cleanVotes.forEach(vote => {
         const points = vote.points as { [country: string]: number };
         Object.entries(points).forEach(([country, pointsValue]) => {
           if (countryPoints[country] !== undefined) {
@@ -78,20 +72,22 @@ export async function POST() {
         where: { competitionId: competition.id },
         update: {
           results: countryPoints,
-          totalVotes: uniqueVotes.length,
+          totalVotes: cleanVotes.length,
           lastUpdated: new Date()
         },
         create: {
           competitionId: competition.id,
           results: countryPoints,
-          totalVotes: uniqueVotes.length
+          totalVotes: cleanVotes.length
         }
       });
+
+      console.log(`Competition ${competition.year} now has ${cleanVotes.length} votes and updated results`);
     }
 
     return NextResponse.json({ 
       success: true,
-      message: 'Database cleaned and deduplicated',
+      message: 'Database recalculated - duplicates removed safely',
       totalCompetitions: competitions.length
     });
   } catch (error) {
