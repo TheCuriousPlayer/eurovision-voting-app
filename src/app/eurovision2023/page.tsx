@@ -6,59 +6,59 @@ import Image from 'next/image';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
-const countryToCode: { [key: string]: string } = {
-  'Albania': 'AL',
-//   'Andorra': 'AD',
-  'Armenia': 'AM',
-  'Australia': 'AU',
-  'Austria': 'AT',
-  'Azerbaijan': 'AZ',
-//   'Belarus': 'BY',
-  'Belgium': 'BE',
-//   'Bosnia & Herzegovina': 'BA',
-//   'Bulgaria': 'BG',
-  'Croatia': 'HR',
-  'Cyprus': 'CY',
-  'Czechia': 'CZ',
-  'Denmark': 'DK',
-  'Estonia': 'EE',
-  'Finland': 'FI',
-  'France': 'FR',
-  'Georgia': 'GE',
-  'Germany': 'DE',
-  'Greece': 'GR',
-//   'Hungary': 'HU',
-  'Iceland': 'IS',
-  'Ireland': 'IE',
-  'Israel': 'IL',
-  'Italy': 'IT',
-  'Latvia': 'LV',
-  'Lithuania': 'LT',
-//   'Luxembourg': 'LU',
-  'Malta': 'MT',
-  'Moldova': 'MD',
-//   'Monaco': 'MC',
-//   'Montenegro': 'ME',
-//   'Morocco': 'MA',
-  'Netherlands': 'NL',
-//   'North Macedonia': 'MK',
-  'Norway': 'NO',
-  'Poland': 'PL',
-  'Portugal': 'PT',
-  'Romania': 'RO',
-//   'Russia': 'RU',
-  'San Marino': 'SM',
-  'Serbia': 'RS',
-//   'Serbia Montenegro': 'RM',
-//   'Slovakia': 'SK',
-  'Slovenia': 'SI',
-  'Spain': 'ES',
-  'Sweden': 'SE',
-  'Switzerland': 'CH',
-//   'Türkiye': 'TR',
-  'Ukraine': 'UA',
-  'United Kingdom': 'GB',
-//   'Yugoslavia': 'YU'
+const eurovision2023Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
+  'Albania': { code: 'AL', performer: 'Albina & Familja Kelmendi', song: 'Duje', youtubeId: 'YG_hHq-1Sew' },
+//   'Andorra': { code: 'AD', performer: '', song: '', youtubeId: '' },
+  'Armenia': { code: 'AM', performer: 'Brunette', song: 'Future Lover', youtubeId: 'kGHspTAASHk' },
+  'Australia': { code: 'AU', performer: 'Voyager', song: 'Promise', youtubeId: 'hfjHYfct2fU' },
+  'Austria': { code: 'AT', performer: 'Teya & Salena', song: 'Who the Hell Is Edgar?', youtubeId: 'l5arNtTYK1s' },
+  'Azerbaijan': { code: 'AZ', performer: 'TuralTuranX', song: 'Tell Me More', youtubeId: 'YmyOg2taS78' },
+//   'Belarus': { code: 'BY', performer: '', song: '', youtubeId: '' },
+  'Belgium': { code: 'BE', performer: 'Gustaph', song: 'Because of You', youtubeId: 'WdCf0_LQ7Ng' },
+//   'Bosnia & Herzegovina': { code: 'BA', performer: '', song: '', youtubeId: '' },
+//   'Bulgaria': { code: 'BG', performer: '', song: '', youtubeId: '' },
+  'Croatia': { code: 'HR', performer: 'Let 3', song: 'Mama ŠČ!', youtubeId: 'Aa0ZsSBJ0_E' },
+  'Cyprus': { code: 'CY', performer: 'Andrew Lambrou', song: 'Break a Broken Heart', youtubeId: 'fKi5TygLMgE' },
+  'Czechia': { code: 'CZ', performer: 'Vesna', song: 'My Sister\'s Crown', youtubeId: 'WWQmBE_LIDM' },
+  'Denmark': { code: 'DK', performer: 'Reiley', song: 'Breaking My Heart', youtubeId: 'oWODJdAP1Ws' },
+  'Estonia': { code: 'EE', performer: 'Alika', song: 'Bridges', youtubeId: 'ST7_ZwLLxjA' },
+  'Finland': { code: 'FI', performer: 'Käärijä', song: 'Cha Cha Cha', youtubeId: '3jBhGFd_yrw' },
+  'France': { code: 'FR', performer: 'La Zarra', song: 'Évidemment', youtubeId: 'VE-W4IlOMV4' },
+  'Georgia': { code: 'GE', performer: 'Iru', song: 'Echo', youtubeId: 'GCyYDn_hhMU' },
+  'Germany': { code: 'DE', performer: 'Lord of the Lost', song: 'Blood & Glitter', youtubeId: 'L7GFXecnHxI' },
+  'Greece': { code: 'GR', performer: 'Victor Vernicos', song: 'What They Say', youtubeId: 'nGBCPCSkFKE' },
+//   'Hungary': { code: 'HU', performer: '', song: '', youtubeId: '' },
+  'Iceland': { code: 'IS', performer: 'Diljá', song: 'Power', youtubeId: 'JTKocvYaXB8' },
+  'Ireland': { code: 'IE', performer: 'Wild Youth', song: 'We Are One', youtubeId: 'V3ADK6gsDGg' },
+  'Israel': { code: 'IL', performer: 'Noa Kirel', song: 'Unicorn', youtubeId: '3GjpB_aiA4k' },
+  'Italy': { code: 'IT', performer: 'Marco Mengoni', song: 'Due vite', youtubeId: 'GtDvVPAqGGo' },
+  'Latvia': { code: 'LV', performer: 'Sudden Lights', song: 'Aijā', youtubeId: 'l8_VkJp5CZ4' },
+  'Lithuania': { code: 'LT', performer: 'Monika Linkytė', song: 'Stay', youtubeId: 'oP_gjHuFCQA' },
+//   'Luxembourg': { code: 'LU', performer: '', song: '', youtubeId: '' },
+  'Malta': { code: 'MT', performer: 'The Busker', song: 'Dance (Our Own Party)', youtubeId: '7Ft1ROOJgGs' },
+  'Moldova': { code: 'MD', performer: 'Pasha Parfeni', song: 'Soarele și luna', youtubeId: 'TZ8aKHE7gF8' },
+//   'Monaco': { code: 'MC', performer: '', song: '', youtubeId: '' },
+//   'Montenegro': { code: 'ME', performer: '', song: '', youtubeId: '' },
+//   'Morocco': { code: 'MA', performer: '', song: '', youtubeId: '' },
+  'Netherlands': { code: 'NL', performer: 'Mia Nicolai & Dion Cooper', song: 'Burning Daylight', youtubeId: 'N6WNQ_aSNGY' },
+//   'North Macedonia': { code: 'MK', performer: '', song: '', youtubeId: '' },
+  'Norway': { code: 'NO', performer: 'Alessandra', song: 'Queen of Kings', youtubeId: 'PUHSM_vTqTI' },
+  'Poland': { code: 'PL', performer: 'Blanka', song: 'Solo', youtubeId: '6eneGI6BLgM' },
+  'Portugal': { code: 'PT', performer: 'Mimicat', song: 'Ai coração', youtubeId: '4PYnb1HXRT0' },
+  'Romania': { code: 'RO', performer: 'Theodor Andrei', song: 'D.G.T. (Off and On)', youtubeId: 'sV4c52dQlMI' },
+//   'Russia': { code: 'RU', performer: '', song: '', youtubeId: '' },
+  'San Marino': { code: 'SM', performer: 'Piqued Jacks', song: 'Like an Animal', youtubeId: 'hKg93s8D57k' },
+  'Serbia': { code: 'RS', performer: 'Luke Black', song: 'Samo mi se spava', youtubeId: '9u3Y0CkJb8I' },
+//   'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
+//   'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
+  'Slovenia': { code: 'SI', performer: 'Joker Out', song: 'Carpe Diem', youtubeId: 'Ucqb7Mr_pZ4' },
+  'Spain': { code: 'ES', performer: 'Blanca Paloma', song: 'Eaea', youtubeId: 'YTdF5iLKXwM' },
+  'Sweden': { code: 'SE', performer: 'Loreen', song: 'Tattoo', youtubeId: 'cbZgtOo0i_w' },
+  'Switzerland': { code: 'CH', performer: 'Remo Forrer', song: 'Watergun', youtubeId: 'N2wLFTM5J9c' },
+//   'Türkiye': { code: 'TR', performer: '', song: '', youtubeId: '' },
+  'Ukraine': { code: 'UA', performer: 'Tvorchi', song: 'Heart of Steel', youtubeId: 'F-6JOE8GdvM' },
+  'United Kingdom': { code: 'GB', performer: 'Mae Muller', song: 'I Wrote a Song', youtubeId: 'YpOB_dxIW70' },
+//   'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
 };
 
 export default function Eurovision2023Test() {
@@ -68,6 +68,24 @@ export default function Eurovision2023Test() {
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
   const [showResults, setShowResults] = useState(false); // Toggle for showing results with points
   const [autoRefreshTimer, setAutoRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState<string>('');
+  const [selectedCountryName, setSelectedCountryName] = useState<string>('');
+
+  const openYouTubeModal = (country: string) => {
+    const songData = eurovision2023Songs[country];
+    if (songData?.youtubeId) {
+      setSelectedVideoId(songData.youtubeId);
+      setSelectedCountryName(country);
+      setShowYouTubeModal(true);
+    }
+  };
+
+  const closeYouTubeModal = () => {
+    setShowYouTubeModal(false);
+    setSelectedVideoId('');
+    setSelectedCountryName('');
+  };
 
   useEffect(() => {
     // Only fetch results once we know the session status
@@ -108,7 +126,7 @@ export default function Eurovision2023Test() {
     console.log('Updating results with selectedCountries:', selectedCountries);
 
     // Start with base points (all countries at 0)
-    const allCountries = Object.keys(countryToCode);
+    const allCountries = Object.keys(eurovision2023Songs);
     const basePoints: { [country: string]: number } = {};
     
     // Initialize all countries to 0
@@ -242,7 +260,17 @@ export default function Eurovision2023Test() {
 
     const sourceId = result.source.droppableId;
     const destinationId = result.destination.droppableId;
-    const country = result.draggableId;
+    const draggableId = result.draggableId;
+    
+    // Extract country name from draggableId
+    let country: string;
+    if (draggableId.startsWith('slot-')) {
+      // Extract country from slot draggable ID: "slot-0-CountryName"
+      country = draggableId.split('-').slice(2).join('-');
+    } else {
+      // Regular country draggable from results
+      country = draggableId;
+    }
 
     const newSelectedCountries = [...selectedCountries];
 
@@ -390,8 +418,8 @@ export default function Eurovision2023Test() {
     </div>
   );
 
-  // Get all countries from the countryToCode mapping
-  const allCountries = Object.keys(countryToCode);
+  // Get all countries from the eurovision2023Songs mapping
+  const allCountries = Object.keys(eurovision2023Songs);
   
   // Create array of all countries with their points (including 0 points)
   // Sort alphabetically when results are hidden, by points when shown
@@ -431,22 +459,41 @@ export default function Eurovision2023Test() {
                               snapshot.isDraggingOver ? 'bg-[#243342] border-2 border-dashed border-[#4a5d6e]' : ''
                             } min-h-[60px] rounded w-full max-w-[380px]`}
                           >
-                            <div className={`flex items-center justify-between w-full max-w-full ${selectedCountries[index] ? 'bg-[#34495e]' : 'bg-[#2a3846] border-2 border-dashed border-[#34495e]'} p-3 rounded`}>
+                            <div 
+                              className={`flex items-center justify-between w-full max-w-full ${
+                                selectedCountries[index] ? 'bg-[#34495e]' : 'bg-[#2a3846] border-2 border-dashed border-[#34495e]'
+                              } p-3 rounded`}
+                            >
                               <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
                                 <span className={`font-bold flex-shrink-0 ${selectedCountries[index] ? 'text-white' : 'text-gray-500'}`}>
                                   {index + 1}.
                                 </span>
                                 {selectedCountries[index] ? (
-                                  <>
-                                    <Image 
-                                      src={`/flags/${selectedCountries[index].replace('&', 'and')}_${countryToCode[selectedCountries[index]]}.png`}
-                                      alt={`${selectedCountries[index]} flag`}
-                                      width={24}
-                                      height={16}
-                                      className="object-cover rounded flex-shrink-0"
-                                    />
-                                    <span className="text-white truncate">{selectedCountries[index]}</span>
-                                  </>
+                                  <Draggable 
+                                    key={`${selectedCountries[index]}-${index}`} 
+                                    draggableId={`slot-${index}-${selectedCountries[index]}`} 
+                                    index={index}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`flex items-center gap-2 flex-1 min-w-0 overflow-hidden ${
+                                          snapshot.isDragging ? 'opacity-50' : ''
+                                        }`}
+                                      >
+                                        <Image 
+                                          src={`/flags/${selectedCountries[index].replace('&', 'and')}_${eurovision2023Songs[selectedCountries[index]]?.code}.png`}
+                                          alt={`${selectedCountries[index]} flag`}
+                                          width={24}
+                                          height={16}
+                                          className="object-cover rounded flex-shrink-0"
+                                        />
+                                        <span className="text-white truncate">{selectedCountries[index]}</span>
+                                      </div>
+                                    )}
+                                  </Draggable>
                                 ) : (
                                   <>
                                     <div className="w-6 h-4 bg-[#34495e] rounded opacity-30 flex-shrink-0" />
@@ -481,7 +528,7 @@ export default function Eurovision2023Test() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    Drag countries from the results list to vote (max 10)
+                    Drag countries from the results list to vote (max 10). Drag countries between slots to reorder.
                   </div>
                   <button
                     onClick={toggleShowResults}
@@ -535,17 +582,41 @@ export default function Eurovision2023Test() {
                                         {index + 1}.
                                       </span>
                                       <Image 
-                                        src={`/flags/${country.replace('&', 'and')}_${countryToCode[country]}.png`}
+                                        src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
                                         alt={`${country} flag`}
                                         width={24}
                                         height={16}
                                         className={`object-cover rounded ${
-                                          showResults && points === 0 ? 'opacity-60' : ''
+                                          !showResults ? 'opacity-60' : ''
                                         }`}
                                       />
-                                      <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
-                                        {country}
-                                      </span>
+                                      <div className="flex flex-col min-w-0 flex-1">
+                                        <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
+                                          {country}
+                                        </span>
+                                        {eurovision2023Songs[country] && (
+                                          <div className="flex flex-col">
+                                            <span className="text-xs text-gray-400 truncate">
+                                              {eurovision2023Songs[country].performer}
+                                            </span>
+                                            <span className="text-xs text-gray-500 truncate">
+                                              {eurovision2023Songs[country].song}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {eurovision2023Songs[country]?.youtubeId && (
+                                        <button 
+                                          onClick={() => openYouTubeModal(country)}
+                                          className="ml-2 text-red-600 hover:text-red-800 transition-colors"
+                                          title="Watch Eurovision Performance"
+                                        >
+                                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                            <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                          </svg>
+                                        </button>
+                                      )}
                                       {session && selectedCountries.includes(country) && (
                                         <span className="text-xs text-gray-400 whitespace-nowrap">
                                           (#{selectedCountries.indexOf(country) + 1})
@@ -598,17 +669,41 @@ export default function Eurovision2023Test() {
                                         {index + Math.ceil(sortedCountries.length / 2) + 1}.
                                       </span>
                                       <Image 
-                                        src={`/flags/${country.replace('&', 'and')}_${countryToCode[country]}.png`}
+                                        src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
                                         alt={`${country} flag`}
                                         width={24}
                                         height={16}
                                         className={`object-cover rounded ${
-                                          showResults && points === 0 ? 'opacity-60' : ''
+                                          !showResults ? 'opacity-60' : ''
                                         }`}
                                       />
-                                      <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
-                                        {country}
-                                      </span>
+                                      <div className="flex flex-col min-w-0 flex-1">
+                                        <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
+                                          {country}
+                                        </span>
+                                        {eurovision2023Songs[country] && (
+                                          <div className="flex flex-col">
+                                            <span className="text-xs text-gray-400 truncate">
+                                              {eurovision2023Songs[country].performer}
+                                            </span>
+                                            <span className="text-xs text-gray-500 truncate">
+                                              {eurovision2023Songs[country].song}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {eurovision2023Songs[country]?.youtubeId && (
+                                        <button 
+                                          onClick={() => openYouTubeModal(country)}
+                                          className="ml-2 text-red-600 hover:text-red-800 transition-colors"
+                                          title="Watch Eurovision Performance"
+                                        >
+                                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                            <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                          </svg>
+                                        </button>
+                                      )}
                                       {session && selectedCountries.includes(country) && (
                                         <span className="text-xs text-gray-400 whitespace-nowrap">
                                           (#{selectedCountries.indexOf(country) + 1})
@@ -669,17 +764,41 @@ export default function Eurovision2023Test() {
                             {index + 1}.
                           </span>
                           <Image 
-                            src={`/flags/${country.replace('&', 'and')}_${countryToCode[country]}.png`}
+                            src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
                             alt={`${country} flag`}
                             width={24}
                             height={16}
                             className={`object-cover rounded ${
-                              showResults && points === 0 ? 'opacity-60' : ''
+                              !showResults ? 'opacity-60' : ''
                             }`}
                           />
-                          <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
-                            {country}
-                          </span>
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
+                              {country}
+                            </span>
+                            {eurovision2023Songs[country] && (
+                              <div className="flex flex-col">
+                                <span className="text-xs text-gray-400 truncate">
+                                  {eurovision2023Songs[country].performer}
+                                </span>
+                                <span className="text-xs text-gray-500 truncate">
+                                  {eurovision2023Songs[country].song}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {eurovision2023Songs[country]?.youtubeId && (
+                            <button 
+                              onClick={() => openYouTubeModal(country)}
+                              className="ml-2 text-red-600 hover:text-red-800 transition-colors"
+                              title="Watch Eurovision Performance"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                            </button>
+                          )}
                         </div>
                         {showResults && (
                           <span className={`font-bold ml-2 whitespace-nowrap ${
@@ -708,17 +827,41 @@ export default function Eurovision2023Test() {
                             {index + Math.ceil(sortedCountries.length / 2) + 1}.
                           </span>
                           <Image 
-                            src={`/flags/${country.replace('&', 'and')}_${countryToCode[country]}.png`}
+                            src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
                             alt={`${country} flag`}
                             width={24}
                             height={16}
                             className={`object-cover rounded ${
-                              showResults && points === 0 ? 'opacity-60' : ''
+                              !showResults ? 'opacity-60' : ''
                             }`}
                           />
-                          <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
-                            {country}
-                          </span>
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
+                              {country}
+                            </span>
+                            {eurovision2023Songs[country] && (
+                              <div className="flex flex-col">
+                                <span className="text-xs text-gray-400 truncate">
+                                  {eurovision2023Songs[country].performer}
+                                </span>
+                                <span className="text-xs text-gray-500 truncate">
+                                  {eurovision2023Songs[country].song}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {eurovision2023Songs[country]?.youtubeId && (
+                            <button 
+                              onClick={() => openYouTubeModal(country)}
+                              className="ml-2 text-red-600 hover:text-red-800 transition-colors"
+                              title="Watch Eurovision Performance"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                            </button>
+                          )}
                         </div>
                         {showResults && (
                           <span className={`font-bold ml-2 whitespace-nowrap ${
@@ -736,6 +879,39 @@ export default function Eurovision2023Test() {
           </div>
         )}
       </div>
+
+      {/* YouTube Video Modal */}
+      {showYouTubeModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          onClick={closeYouTubeModal}
+        >
+          <div 
+            className="bg-gray-900 rounded-lg p-6 max-w-4xl w-full mx-4 relative border border-gray-600"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={closeYouTubeModal}
+              className="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl z-10"
+            >
+              ×
+            </button>
+            <h3 className="text-xl font-bold mb-4 text-white">{selectedCountryName} - Eurovision 2023</h3>
+            <div className="aspect-video">
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${selectedVideoId}?hd=1&quality=hd720`}
+                title={`${selectedCountryName} Eurovision 2023 Performance`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
