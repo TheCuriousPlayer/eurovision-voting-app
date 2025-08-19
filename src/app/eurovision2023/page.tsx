@@ -304,54 +304,48 @@ export default function Eurovision2023Test() {
 
   const fetchResults = async () => {
     try {
+      // Wait for session to be loaded before deciding which endpoint to use
       if (status === 'loading') {
-        return;
+        return; // Don't fetch until we know the session status
       }
+      
+      // Use authenticated endpoint if user is signed in, public endpoint if not
       const endpoint = session ? '/api/votes/2023' : '/api/votes/2023/public';
       console.log('Fetching from endpoint:', endpoint, 'Session:', !!session);
-      const response = await fetch(endpoint, { cache: 'no-store' });
+      const response = await fetch(endpoint);
+      
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched data:', data);
         console.log('Total votes in response:', data.totalVotes);
-        // If server returned 0 votes but we previously had non-zero, keep previous to avoid flicker/regression
-        setResults(prev => {
-          if (data.totalVotes === 0 && prev && prev.totalVotes > 0) {
-            console.warn('Ignoring transient 0 totalVotes response; keeping previous', prev.totalVotes);
-            return prev;
-          }
-          return data;
-        });
-        if (data.totalVotes === 0) {
-          // Schedule a quick retry after 3s in case cache invalidation was in progress
-          setTimeout(() => {
-            console.log('Retrying fetch due to 0 totalVotes response...');
-            fetch(endpoint, { cache: 'no-store' })
-              .then(r => r.ok ? r.json() : null)
-              .then(retryData => {
-                if (retryData && retryData.totalVotes > 0) {
-                  console.log('Retry succeeded with non-zero votes, updating state');
-                  setResults(retryData);
-                }
-              }).catch(e => console.warn('Retry fetch failed:', e));
-          }, 3000);
-        }
+        setResults(data);
+        console.log('Results state set with totalVotes:', data.totalVotes);
+        
+        // Load user's show results preference from localStorage (for both auth and unauth users)
         const savedShowResults = localStorage.getItem('eurovision2023_showResults');
         if (savedShowResults !== null) {
           setShowResults(JSON.parse(savedShowResults));
         }
+        
+        // Only set selectedCountries if user is authenticated and has votes
         if (session && loading && data.userVote?.votes) {
+          // Create an array of 10 elements with empty strings
           const newSelectedCountries = Array(10).fill('');
+          
+          // Fill in the votes at their correct positions
           data.userVote.votes.forEach((country: string, index: number) => {
             newSelectedCountries[index] = country;
           });
+          
           setSelectedCountries(newSelectedCountries);
         }
       } else {
         console.error('Error fetching results:', response.status);
+        // Fallback for unauthenticated users
         setResults({
           countryPoints: {},
           totalVotes: 0,
+          // userVote omitted (undefined) for fallback
         });
       }
     } finally {

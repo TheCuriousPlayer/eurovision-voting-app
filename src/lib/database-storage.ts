@@ -181,21 +181,21 @@ export class DatabaseStorage {
 
       if (cached) {
         console.log(`Found cached results for ${year}: ${cached.totalVotes} votes`);
-        // If cached shows 0 votes, double-check if there are actually votes in DB (defensive)
+        console.log('Cached results object keys:', Object.keys(cached.results as Record<string, unknown>));
+        console.log('Cached results sample:', JSON.stringify(cached.results).substring(0, 200));
+        
+        // Double-check if cached shows 0 but votes exist
         if (cached.totalVotes === 0) {
-          try {
-            const voteCount = await prisma.vote.count({ where: { competitionId: competition.id } });
-            if (voteCount > 0) {
-              console.warn(`Cached cumulative results show 0 but found ${voteCount} votes. Recomputing...`);
-              const recomputed = await this.updateCumulativeResults(year);
-              if (recomputed.totalVotes > 0) {
-                return recomputed;
-              }
-            }
-          } catch (innerErr) {
-            console.warn('Secondary verification of votes failed:', innerErr);
+          const actualVoteCount = await prisma.vote.count({ 
+            where: { competitionId: competition.id } 
+          });
+          console.warn(`Cached shows 0 votes but actual vote count is ${actualVoteCount}`);
+          if (actualVoteCount > 0) {
+            console.log('Forcing recalculation due to mismatch...');
+            return await this.updateCumulativeResults(year);
           }
         }
+        
         return {
           countryPoints: cached.results as { [country: string]: number },
           totalVotes: cached.totalVotes
@@ -207,18 +207,7 @@ export class DatabaseStorage {
       return await this.updateCumulativeResults(year);
     } catch (error) {
       console.error('Error getting cumulative results:', error);
-      // Attempt a last-chance recompute before giving up
-      try {
-        console.warn('Attempting fallback recomputation of cumulative results...');
-        const fallback = await this.updateCumulativeResults(year);
-        if (fallback.totalVotes > 0) {
-          console.warn('Fallback recomputation succeeded with', fallback.totalVotes, 'votes');
-          return fallback;
-        }
-      } catch (recomputeErr) {
-        console.warn('Fallback recomputation also failed:', recomputeErr);
-      }
-      // Return empty results if everything failed
+      // Return empty results instead of throwing
       return { countryPoints: {}, totalVotes: 0 };
     }
   }

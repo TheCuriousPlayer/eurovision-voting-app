@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server';
 import { ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export async function GET() {
   try {
     // Initialize competitions
@@ -22,9 +19,7 @@ export async function GET() {
 
     console.log('Public API 2024: Returning cumulative results with total votes:', results.totalVotes);
 
-  const res = NextResponse.json(results);
-  res.headers.set('Cache-Control', 'no-store');
-  return res;
+    return NextResponse.json(results);
   } catch (error) {
     console.error('Error in GET /api/votes/2024/public:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

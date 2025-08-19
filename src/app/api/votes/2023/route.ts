@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -57,32 +56,6 @@ export async function GET() {
     
     // Get cumulative results from database
     const cumulativeResults = await dbStorage.getCumulativeResults(2023);
-    // Direct count & mismatch repair (same logic as public route)
-    const competition = await prisma.competition.findUnique({ where: { year: 2023 } });
-    if (competition) {
-      const directCount = await prisma.vote.count({ where: { competitionId: competition.id } });
-      if (directCount > 0 && cumulativeResults.totalVotes === 0) {
-        console.warn('Auth API: MISMATCH detected (cached 0 vs direct', directCount, ') -> recomputing');
-        const votes = await prisma.vote.findMany({ where: { competitionId: competition.id } });
-        const countryPoints: Record<string, number> = {};
-        competition.countries.forEach(c => { countryPoints[c] = 0; });
-        votes.forEach(v => {
-          const pts = v.points as Record<string, number>;
-          Object.entries(pts).forEach(([c, val]) => { if (countryPoints[c] !== undefined) countryPoints[c] += val; });
-        });
-        const totalVotes = votes.length;
-        if (totalVotes > 0) {
-          await prisma.cumulativeResult.upsert({
-            where: { competitionId: competition.id },
-            update: { results: countryPoints, totalVotes, lastUpdated: new Date() },
-            create: { competitionId: competition.id, results: countryPoints, totalVotes }
-          });
-          cumulativeResults.countryPoints = countryPoints;
-          cumulativeResults.totalVotes = totalVotes;
-          console.log('Auth API: Inline recompute stored with', totalVotes, 'votes');
-        }
-      }
-    }
     
     // Get user's individual vote
     const userVote = await dbStorage.getUserVote(session.user.email!, 2023);
@@ -93,11 +66,13 @@ export async function GET() {
       ...(userVote && { userVote }) // Only include userVote if it's not null
     };
 
-  const res = NextResponse.json(resultsData);
-  res.headers.set('Cache-Control', 'no-store');
-  return res;
+    const response = NextResponse.json(resultsData);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return response;
   } catch (error) {
     console.error('Error getting results:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const response = NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return response;
   }
 }
