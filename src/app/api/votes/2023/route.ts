@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Legacy cookie-based storage constants (kept for reference)
 // const VOTES_KEY = 'eurovision2023:votes';
 // const USER_VOTES_PREFIX = 'eurovision2023:user:';
@@ -63,7 +66,9 @@ export async function GET() {
       ...(userVote && { userVote }) // Only include userVote if it's not null
     };
 
-    return NextResponse.json(resultsData);
+  const res = NextResponse.json(resultsData);
+  res.headers.set('Cache-Control', 'no-store');
+  return res;
   } catch (error) {
     console.error('Error getting results:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
