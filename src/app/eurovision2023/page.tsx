@@ -452,7 +452,7 @@ export default function Eurovision2023Test() {
     return <div className="flex items-center justify-center min-h-screen">Loading your votes...</div>;
   }
 
-  if (!results && status !== 'loading') {
+  if (!results) {
     return <div className="flex items-center justify-center min-h-screen">Error loading results</div>;
   }
 
