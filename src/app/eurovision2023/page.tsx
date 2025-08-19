@@ -317,7 +317,9 @@ export default function Eurovision2023Test() {
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched data:', data);
+        console.log('Total votes in response:', data.totalVotes);
         setResults(data);
+        console.log('Results state set with totalVotes:', data.totalVotes);
         
         // Load user's show results preference from localStorage (for both auth and unauth users)
         const savedShowResults = localStorage.getItem('eurovision2023_showResults');
