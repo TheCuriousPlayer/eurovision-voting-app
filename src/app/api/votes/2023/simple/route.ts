@@ -73,21 +73,24 @@ export async function GET(request: Request) {
 
     // Fallback logic for cumulative results
     const cumulativeRow = Array.isArray(cumulativeData) && cumulativeData.length > 0 ? 
-      cumulativeData[0] as { results: Record<string, number>; totalVotes: number } : null;
-    const countryPoints = cumulativeRow?.results || {};
-    const totalVotes = cumulativeRow?.totalVotes || 0;
+      cumulativeData[0] as { results: string | Record<string, number>; totalVotes: number } : null;
+    
+    let countryPoints = {};
+    let totalVotes = 0;
 
-    if (!cumulativeRow) {
-      console.warn('No cumulative results found for 2023 competition. Returning empty results.');
-      return NextResponse.json({
-        countryPoints: {},
-        totalVotes: 0,
-        authPending: false,
-        sessionEmail: session?.user?.email || null
-      }, {
-        status: 200,
-        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
-      });
+    if (cumulativeRow) {
+      try {
+        countryPoints = typeof cumulativeRow.results === 'string' 
+          ? JSON.parse(cumulativeRow.results) 
+          : cumulativeRow.results || {};
+        totalVotes = cumulativeRow.totalVotes || 0;
+      } catch (e) {
+        console.error('Failed to parse cumulative results:', e);
+      }
+    }
+
+    if (!cumulativeRow || totalVotes === 0) {
+      console.warn('No cumulative results found or totalVotes is 0. Returning empty results.');
     }
 
     // Process user data if available
@@ -112,7 +115,7 @@ export async function GET(request: Request) {
     }
 
     const responsePayload = {
-      countryPoints: typeof countryPoints === 'string' ? JSON.parse(countryPoints) : countryPoints,
+      countryPoints,
       totalVotes,
       userVote,
       authPending: false,
