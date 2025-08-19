@@ -42,6 +42,18 @@ export default function InitDbPage() {
     setLoading(false);
   };
 
+  const cleanupVotes = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/cleanup-votes', { method: 'POST' });
+      const data = await response.json();
+      setResult(data);
+    } catch {
+      setResult({ error: 'Failed to cleanup votes' });
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Database Management</h1>
@@ -69,6 +81,14 @@ export default function InitDbPage() {
           className="bg-purple-500 text-white px-4 py-2 rounded disabled:opacity-50"
         >
           {loading ? 'Loading...' : 'Test Endpoints'}
+        </button>
+
+        <button 
+          onClick={cleanupVotes}
+          disabled={loading}
+          className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Cleanup Duplicate Votes'}
         </button>
       </div>
 
