@@ -16,17 +16,17 @@ export async function POST() {
       console.log(`Competition ${competition.year} has ${votes.length} votes`);
 
       // Check for actual duplicates (same userId in same competition)
-      const userVoteMap = new Map();
-      const duplicates = [];
+      const userVoteMap = new Map<string, { id: string; userId: string; createdAt: Date }>();
+      const duplicates: string[] = [];
       
       votes.forEach(vote => {
         if (userVoteMap.has(vote.userId)) {
           // This is a duplicate - keep the newer one
           const existingVote = userVoteMap.get(vote.userId);
-          if (vote.createdAt > existingVote.createdAt) {
+          if (existingVote && vote.createdAt > existingVote.createdAt) {
             duplicates.push(existingVote.id);
             userVoteMap.set(vote.userId, vote);
-          } else {
+          } else if (existingVote) {
             duplicates.push(vote.id);
           }
         } else {
