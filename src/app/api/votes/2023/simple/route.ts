@@ -61,12 +61,12 @@ export async function GET(request: Request) {
         where: { competitionId: competition.id },
       }),
       session?.user?.email
-        ? prisma.vote.findUnique({
+        ? prisma.vote.findFirst({
             where: {
-              userId_competitionId: {
-                userId: session.user.email,
-                competitionId: competition.id,
-              },
+              AND: [
+                { userId: session.user.email },
+                { competitionId: competition.id },
+              ],
             },
           })
         : Promise.resolve(null),
@@ -77,43 +77,32 @@ export async function GET(request: Request) {
     console.log('Cumulative data query result:', cumulativeResult);
 
     // Fallback logic for cumulative results
-    const cumulativeRow = cumulativeResult as { results: string | Record<string, number>; totalVotes: number } | null;
+    const cumulativeRow = cumulativeResult as { results: Record<string, number>; totalVotes: number } | null;
     
     let countryPoints: Record<string, number> = {};
     let totalVotes = 0;
 
     if (cumulativeRow) {
-      try {
-        countryPoints = typeof cumulativeRow.results === 'string' 
-          ? JSON.parse(cumulativeRow.results) 
-          : (cumulativeRow.results as Record<string, number>) || {};
-        totalVotes = cumulativeRow.totalVotes || 0;
-      } catch (e) {
-        console.error('Failed to parse cumulative results:', e);
-      }
-    }
-
-    if (!cumulativeRow || totalVotes === 0) {
-      console.warn('No cumulative results found or totalVotes is 0. Returning empty results.');
+      // Since results is jsonb in Supabase, it should already be parsed as an object
+      countryPoints = cumulativeRow.results || {};
+      totalVotes = cumulativeRow.totalVotes || 0;
+      console.log('Found cumulative results:', { countryPoints, totalVotes });
+    } else {
+      console.warn('No cumulative results found for competition:', competition.id);
     }
 
     // Process user data if available
-    const rawUserVote = userVoteData as { votes: string | string[] } | null;
+    const rawUserVote = userVoteData as { votes: string[]; userName?: string; userEmail?: string } | null;
     let userVote = null;
 
     if (rawUserVote) {
       console.log('Raw user vote found:', rawUserVote);
-      try {
-        userVote = {
-          ...rawUserVote,
-          // The 'votes' property from the DB is a JSON string, so we need to parse it.
-          votes: typeof rawUserVote.votes === 'string' ? JSON.parse(rawUserVote.votes) : rawUserVote.votes,
-        };
-        console.log('Processed user vote:', userVote);
-      } catch (e) {
-        console.error('Failed to parse user vote data:', e);
-        // If parsing fails, we'll proceed without user-specific vote data.
-      }
+      // Since votes is jsonb in Supabase, it should already be parsed as an array
+      userVote = {
+        ...rawUserVote,
+        votes: rawUserVote.votes, // Already an array from jsonb
+      };
+      console.log('Processed user vote:', userVote);
     } else {
       console.warn('No user vote found for the authenticated user.');
     }
