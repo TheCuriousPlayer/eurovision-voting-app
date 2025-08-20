@@ -2,115 +2,44 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { ResultsData } from '@/types/votes';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 // Cache for last known valid results
 const lastValidResults: ResultsData | null = null;
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    // Check if this is a request specifically asking for user data
-    const url = new URL(request.url);
-    const waitForAuth = url.searchParams.get('waitForAuth') === 'true';
-    
-    // If waiting for auth and no session, return early to allow retry
-    if (waitForAuth && !session?.user?.email) {
-      // Get cumulative data to show at least that while waiting for auth
-      const [cumulativeData] = await Promise.all([
-        prisma.$queryRaw`
-          SELECT cr.results, cr."totalVotes"
-          FROM cumulative_results cr
-          JOIN competitions c ON c.id = cr."competitionId"
-          WHERE c.year = 2023
-          LIMIT 1
-        `
-      ]);
-      
-      const cumulativeRow = Array.isArray(cumulativeData) && cumulativeData.length > 0 ? 
-        cumulativeData[0] as { results: Record<string, number>; totalVotes: number } : null;
-      const countryPoints = cumulativeRow?.results || {};
-      const totalVotes = cumulativeRow?.totalVotes || 0;
-      
-      return NextResponse.json({
-        countryPoints: typeof countryPoints === 'string' ? JSON.parse(countryPoints) : countryPoints,
-        totalVotes,
-        authPending: true,
-        sessionEmail: null
-      }, { 
-        status: 202, // Accepted but processing
-        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
-      });
-    }
-    
-    // Use Prisma Client for type-safe queries
-    const competition = await prisma.competition.findUnique({
-      where: { year: 2023 },
-    });
+    // TEMPORARY: Use hardcoded data to bypass Prisma connection issues
+    const hardcodedCumulativeResult = {
+      results: {
+        "Italy": 0, "Malta": 6, "Spain": 1, "Cyprus": 0, "France": 12, "Greece": 0, 
+        "Israel": 2, "Latvia": 0, "Norway": 24, "Poland": 10, "Serbia": 0, "Sweden": 34, 
+        "Albania": 0, "Armenia": 5, "Austria": 14, "Belgium": 7, "Croatia": 0, "Czechia": 2, 
+        "Denmark": 0, "Estonia": 5, "Finland": 9, "Georgia": 0, "Germany": 0, "Iceland": 0, 
+        "Ireland": 0, "Moldova": 19, "Romania": 0, "Ukraine": 0, "Portugal": 0, "Slovenia": 10, 
+        "Australia": 6, "Lithuania": 0, "Azerbaijan": 0, "San Marino": 0, "Netherlands": 0, 
+        "Switzerland": 8, "United Kingdom": 0
+      },
+      totalVotes: 3
+    };
 
-    if (!competition) {
-      console.error('Competition for year 2023 not found.');
-      return NextResponse.json({ countryPoints: {}, totalVotes: 0 }, { status: 404 });
-    }
-
-    const [cumulativeResult, userVoteData] = await Promise.all([
-      prisma.cumulativeResult.findUnique({
-        where: { competitionId: competition.id },
-      }),
-      session?.user?.email
-        ? prisma.vote.findFirst({
-            where: {
-              AND: [
-                { userId: session.user.email },
-                { competitionId: competition.id },
-              ],
-            },
-          })
-        : Promise.resolve(null),
-    ]);
+    const hardcodedUserVote = session?.user?.email === 'ozgunciziltepe@gmail.com' ? {
+      userId: "ozgunciziltepe@gmail.com",
+      userName: "özgün çiziltepe", 
+      userEmail: "ozgunciziltepe@gmail.com",
+      votes: ["Sweden", "Norway", "Austria", "Moldova", "Australia", "Armenia", "Poland", "Belgium", "Finland", "France"]
+    } : null;
 
     console.log('Session user email:', session?.user?.email);
-    console.log('User data query result:', userVoteData);
-    console.log('Cumulative data query result:', cumulativeResult);
-
-    // Fallback logic for cumulative results
-    const cumulativeRow = cumulativeResult as { results: Record<string, number>; totalVotes: number } | null;
-    
-    let countryPoints: Record<string, number> = {};
-    let totalVotes = 0;
-
-    if (cumulativeRow) {
-      // Since results is jsonb in Supabase, it should already be parsed as an object
-      countryPoints = cumulativeRow.results || {};
-      totalVotes = cumulativeRow.totalVotes || 0;
-      console.log('Found cumulative results:', { countryPoints, totalVotes });
-    } else {
-      console.warn('No cumulative results found for competition:', competition.id);
-    }
-
-    // Process user data if available
-    const rawUserVote = userVoteData as { votes: string[]; userName?: string; userEmail?: string } | null;
-    let userVote = null;
-
-    if (rawUserVote) {
-      console.log('Raw user vote found:', rawUserVote);
-      // Since votes is jsonb in Supabase, it should already be parsed as an array
-      userVote = {
-        ...rawUserVote,
-        votes: rawUserVote.votes, // Already an array from jsonb
-      };
-      console.log('Processed user vote:', userVote);
-    } else {
-      console.warn('No user vote found for the authenticated user.');
-    }
+    console.log('Using hardcoded data temporarily');
 
     const responsePayload = {
-      countryPoints,
-      totalVotes,
-      userVote,
+      countryPoints: hardcodedCumulativeResult.results,
+      totalVotes: hardcodedCumulativeResult.totalVotes,
+      userVote: hardcodedUserVote,
       authPending: false,
       sessionEmail: session?.user?.email || null,
     };
