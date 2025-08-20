@@ -46,30 +46,35 @@ export async function GET(request: Request) {
       });
     }
     
-    // Use a single raw SQL query to get all needed data at once
-    const [cumulativeData, userData] = await Promise.all([
-      // Get cumulative results using raw SQL
-      prisma.$queryRaw`
-        SELECT cr.results, cr."totalVotes"
-        FROM cumulative_results cr
-        JOIN competitions c ON c.id = cr."competitionId"
-        WHERE c.year = 2023
-        LIMIT 1
-      `,
-      // Get user vote if authenticated - try both userId and userEmail matching
-      session?.user?.email ? prisma.$queryRaw`
-        SELECT v.votes, v."userName", v."userEmail", v."updatedAt", v."userId"
-        FROM votes v
-        JOIN competitions c ON c.id = v."competitionId"
-        WHERE c.year = 2023 AND (v."userId" = ${session.user.email} OR v."userEmail" = ${session.user.email})
-        LIMIT 1
-      ` : Promise.resolve([])
+    // Use Prisma Client for type-safe queries
+    const competition = await prisma.competition.findUnique({
+      where: { year: 2023 },
+    });
+
+    if (!competition) {
+      console.error('Competition for year 2023 not found.');
+      return NextResponse.json({ countryPoints: {}, totalVotes: 0 }, { status: 404 });
+    }
+
+    const [cumulativeResult, userVoteData] = await Promise.all([
+      prisma.cumulativeResult.findUnique({
+        where: { competitionId: competition.id },
+      }),
+      session?.user?.email
+        ? prisma.vote.findUnique({
+            where: {
+              userId_competitionId: {
+                userId: session.user.email,
+                competitionId: competition.id,
+              },
+            },
+          })
+        : Promise.resolve(null),
     ]);
 
     console.log('Session user email:', session?.user?.email);
-    console.log('User data query result:', userData);
-    console.log('Cumulative data query result:', cumulativeData);
-    console.log('User data query result:', userData);
+    console.log('User data query result:', userVoteData);
+    console.log('Cumulative data query result:', cumulativeResult);
 
     // Fallback logic for cumulative results
     const cumulativeRow = Array.isArray(cumulativeData) && cumulativeData.length > 0 ? 
