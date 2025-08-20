@@ -5,24 +5,45 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Use raw SQL queries to avoid Prisma connection issues
-    const [competitions, cumulativeResults, votes] = await Promise.all([
-      prisma.$queryRaw`SELECT * FROM competitions LIMIT 10`,
-      prisma.$queryRaw`SELECT * FROM cumulative_results LIMIT 10`, 
-      prisma.$queryRaw`SELECT id, "userId", "userName", "userEmail", "competitionId", "createdAt", "updatedAt" FROM votes LIMIT 10`
-    ]);
+    // Try to disconnect and reconnect to reset the connection
+    await prisma.$disconnect();
+    await prisma.$connect();
+
+    // Try a simple query first
+    const testQuery = await prisma.$queryRaw`SELECT 1 as test`;
+    
+    // If that works, try to get actual data
+    const competitions = await prisma.$queryRaw`SELECT * FROM competitions`;
+    const cumulativeResults = await prisma.$queryRaw`SELECT * FROM cumulative_results`;
+    const votesCount = await prisma.$queryRaw`SELECT COUNT(*) as count FROM votes`;
     
     return NextResponse.json({
+      testQuery,
       competitions,
       cumulativeResults,
-      votes,
-      message: 'Data fetched successfully using raw SQL'
+      votesCount,
+      message: 'Successfully connected and queried database'
     });
   } catch (error) {
-    console.error('Test data error:', error);
+    console.error('Database connection error:', error);
+    
+    // Try to provide more specific error information
+    let errorMessage = 'Unknown database error';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      details: 'Failed to fetch data from database'
+      error: errorMessage,
+      details: 'Database connection or query failed',
+      timestamp: new Date().toISOString()
     }, { status: 500 });
+  } finally {
+    // Ensure we disconnect to clean up
+    try {
+      await prisma.$disconnect();
+    } catch (disconnectError) {
+      console.error('Error disconnecting:', disconnectError);
+    }
   }
 }
