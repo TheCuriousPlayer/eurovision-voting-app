@@ -57,11 +57,15 @@ const eurovision2023Songs: { [key: string]: { code: string; performer: string; s
   'Switzerland': { code: 'CH', performer: 'Remo Forrer', song: 'Watergun', youtubeId: 'l4NDErv49mk' },
 //   'Türkiye': { code: 'TR', performer: '', song: '', youtubeId: '' },
   'Ukraine': { code: 'UA', performer: 'Tvorchi', song: 'Heart of Steel', youtubeId: 'I2oqDpefJ1s' },
-  'United Kingdom': { code: 'GB', performer: 'Mae Muller', song: 'I Wrote a Song', youtubeId: 'tvJEE2ryCRQ' },
+  'United Kingdom': { code: 'GB', performer: 'Mae Muller', song: 'I Wrote a Song', youtubeId: 'tvJEE2ryCRQ' }
 //   'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
 };
 
-export default function Eurovision2023Test() {
+// Toggle this to true to show an "Under Construction" message for this page only.
+// Set to false to enable the normal page. (Easy to remove later.)
+const UNDER_CONSTRUCTION = false;
+
+export default function Eurovision2023() {
   const { data: session, status } = useSession();
   const [results, setResults] = useState<ResultsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -261,6 +265,22 @@ export default function Eurovision2023Test() {
     if (showResults) {
       console.log('Vote changed - resetting auto-refresh timer');
       startAutoRefresh();
+    }
+  };
+
+  // Helper function to check if there are empty slots (uses closure)
+  const hasEmptySlots = (): boolean => {
+    return selectedCountries.some((country) => country === '');
+  };
+
+  // Helper function to add a country to the first empty slot (uses closure)
+  const addCountryToFirstEmptySlot = (country: string) => {
+    const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
+    if (firstEmptyIndex !== -1) {
+      const updatedCountries = [...selectedCountries];
+      updatedCountries[firstEmptyIndex] = country;
+      setSelectedCountries(updatedCountries);
+      resetAutoRefreshTimer();
     }
   };
 
@@ -517,6 +537,22 @@ export default function Eurovision2023Test() {
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
 
+  // If you want to temporarily disable the page, toggle UNDER_CONSTRUCTION at top of file.
+  // Keep small no-op references so linters don't flag the helpers as unused.
+  void hasEmptySlots;
+  void addCountryToFirstEmptySlot;
+
+  if (UNDER_CONSTRUCTION) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a2e] to-[#16213e] p-8">
+        <div className="bg-[#2c3e50] rounded-lg p-8 max-w-xl text-center">
+          <h1 className="text-3xl font-bold text-white mb-4">Eurovision 2023 — Under Construction</h1>
+          <p className="text-gray-300">This page is temporarily disabled while we make improvements. Please check back soon.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <div className="container mx-auto px-4">
@@ -662,11 +698,20 @@ export default function Eurovision2023Test() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      <span className={`text-lg font-bold ${
-                                        showResults && points > 0 ? 'text-white' : 'text-gray-400'
-                                      }`}>
-                                        {index + 1}.
-                                      </span>
+                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                        <button
+                                          className="bg-[#34895e] text-white px-2 py-1 rounded"
+                                          onClick={() => addCountryToFirstEmptySlot(country)}
+                                        >
+                                          +
+                                        </button>
+                                      ) : (
+                                        <span className={`text-lg font-bold ${
+                                          showResults && points > 0 ? 'text-white' : 'text-gray-400'
+                                        }`}>
+                                          {index + 1}.
+                                        </span>
+                                      )}
                                       <Image 
                                         src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
                                         alt={`${country} flag`}
@@ -749,11 +794,20 @@ export default function Eurovision2023Test() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      <span className={`text-lg font-bold ${
-                                        showResults && points > 0 ? 'text-white' : 'text-gray-400'
-                                      }`}>
-                                        {index + Math.ceil(sortedCountries.length / 2) + 1}.
-                                      </span>
+                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                        <button
+                                          className="bg-[#34895e] text-white px-2 py-1 rounded"
+                                          onClick={() => addCountryToFirstEmptySlot(country)}
+                                        >
+                                          +
+                                        </button>
+                                      ) : (
+                                        <span className={`text-lg font-bold ${
+                                          showResults && points > 0 ? 'text-white' : 'text-gray-400'
+                                        }`}>
+                                          {index + Math.ceil(sortedCountries.length / 2) + 1}.
+                                        </span>
+                                      )}
                                       <Image 
                                         src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
                                         alt={`${country} flag`}

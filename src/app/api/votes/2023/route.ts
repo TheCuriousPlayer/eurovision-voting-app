@@ -25,6 +25,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid votes' }, { status: 400 });
     }
 
+    // Initialize competitions
+    await dbStorage.initializeCompetitions();
+
     const vote: Vote = {
       userId: session.user.email!,
       userName: session.user.name!,

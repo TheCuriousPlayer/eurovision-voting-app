@@ -1,15 +1,30 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
+    // Check if user is authenticated
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'You must be signed in to access this resource' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is an admin
+    if (!isAdmin(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Access denied. Admin privileges required.' },
+        { status: 403 }
+      );
     }
 
     const { votes } = await request.json();
@@ -17,6 +32,9 @@ export async function POST(request: Request) {
     if (!Array.isArray(votes) || votes.length !== 10) {
       return NextResponse.json({ error: 'Invalid votes' }, { status: 400 });
     }
+
+    // Initialize competitions
+    await dbStorage.initializeCompetitions();
 
     const vote: Vote = {
       userId: session.user.email!,
@@ -40,8 +58,20 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
+    // Check if user is authenticated
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'You must be signed in to access this resource' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is an admin
+    if (!isAdmin(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Access denied. Admin privileges required.' },
+        { status: 403 }
+      );
     }
 
     // Initialize competitions
@@ -59,9 +89,13 @@ export async function GET() {
       ...(userVote && { userVote }) // Only include userVote if it's not null
     };
 
-    return NextResponse.json(resultsData);
+    const response = NextResponse.json(resultsData);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return response;
   } catch (error) {
     console.error('Error getting results:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const response = NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return response;
   }
 }

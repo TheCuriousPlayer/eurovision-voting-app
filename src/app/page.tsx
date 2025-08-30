@@ -49,7 +49,7 @@ export default function Home() {
                   href={`/eurovision${year}`}
                   className={`
                     block relative overflow-hidden rounded-xl p-6 
-                    ${year === 2023 ? 'bg-gradient-to-r from-[#2ecc71] to-[#16a085]' : 'bg-[#2c3e50]'}
+                    ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#2ecc71] to-[#16a085]' : 'bg-[#2c3e50]'}
                     transform transition-all duration-300 shadow-lg
                     hover:scale-105 hover:shadow-xl
                   `}
@@ -65,12 +65,10 @@ export default function Home() {
                   </h2>
                   
                   <div className="text-gray-300 text-sm">
-                    {year >= 2024 ? (
-                      <span>Coming Soon</span>
-                    ) : year === 2023 ? (
-                      <span>Latest Contest</span>
+                    {year < 2025 && year > 2021 ? (
+                      <span>Active</span>
                     ) : (
-                      <span>View Results</span>
+                      <span>Coming Soon</span>
                     )}
                   </div>
                 </Link>
@@ -112,7 +110,7 @@ export default function Home() {
                 href={`/eurovision${year}`}
                 className={`
                   block relative overflow-hidden rounded-xl p-6 
-                  ${year === 2023 ? 'bg-gradient-to-r from-[#2ecc71] to-[#16a085]' : 'bg-[#2c3e50]'}
+                  ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#2ecc71] to-[#16a085]' : 'bg-[#2c3e50]'}
                   transform transition-all duration-300 shadow-lg
                   hover:scale-105 hover:shadow-xl
                 `}
@@ -128,12 +126,10 @@ export default function Home() {
                 </h2>
                 
                 <div className="text-gray-300 text-sm">
-                  {year >= 2024 ? (
-                    <span>Coming Soon</span>
-                  ) : year === 2023 ? (
-                    <span>Latest Contest</span>
+                  {year < 2025 && year > 2021 ? (
+                    <span>Active</span>
                   ) : (
-                    <span>View Results</span>
+                    <span>Coming Soon</span>
                   )}
                 </div>
               </Link>

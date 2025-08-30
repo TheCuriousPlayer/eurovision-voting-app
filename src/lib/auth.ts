@@ -1,6 +1,12 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
+// Define admin emails
+const adminEmails = [
+  "ozgunciziltepe@gmail.com",
+  "info@turkevision.de"
+];
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -22,6 +28,12 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+};
+
+// Helper function to check if a user is an admin
+export const isAdmin = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  return adminEmails.includes(email);
 };
 
 declare module 'next-auth' {

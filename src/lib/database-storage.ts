@@ -8,6 +8,16 @@ interface Vote {
   timestamp: Date;
 }
 
+// Eurovision 2022 Countries
+const EUROVISION_2022_COUNTRIES = [
+  'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Bulgaria',
+  'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France',
+  'Georgia', 'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy',
+  'Latvia', 'Lithuania', 'Malta', 'Moldova', 'Montenegro', 'Netherlands',
+  'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'San Marino',
+  'Serbia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
+];
+
 // Eurovision 2023 Countries
 const EUROVISION_2023_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
@@ -34,6 +44,21 @@ export class DatabaseStorage {
   async initializeCompetitions() {
     try {
       // Check if competitions already exist first to avoid unnecessary upserts
+      const existing2022 = await prisma.competition.findUnique({
+        where: { year: 2022 }
+      });
+
+      if (!existing2022) {
+        await prisma.competition.create({
+          data: {
+            year: 2022,
+            name: 'Eurovision 2022',
+            countries: EUROVISION_2022_COUNTRIES,
+            isActive: true
+          }
+        });
+      }
+
       const existing2023 = await prisma.competition.findUnique({
         where: { year: 2023 }
       });
