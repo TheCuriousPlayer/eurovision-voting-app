@@ -3,8 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 
 // Define admin emails
 const adminEmails = [
-  "ozgunciziltepe@gmail.com",
-  "info@turkevision.de"
+  "ozgunciziltepe@gmail.com"
 ];
 
 export const authOptions: NextAuthOptions = {
