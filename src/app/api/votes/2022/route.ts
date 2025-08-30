@@ -11,8 +11,8 @@ export const revalidate = 0;
 const EUROVISION_YEAR = 2022;
 
 // Legacy cookie-based storage constants (kept for reference)
-// const VOTES_KEY = 'eurovision2023:votes';
-// const USER_VOTES_PREFIX = 'eurovision2023:user:';
+// const VOTES_KEY = 'eurovision2022:votes';
+// const USER_VOTES_PREFIX = 'eurovision2022:user:';
 
 export async function POST(request: Request) {
   try {

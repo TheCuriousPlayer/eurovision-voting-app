@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions, isAdmin } from '@/lib/auth';
+import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// Use Eurovision 2024 year for all database operations
+const EUROVISION_YEAR = 2024;
+
+// Legacy cookie-based storage constants (kept for reference)
+// const VOTES_KEY = 'eurovision2024:votes';
+// const USER_VOTES_PREFIX = 'eurovision2024:user:';
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
-    // Check if user is authenticated
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'You must be signed in to access this resource' },
-        { status: 401 }
-      );
-    }
 
-    // Check if user is an admin
-    if (!isAdmin(session.user.email)) {
-      return NextResponse.json(
-        { error: 'Access denied. Admin privileges required.' },
-        { status: 403 }
-      );
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { votes } = await request.json();
@@ -58,30 +53,18 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    // Check if user is authenticated
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'You must be signed in to access this resource' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is an admin
-    if (!isAdmin(session.user.email)) {
-      return NextResponse.json(
-        { error: 'Access denied. Admin privileges required.' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Initialize competitions
     await dbStorage.initializeCompetitions();
     
     // Get cumulative results from database for Eurovision 2024
-    const cumulativeResults = await dbStorage.getCumulativeResults(2024);
+    const cumulativeResults = await dbStorage.getCumulativeResults(EUROVISION_YEAR);
     
     // Get user's individual vote
-    const userVote = await dbStorage.getUserVote(session.user.email!, 2024);
+    const userVote = await dbStorage.getUserVote(session.user.email!, EUROVISION_YEAR);
 
     const resultsData: ResultsData = {
       totalVotes: cumulativeResults.totalVotes,

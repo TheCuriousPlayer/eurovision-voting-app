@@ -7,6 +7,9 @@ import { dbStorage } from '@/lib/database-storage';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// Use Eurovision 2023 year for all database operations
+const EUROVISION_YEAR = 2023;
+
 // Legacy cookie-based storage constants (kept for reference)
 // const VOTES_KEY = 'eurovision2023:votes';
 // const USER_VOTES_PREFIX = 'eurovision2023:user:';
@@ -57,11 +60,11 @@ export async function GET() {
     // Initialize competitions
     await dbStorage.initializeCompetitions();
     
-    // Get cumulative results from database
-    const cumulativeResults = await dbStorage.getCumulativeResults(2023);
+    // Get cumulative results from database for Eurovision 2023
+    const cumulativeResults = await dbStorage.getCumulativeResults(EUROVISION_YEAR);
     
     // Get user's individual vote
-    const userVote = await dbStorage.getUserVote(session.user.email!, 2023);
+    const userVote = await dbStorage.getUserVote(session.user.email!, EUROVISION_YEAR);
 
     const resultsData: ResultsData = {
       totalVotes: cumulativeResults.totalVotes,
