@@ -76,6 +76,10 @@ export default function Eurovision2023() {
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
 
+  const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+  const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
+  const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
+
   const openYouTubeModal = (country: string) => {
     const songData = eurovision2023Songs[country];
     if (songData?.youtubeId) {
@@ -699,12 +703,16 @@ export default function Eurovision2023() {
                                   >
                                     <div className="flex items-center gap-2">
                                       {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
-                                        <button
-                                          className="bg-[#34895e] text-white px-2 py-1 rounded"
-                                          onClick={() => addCountryToFirstEmptySlot(country)}
-                                        >
-                                          +
-                                        </button>
+                                        <div className="group inline-block">
+                                          <button
+                                            className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
+                                            onClick={() => addCountryToFirstEmptySlot(country)}
+                                          >
+                                            <span className="inline group-hover:hidden">+</span>
+                                            <span className="hidden group-hover:inline">{nextAvailablePoints}</span>
+                                            <span className="sr-only">Add {country} ({nextAvailablePoints} points)</span>
+                                          </button>
+                                        </div>
                                       ) : (
                                         <span className={`text-lg font-bold ${
                                           showResults && points > 0 ? 'text-white' : 'text-gray-400'
@@ -712,15 +720,29 @@ export default function Eurovision2023() {
                                           {index + 1}.
                                         </span>
                                       )}
-                                      <Image 
-                                        src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
-                                        alt={`${country} flag`}
-                                        width={24}
-                                        height={16}
-                                        className={`object-cover rounded ${
-                                          !showResults ? 'opacity-60' : ''
-                                        }`}
-                                      />
+                                      <div className="flex-shrink-0 flex flex-col items-center">
+                                        <Image 
+                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
+                                          alt={`${country} flag`}
+                                          width={24}
+                                          height={16}
+                                          className={`object-cover rounded ${
+                                            !showResults ? 'opacity-60' : ''
+                                          }`}
+                                        />
+                                        {eurovision2023Songs[country]?.youtubeId && (
+                                          <button 
+                                            onClick={() => openYouTubeModal(country)}
+                                            className="mt-1 text-red-600 hover:text-red-800 transition-colors"
+                                            title="Watch Eurovision Performance"
+                                          >
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                              <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                            </svg>
+                                          </button>
+                                        )}
+                                      </div>
                                       <div className="flex flex-col min-w-0 flex-1">
                                         <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                           {country}
@@ -736,18 +758,6 @@ export default function Eurovision2023() {
                                           </div>
                                         )}
                                       </div>
-                                      {eurovision2023Songs[country]?.youtubeId && (
-                                        <button 
-                                          onClick={() => openYouTubeModal(country)}
-                                          className="ml-2 text-red-600 hover:text-red-800 transition-colors"
-                                          title="Watch Eurovision Performance"
-                                        >
-                                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                                            <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                          </svg>
-                                        </button>
-                                      )}
                                       {session && selectedCountries.includes(country) && (
                                         <span className="text-xs text-gray-400 whitespace-nowrap">
                                           (#{selectedCountries.indexOf(country) + 1})
@@ -795,12 +805,16 @@ export default function Eurovision2023() {
                                   >
                                     <div className="flex items-center gap-2">
                                       {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
-                                        <button
-                                          className="bg-[#34895e] text-white px-2 py-1 rounded"
-                                          onClick={() => addCountryToFirstEmptySlot(country)}
-                                        >
-                                          +
-                                        </button>
+                                        <div className="group inline-block">
+                                          <button
+                                            className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
+                                            onClick={() => addCountryToFirstEmptySlot(country)}
+                                          >
+                                            <span className="inline group-hover:hidden">+</span>
+                                            <span className="hidden group-hover:inline">{nextAvailablePoints}</span>
+                                            <span className="sr-only">Add {country} ({nextAvailablePoints} points)</span>
+                                          </button>
+                                        </div>
                                       ) : (
                                         <span className={`text-lg font-bold ${
                                           showResults && points > 0 ? 'text-white' : 'text-gray-400'
@@ -808,15 +822,29 @@ export default function Eurovision2023() {
                                           {index + Math.ceil(sortedCountries.length / 2) + 1}.
                                         </span>
                                       )}
-                                      <Image 
-                                        src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
-                                        alt={`${country} flag`}
-                                        width={24}
-                                        height={16}
-                                        className={`object-cover rounded ${
-                                          !showResults ? 'opacity-60' : ''
-                                        }`}
-                                      />
+                                      <div className="flex-shrink-0 flex flex-col items-center">
+                                        <Image 
+                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
+                                          alt={`${country} flag`}
+                                          width={24}
+                                          height={16}
+                                          className={`object-cover rounded ${
+                                            !showResults ? 'opacity-60' : ''
+                                          }`}
+                                        />
+                                        {eurovision2023Songs[country]?.youtubeId && (
+                                          <button 
+                                            onClick={() => openYouTubeModal(country)}
+                                            className="mt-1 text-red-600 hover:text-red-800 transition-colors"
+                                            title="Watch Eurovision Performance"
+                                          >
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                              <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                            </svg>
+                                          </button>
+                                        )}
+                                      </div>
                                       <div className="flex flex-col min-w-0 flex-1">
                                         <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                           {country}
@@ -832,18 +860,6 @@ export default function Eurovision2023() {
                                           </div>
                                         )}
                                       </div>
-                                      {eurovision2023Songs[country]?.youtubeId && (
-                                        <button 
-                                          onClick={() => openYouTubeModal(country)}
-                                          className="ml-2 text-red-600 hover:text-red-800 transition-colors"
-                                          title="Watch Eurovision Performance"
-                                        >
-                                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                                            <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                          </svg>
-                                        </button>
-                                      )}
                                       {session && selectedCountries.includes(country) && (
                                         <span className="text-xs text-gray-400 whitespace-nowrap">
                                           (#{selectedCountries.indexOf(country) + 1})
@@ -903,15 +919,29 @@ export default function Eurovision2023() {
                           }`}>
                             {index + 1}.
                           </span>
-                          <Image 
-                            src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
-                            alt={`${country} flag`}
-                            width={24}
-                            height={16}
-                            className={`object-cover rounded ${
-                              !showResults ? 'opacity-60' : ''
-                            }`}
-                          />
+                          <div className="flex-shrink-0 flex flex-col items-center">
+                            <Image 
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
+                              alt={`${country} flag`}
+                              width={24}
+                              height={16}
+                              className={`object-cover rounded ${
+                                !showResults ? 'opacity-60' : ''
+                              }`}
+                            />
+                            {eurovision2023Songs[country]?.youtubeId && (
+                              <button 
+                                onClick={() => openYouTubeModal(country)}
+                                className="mt-1 text-red-600 hover:text-red-800 transition-colors"
+                                title="Watch Eurovision Performance"
+                              >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                  <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                           <div className="flex flex-col min-w-0 flex-1">
                             <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                               {country}
@@ -927,18 +957,6 @@ export default function Eurovision2023() {
                               </div>
                             )}
                           </div>
-                          {eurovision2023Songs[country]?.youtubeId && (
-                            <button 
-                              onClick={() => openYouTubeModal(country)}
-                              className="ml-2 text-red-600 hover:text-red-800 transition-colors"
-                              title="Watch Eurovision Performance"
-                            >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                                <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                              </svg>
-                            </button>
-                          )}
                         </div>
                         {showResults && (
                           <span className={`font-bold ml-2 whitespace-nowrap ${
@@ -966,15 +984,29 @@ export default function Eurovision2023() {
                           }`}>
                             {index + Math.ceil(sortedCountries.length / 2) + 1}.
                           </span>
-                          <Image 
-                            src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
-                            alt={`${country} flag`}
-                            width={24}
-                            height={16}
-                            className={`object-cover rounded ${
-                              !showResults ? 'opacity-60' : ''
-                            }`}
-                          />
+                          <div className="flex-shrink-0 flex flex-col items-center">
+                            <Image 
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2023Songs[country]?.code}.png`}
+                              alt={`${country} flag`}
+                              width={24}
+                              height={16}
+                              className={`object-cover rounded ${
+                                !showResults ? 'opacity-60' : ''
+                              }`}
+                            />
+                            {eurovision2023Songs[country]?.youtubeId && (
+                              <button 
+                                onClick={() => openYouTubeModal(country)}
+                                className="mt-1 text-red-600 hover:text-red-800 transition-colors"
+                                title="Watch Eurovision Performance"
+                              >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                  <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                           <div className="flex flex-col min-w-0 flex-1">
                             <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                               {country}
@@ -990,18 +1022,6 @@ export default function Eurovision2023() {
                               </div>
                             )}
                           </div>
-                          {eurovision2023Songs[country]?.youtubeId && (
-                            <button 
-                              onClick={() => openYouTubeModal(country)}
-                              className="ml-2 text-red-600 hover:text-red-800 transition-colors"
-                              title="Watch Eurovision Performance"
-                            >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                                <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                              </svg>
-                            </button>
-                          )}
                         </div>
                         {showResults && (
                           <span className={`font-bold ml-2 whitespace-nowrap ${
