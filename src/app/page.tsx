@@ -49,7 +49,7 @@ export default function Home() {
                   href={`/eurovision${year}`}
                   className={`
                     block relative overflow-hidden rounded-xl p-6 
-                    ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#2ecc71] to-[#16a085]' : 'bg-[#2c3e50]'}
+                    ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
                     transform transition-all duration-300 shadow-lg
                     hover:scale-105 hover:shadow-xl
                   `}
@@ -110,7 +110,7 @@ export default function Home() {
                 href={`/eurovision${year}`}
                 className={`
                   block relative overflow-hidden rounded-xl p-6 
-                  ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#2ecc71] to-[#16a085]' : 'bg-[#2c3e50]'}
+                  ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
                   transform transition-all duration-300 shadow-lg
                   hover:scale-105 hover:shadow-xl
                 `}

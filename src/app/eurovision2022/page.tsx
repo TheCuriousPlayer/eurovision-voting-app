@@ -63,7 +63,7 @@ const eurovision2022Songs: { [key: string]: { code: string; performer: string; s
 
 // Toggle this to true to show an "Under Construction" message for all users (auth or unauth).
 // Set to false to enable the normal page. (You said you'll remove these lines later.)
-const UNDER_CONSTRUCTION = false;
+const UNDER_CONSTRUCTION = true;
 
 export default function Eurovision2022() {
 
