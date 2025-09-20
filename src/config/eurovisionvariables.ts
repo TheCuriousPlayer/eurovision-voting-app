@@ -6,7 +6,7 @@
 // Oylama tarihleri - "HH:MM DD.MM.YYYY" formatında
 export const VOTE_DATES = {
   // Yıllara göre oylama başlangıç tarihleri
-  '2022': '23:00 18.09.2025', 
+  '2022': '23:00 28.09.2025', 
   '2023': '',
   '2024': '',
   '2025': ''
