@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { formatEurovisionDate, createFutureDate } from '@/utils/dateUtils';
+import { formatEurovisionDate } from '@/utils/dateUtils';
 import { VOTE_DATES } from '@/config/eurovisionvariables';
 
 export default function DateDebugger() {
   // Merkezi yapılandırmadan 2022 yılı için tarihi al
   const [dateStr, setDateStr] = useState(VOTE_DATES['2022'] || '00:00 01.01.2026');
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
 
   // Set date to X days from now
   const setDateOffset = (days: number) => {
