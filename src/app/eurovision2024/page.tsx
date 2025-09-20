@@ -509,7 +509,7 @@ export default function Eurovision2024() {
     }
   };
 
-  if (loading || status === 'loading') {
+  if (loading || String(status) === 'loading') {
     return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
   }
 

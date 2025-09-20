@@ -7,7 +7,7 @@ import Link from 'next/link';
 export default function Home() {
   const { data: session, status } = useSession();
 
-  if (status === 'loading') {
+  if (String(status) === 'loading') {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 

@@ -21,10 +21,10 @@ export default function DateDebugger() {
   // Test the middleware date comparison
   const testDateComparison = async () => {
     try {
-      // Parse the date string
-      const [timeStr, dateStr] = dateStr.split(' ');
+      // Parse the date string from state (format: "HH:MM DD.MM.YYYY")
+      const [timeStr, datePart] = dateStr.split(' ');
       const [hours, minutes] = timeStr.split(':').map(Number);
-      const [day, month, yearNum] = dateStr.split('.').map(Number);
+      const [day, month, yearNum] = datePart.split('.').map(Number);
       
       // Create target date (month is 0-indexed)
       const targetDate = new Date(yearNum, month - 1, day, hours, minutes);
@@ -48,7 +48,8 @@ export default function DateDebugger() {
         'Oylama sayfası gösterilmeli');
     } catch (error) {
       console.error('Date test error:', error);
-      setDebugInfo({ error: error.message });
+      const errMsg = error instanceof Error ? error.message : String(error);
+      setDebugInfo({ error: errMsg });
       setCurrentStatus('Hata!');
     }
   };

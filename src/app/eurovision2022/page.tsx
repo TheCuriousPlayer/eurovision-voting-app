@@ -576,7 +576,7 @@ export default function Eurovision2022() {
       */}
       {(() => {
         // Wait for auth and config before making decisions
-        if (status === 'loading') {
+        if (String(status) === 'loading') {
           return null; // Don't render while loading
         }
         
