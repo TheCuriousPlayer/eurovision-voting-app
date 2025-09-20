@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
-const eurovision2999Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
+const eurovision2026Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
 // 'Albania': { code: 'AL', performer: '', song: '', youtubeId: '' },
 // 'Andorra': { code: 'AD', performer: '', song: '', youtubeId: '' },
 // 'Armenia': { code: 'AM', performer: '', song: '', youtubeId: '' },
@@ -60,7 +60,7 @@ const eurovision2999Songs: { [key: string]: { code: string; performer: string; s
 // 'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
 };
 
-export default function Eurovision2999() {
+export default function Eurovision2026() {
   // Current time state for testing middleware redirect
   // (Removed unused currentTime state and timer)
   
@@ -86,7 +86,7 @@ export default function Eurovision2999() {
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
 
   const openYouTubeModal = (country: string) => {
-    const songData = eurovision2999Songs[country];
+    const songData = eurovision2026Songs[country];
     if (songData?.youtubeId) {
       setSelectedVideoId(songData.youtubeId);
       setSelectedCountryName(country);
@@ -103,17 +103,17 @@ export default function Eurovision2999() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        console.log(`[Eurovision2999] Fetching config for year: 2999`);
-        console.log(`[Eurovision2999] User authentication status: ${status}`);
-        console.log(`[Eurovision2999] User email: ${session?.user?.email || 'Not signed in'}`);
+        console.log(`[Eurovision2026] Fetching config for year: 2026`);
+        console.log(`[Eurovision2026] User authentication status: ${status}`);
+        console.log(`[Eurovision2026] User email: ${session?.user?.email || 'Not signed in'}`);
         
         // Add a timestamp to prevent caching issues
-        const response = await fetch(`/api/config/vote-config?year=2999&t=${Date.now()}`);
+        const response = await fetch(`/api/config/vote-config?year=2026&t=${Date.now()}`);
         if (response.ok) {
           const data = await response.json();
-          console.log(`[Eurovision2999] Config API response:`, data);
-          console.log(`[Eurovision2999] isGM status: ${data.isGM}`);
-          console.log(`[Eurovision2999] Mode setting: ${data.mode}`);
+          console.log(`[Eurovision2026] Config API response:`, data);
+          console.log(`[Eurovision2026] isGM status: ${data.isGM}`);
+          console.log(`[Eurovision2026] Mode setting: ${data.mode}`);
           setVoteConfig(data);
         }
       } catch (error) {
@@ -163,7 +163,7 @@ export default function Eurovision2999() {
     console.log('Updating results with selectedCountries:', selectedCountries);
 
     // Start with base points (all countries at 0)
-    const allCountries = Object.keys(eurovision2999Songs);
+    const allCountries = Object.keys(eurovision2026Songs);
     const basePoints: { [country: string]: number } = {};
     
     // Initialize all countries to 0
@@ -232,7 +232,7 @@ export default function Eurovision2999() {
       // This maintains empty strings in their exact positions
       console.log('Sending votes to API (preserving slot positions):', selectedCountries);
       
-      const response = await fetch('/api/votes/2999', {
+      const response = await fetch('/api/votes/2026', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export default function Eurovision2999() {
   const fetchFreshResults = async () => {
     try {
       console.log('Fetching fresh results from simple endpoint...');
-      const endpoint = '/api/votes/2999/simple';
+      const endpoint = '/api/votes/2026/simple';
       const cacheBustUrl = `${endpoint}?t=${Date.now()}`;
       console.log('Using simple endpoint:', cacheBustUrl);
       
@@ -372,7 +372,7 @@ export default function Eurovision2999() {
       }
       
       // Use simple endpoint that returns hardcoded working data
-      const endpoint = '/api/votes/2999/simple';
+      const endpoint = '/api/votes/2026/simple';
       // Add cache-busting timestamp to force fresh data
       // If we expect auth but don't have userVote yet, add waitForAuth param
       const needsAuth = status === 'authenticated' && session?.user?.email;
@@ -430,7 +430,7 @@ export default function Eurovision2999() {
             console.log('Debug data:', debugData);
             
             // If debug shows votes exist but API returns 0, force a retry in 2 seconds
-            if (debugData.focus2999?.votesCount > 0) {
+            if (debugData.focus2026?.votesCount > 0) {
               console.warn('Mismatch detected - retrying in 2 seconds...');
               setTimeout(() => {
                 fetchResults();
@@ -445,7 +445,7 @@ export default function Eurovision2999() {
         console.log('Results state set with totalVotes:', data.totalVotes);
         
         // Load user's show results preference from localStorage (for both auth and unauth users)
-        const savedShowResults = localStorage.getItem('eurovision2999_showResults');
+        const savedShowResults = localStorage.getItem('eurovision2026_showResults');
         if (savedShowResults !== null) {
           setShowResults(JSON.parse(savedShowResults));
         }
@@ -493,7 +493,7 @@ export default function Eurovision2999() {
     
     const newShowResults = !showResults;
     setShowResults(newShowResults);
-    localStorage.setItem('eurovision2999_showResults', JSON.stringify(newShowResults));
+    localStorage.setItem('eurovision2026_showResults', JSON.stringify(newShowResults));
     
     if (newShowResults) {
       // Start auto-refresh when showing results
@@ -600,8 +600,8 @@ export default function Eurovision2999() {
     </div>
   );
 
-  // Get all countries from the eurovision2999Songs mapping
-  const allCountries = Object.keys(eurovision2999Songs);
+  // Get all countries from the eurovision2026Songs mapping
+  const allCountries = Object.keys(eurovision2026Songs);
   
   // Create array of all countries with their points (including 0 points)
   // Sort alphabetically when results are hidden, by points when shown
@@ -624,7 +624,7 @@ export default function Eurovision2999() {
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2999
+          Eurovision 2026
         </h1>
         
         {session ? (
@@ -673,7 +673,7 @@ export default function Eurovision2999() {
                                         }`}
                                       >
                                         <Image 
-                                          src={`/flags/${selectedCountries[index].replace('&', 'and')}_${eurovision2999Songs[selectedCountries[index]]?.code}.png`}
+                                          src={`/flags/${selectedCountries[index].replace('&', 'and')}_${eurovision2026Songs[selectedCountries[index]]?.code}.png`}
                                           alt={`${selectedCountries[index]} flag`}
                                           width={24}
                                           height={16}
@@ -802,7 +802,7 @@ export default function Eurovision2999() {
                                       )}
                                       <div className="flex-shrink-0 flex flex-col items-center">
                                         <Image 
-                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2999Songs[country]?.code}.png`}
+                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2026Songs[country]?.code}.png`}
                                           alt={`${country} flag`}
                                           width={24}
                                           height={16}
@@ -810,7 +810,7 @@ export default function Eurovision2999() {
                                             !showResults ? 'opacity-60' : ''
                                           }`}
                                         />
-                                        {eurovision2999Songs[country]?.youtubeId && (
+                                        {eurovision2026Songs[country]?.youtubeId && (
                                           <button 
                                             onClick={() => openYouTubeModal(country)}
                                             className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -827,13 +827,13 @@ export default function Eurovision2999() {
                                         <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                           {country}
                                         </span>
-                                        {eurovision2999Songs[country] && (
+                                        {eurovision2026Songs[country] && (
                                           <div className="flex flex-col">
                                             <span className="text-xs text-gray-400 truncate">
-                                              {eurovision2999Songs[country].performer}
+                                              {eurovision2026Songs[country].performer}
                                             </span>
                                             <span className="text-xs text-gray-500 truncate">
-                                              {eurovision2999Songs[country].song}
+                                              {eurovision2026Songs[country].song}
                                             </span>
                                           </div>
                                         )}
@@ -905,7 +905,7 @@ export default function Eurovision2999() {
                                       )}
                                       <div className="flex-shrink-0 flex flex-col items-center">
                                         <Image 
-                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2999Songs[country]?.code}.png`}
+                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2026Songs[country]?.code}.png`}
                                           alt={`${country} flag`}
                                           width={24}
                                           height={16}
@@ -913,7 +913,7 @@ export default function Eurovision2999() {
                                             !showResults ? 'opacity-60' : ''
                                           }`}
                                         />
-                                        {eurovision2999Songs[country]?.youtubeId && (
+                                        {eurovision2026Songs[country]?.youtubeId && (
                                           <button 
                                             onClick={() => openYouTubeModal(country)}
                                             className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -930,13 +930,13 @@ export default function Eurovision2999() {
                                         <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                           {country}
                                         </span>
-                                        {eurovision2999Songs[country] && (
+                                        {eurovision2026Songs[country] && (
                                           <div className="flex flex-col">
                                             <span className="text-xs text-gray-400 truncate">
-                                              {eurovision2999Songs[country].performer}
+                                              {eurovision2026Songs[country].performer}
                                             </span>
                                             <span className="text-xs text-gray-500 truncate">
-                                              {eurovision2999Songs[country].song}
+                                              {eurovision2026Songs[country].song}
                                             </span>
                                           </div>
                                         )}
@@ -997,7 +997,7 @@ export default function Eurovision2999() {
                           </span>
                           <div className="flex-shrink-0 flex flex-col items-center">
                             <Image 
-                              src={`/flags/${country.replace('&', 'and')}_${eurovision2999Songs[country]?.code}.png`}
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2026Songs[country]?.code}.png`}
                               alt={`${country} flag`}
                               width={24}
                               height={16}
@@ -1005,7 +1005,7 @@ export default function Eurovision2999() {
                                 !showResults ? 'opacity-60' : ''
                               }`}
                             />
-                            {eurovision2999Songs[country]?.youtubeId && (
+                            {eurovision2026Songs[country]?.youtubeId && (
                               <button 
                                 onClick={() => openYouTubeModal(country)}
                                 className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -1022,13 +1022,13 @@ export default function Eurovision2999() {
                             <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                               {country}
                             </span>
-                            {eurovision2999Songs[country] && (
+                            {eurovision2026Songs[country] && (
                               <div className="flex flex-col">
                                 <span className="text-xs text-gray-400 truncate">
-                                  {eurovision2999Songs[country].performer}
+                                  {eurovision2026Songs[country].performer}
                                 </span>
                                 <span className="text-xs text-gray-500 truncate">
-                                  {eurovision2999Songs[country].song}
+                                  {eurovision2026Songs[country].song}
                                 </span>
                               </div>
                             )}
@@ -1063,7 +1063,7 @@ export default function Eurovision2999() {
                           </span>
                           <div className="flex-shrink-0 flex flex-col items-center">
                             <Image 
-                              src={`/flags/${country.replace('&', 'and')}_${eurovision2999Songs[country]?.code}.png`}
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2026Songs[country]?.code}.png`}
                               alt={`${country} flag`}
                               width={24}
                               height={16}
@@ -1071,7 +1071,7 @@ export default function Eurovision2999() {
                                 !showResults ? 'opacity-60' : ''
                               }`}
                             />
-                            {eurovision2999Songs[country]?.youtubeId && (
+                            {eurovision2026Songs[country]?.youtubeId && (
                               <button 
                                 onClick={() => openYouTubeModal(country)}
                                 className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -1088,13 +1088,13 @@ export default function Eurovision2999() {
                             <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                 {country}
                             </span>
-                            {eurovision2999Songs[country] && (
+                            {eurovision2026Songs[country] && (
                                 <div className="flex flex-col">
                                 <span className="text-xs text-gray-400 truncate">
-                                    {eurovision2999Songs[country].performer}
+                                    {eurovision2026Songs[country].performer}
                                 </span>
                                 <span className="text-xs text-gray-500 truncate">
-                                    {eurovision2999Songs[country].song}
+                                    {eurovision2026Songs[country].song}
                                 </span>
                                 </div>
                             )}
@@ -1133,13 +1133,13 @@ export default function Eurovision2999() {
             >
               ×
             </button>
-            <h3 className="text-xl font-bold mb-4 text-white">{selectedCountryName} - Eurovision 2999</h3>
+            <h3 className="text-xl font-bold mb-4 text-white">{selectedCountryName} - Eurovision 2026</h3>
             <div className="aspect-video">
               <iframe
                 width="100%"
                 height="100%"
                 src={`https://www.youtube.com/embed/${selectedVideoId}?hd=1&quality=hd720`}
-                title={`${selectedCountryName} Eurovision 2999 Performance`}
+                title={`${selectedCountryName} Eurovision 2026 Performance`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

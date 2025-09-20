@@ -22,6 +22,8 @@ const VotePages_variables: ConfigState = {
   '2022': { Status: true, ShowCountDown: '00:00 27.09.2025', Mode: 'hide', GMs: 'ozgunciziltepe@gmail.com' },
   '2023': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
   '2024': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
+  '2025': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
+  '2026': { Status: false, ShowCountDown: '', Mode: 'hide', GMs: '' }
 };
 
 export async function GET() {
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
     const updatedConfig: ConfigState = await request.json();
     
     // Validate the updated configuration
-    const years = ['2022', '2023', '2024'];
+    const years = ['2022', '2023', '2024', '2025', '2026'];
     const validModes = ['visible', 'hide', 'gm-only'];
     
     for (const year of years) {

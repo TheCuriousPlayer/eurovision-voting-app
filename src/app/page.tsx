@@ -43,7 +43,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 32 }, (_, i) => 2025 - i).map(year => (
+            {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => (
               <div key={year} className="group">
                 <Link 
                   href={`/eurovision${year}`}
@@ -104,7 +104,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 32 }, (_, i) => 2025 - i).map(year => (
+          {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => (
             <div key={year} className="group">
               <Link 
                 href={`/eurovision${year}`}

@@ -51,7 +51,7 @@ export function middleware(request: NextRequest) {
   console.log(`[Middleware] Processing request for path: ${path}`);
   
   // Log the matcher check for root Eurovision paths
-  if (path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025') {
+  if (path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025' || path === '/eurovision2026') {
     console.log(`[Middleware] EXACT MATCH for Eurovision year path: ${path}`);
   }
   
@@ -80,7 +80,7 @@ export function middleware(request: NextRequest) {
     }
     
     // Ana sayfa ve oylama sayfası kontrolü
-    // Ana sayfa (/eurovision2022) veya oylama sayfaları (/eurovision2022/vote) için geçerli
+    // Ana sayfa (/eurovision202x) veya oylama sayfaları (/eurovision202x/vote) için geçerli
     const isMainPage = path === `/eurovision${year}`;
     const isVotingPage = path.includes('/vote') || path.includes('/voting');
     
@@ -189,9 +189,11 @@ export const config = {
     '/eurovision2023',       // Add exact root path for Eurovision 2023
     '/eurovision2024',       // Add exact root path for Eurovision 2024
     '/eurovision2025',       // Add exact root path for Eurovision 2025
+    '/eurovision2026',       // Add exact root path for Eurovision 2026
     '/eurovision2023/:path*', 
     '/eurovision2024/:path*',
     '/eurovision2025/:path*',
+    '/eurovision2026/:path*',
     '/eurovision2022/vote/:path*',
     '/eurovision2022/voting/:path*',
     '/eurovision2023/vote/:path*',
@@ -199,6 +201,8 @@ export const config = {
     '/eurovision2024/vote/:path*',
     '/eurovision2024/voting/:path*',
     '/eurovision2025/vote/:path*',
-    '/eurovision2025/voting/:path*'
+    '/eurovision2025/voting/:path*',
+    '/eurovision2026/vote/:path*',
+    '/eurovision2026/voting/:path*'
   ],
 };

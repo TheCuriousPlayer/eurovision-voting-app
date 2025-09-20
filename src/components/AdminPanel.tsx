@@ -23,6 +23,8 @@ export default function AdminPanel() {
     '2022': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
     '2023': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
     '2024': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
+    '2025': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
+    '2026': { Status: false, ShowCountDown: '', Mode: 'hide', GMs: '' }
   });
   const [message, setMessage] = useState({ text: '', type: '' });
   const [selectedYear, setSelectedYear] = useState('2022');
@@ -184,6 +186,8 @@ export default function AdminPanel() {
           <option value="2022">Eurovision 2022</option>
           <option value="2023">Eurovision 2023</option>
           <option value="2024">Eurovision 2024</option>
+          <option value="2025">Eurovision 2025</option>
+          <option value="2026">Eurovision 2026</option>
         </select>
       </div>
       
