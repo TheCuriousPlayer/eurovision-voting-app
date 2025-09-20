@@ -43,13 +43,13 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 28 }, (_, i) => 2024 - i).map(year => (
+            {Array.from({ length: 32 }, (_, i) => 2025 - i).map(year => (
               <div key={year} className="group">
                 <Link 
                   href={`/eurovision${year}`}
                   className={`
                     block relative overflow-hidden rounded-xl p-6 
-                    ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                    ${year < 2026 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
                     transform transition-all duration-300 shadow-lg
                     hover:scale-105 hover:shadow-xl
                   `}
@@ -65,7 +65,7 @@ export default function Home() {
                   </h2>
                   
                   <div className="text-gray-300 text-sm">
-                    {year < 2025 && year > 2021 ? (
+                    {year < 2026 && year > 2021 ? (
                       <span>Aktif</span>
                     ) : (
                       <span>Eklenecek...</span>
@@ -104,13 +104,13 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 28 }, (_, i) => 2024 - i).map(year => (
+          {Array.from({ length: 32 }, (_, i) => 2025 - i).map(year => (
             <div key={year} className="group">
               <Link 
                 href={`/eurovision${year}`}
                 className={`
                   block relative overflow-hidden rounded-xl p-6 
-                  ${year < 2025 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                  ${year < 2026 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
                   transform transition-all duration-300 shadow-lg
                   hover:scale-105 hover:shadow-xl
                 `}
@@ -126,7 +126,7 @@ export default function Home() {
                 </h2>
                 
                 <div className="text-gray-300 text-sm">
-                  {year < 2025 && year > 2021 ? (
+                  {year < 2026 && year > 2021 ? (
                     <span>Aktif</span>
                   ) : (
                     <span>Eklenecek...</span>

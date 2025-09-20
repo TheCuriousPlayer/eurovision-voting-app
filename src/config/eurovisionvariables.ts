@@ -6,9 +6,10 @@
 // Oylama tarihleri - "HH:MM DD.MM.YYYY" formatında
 export const VOTE_DATES = {
   // Yıllara göre oylama başlangıç tarihleri
-  '2022': '23:00 28.09.2025', 
+  '2022': '23:00 18.09.2025', 
   '2023': '',
-  '2024': ''
+  '2024': '',
+  '2025': ''
 };
 
 // Oylama yapılandırması
@@ -30,6 +31,12 @@ export const VOTE_CONFIG = {
     ShowCountDown: VOTE_DATES['2024'], 
     Mode: 'visible', 
     GMs: '' 
+  },
+  '2025': { 
+    Status: false, 
+    ShowCountDown: VOTE_DATES['2025'], 
+    Mode: 'visible', 
+    GMs: '' 
   }
 };
 
@@ -37,5 +44,6 @@ export const VOTE_CONFIG = {
 export const UNDER_CONSTRUCTION = {
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
-  '2024': false    // true: bakım modunda, false: aktif
+  '2024': false,    // true: bakım modunda, false: aktif
+  '2025': false    // true: bakım modunda, false: aktif
 };

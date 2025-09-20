@@ -51,7 +51,7 @@ export function middleware(request: NextRequest) {
   console.log(`[Middleware] Processing request for path: ${path}`);
   
   // Log the matcher check for root Eurovision paths
-  if (path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024') {
+  if (path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025') {
     console.log(`[Middleware] EXACT MATCH for Eurovision year path: ${path}`);
   }
   
@@ -188,14 +188,17 @@ export const config = {
     '/eurovision2022',       // Add exact root path for Eurovision 2022
     '/eurovision2023',       // Add exact root path for Eurovision 2023
     '/eurovision2024',       // Add exact root path for Eurovision 2024
-    '/eurovision2022/:path*',
+    '/eurovision2025',       // Add exact root path for Eurovision 2025
     '/eurovision2023/:path*', 
     '/eurovision2024/:path*',
+    '/eurovision2025/:path*',
     '/eurovision2022/vote/:path*',
     '/eurovision2022/voting/:path*',
     '/eurovision2023/vote/:path*',
     '/eurovision2023/voting/:path*',
     '/eurovision2024/vote/:path*',
-    '/eurovision2024/voting/:path*'
+    '/eurovision2024/voting/:path*',
+    '/eurovision2025/vote/:path*',
+    '/eurovision2025/voting/:path*'
   ],
 };
