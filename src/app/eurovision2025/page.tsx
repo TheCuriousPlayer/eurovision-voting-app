@@ -7,7 +7,6 @@ import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const eurovision2025Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
-
 'Albania': { code: 'AL', performer: 'Shkodra Elektronike', song: 'Zjerm', youtubeId: 'xfn6ssOf_zU' },
 //   'Andorra': { code: 'AD', performer: '', song: '', youtubeId: '' },
 'Armenia': { code: 'AM', performer: 'PARG', song: 'SURVIVOR', youtubeId: 'qHkZWLld-pw' },

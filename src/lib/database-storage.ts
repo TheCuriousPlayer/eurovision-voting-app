@@ -38,6 +38,16 @@ const EUROVISION_2024_COUNTRIES = [
   'Ukraine', 'United Kingdom'
 ];
 
+// Eurovision 2025 Countries (from src/app/eurovision2025/page.tsx mapping)
+const EUROVISION_2025_COUNTRIES = [
+  'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
+  'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
+  'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
+  'Lithuania', 'Luxembourg', 'Malta', 'Montenegro', 'Netherlands', 'Norway', 'Poland',
+  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
+  'Ukraine', 'United Kingdom'
+];
+
 export class DatabaseStorage {
   
   // Initialize competitions (run once)
@@ -85,6 +95,22 @@ export class DatabaseStorage {
             year: 2024,
             name: 'Eurovision 2024',
             countries: EUROVISION_2024_COUNTRIES,
+            isActive: true
+          }
+        });
+      }
+
+      // Create Eurovision 2025 if not exists
+      const existing2025 = await prisma.competition.findUnique({
+        where: { year: 2025 }
+      });
+
+      if (!existing2025) {
+        await prisma.competition.create({
+          data: {
+            year: 2025,
+            name: 'Eurovision 2025',
+            countries: EUROVISION_2025_COUNTRIES,
             isActive: true
           }
         });

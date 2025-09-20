@@ -10,6 +10,10 @@ export const revalidate = 0;
 // Use Eurovision 2025 year for all database operations
 const EUROVISION_YEAR = 2025;
 
+// Legacy cookie-based storage constants (kept for reference)
+// const VOTES_KEY = 'eurovision2025:votes';
+// const USER_VOTES_PREFIX = 'eurovision2025:user:';
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -36,7 +40,7 @@ export async function POST(request: Request) {
     };
 
     // Store vote in database for Eurovision 2025
-    await dbStorage.addOrUpdateVote(vote, EUROVISION_YEAR);
+    await dbStorage.addOrUpdateVote(vote, 2025);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-
+    
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -78,4 +82,3 @@ export async function GET() {
     return response;
   }
 }
-
