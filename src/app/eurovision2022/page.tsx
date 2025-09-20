@@ -61,10 +61,6 @@ const eurovision2022Songs: { [key: string]: { code: string; performer: string; s
 //   'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
 };
 
-// Toggle this to true to show an "Under Construction" message for all users (auth or unauth).
-// Set to false to enable the normal page. (You said you'll remove these lines later.)
-const UNDER_CONSTRUCTION = true;
-
 export default function Eurovision2022() {
 
   const { data: session, status } = useSession();
@@ -72,6 +68,12 @@ export default function Eurovision2022() {
   const [loading, setLoading] = useState(true);
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
   const [showResults, setShowResults] = useState(false); // Toggle for showing results with points
+  const [voteConfig, setVoteConfig] = useState({ 
+    status: true, 
+    showCountDown: '', 
+    mode: 'visible', 
+    isGM: false 
+  });
   const [autoRefreshTimer, setAutoRefreshTimer] = useState<NodeJS.Timeout | null>(null);
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
@@ -96,6 +98,31 @@ export default function Eurovision2022() {
     setSelectedVideoId('');
     setSelectedCountryName('');
   };
+
+  // Fetch vote config
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        console.log(`[Eurovision2022] Fetching config for year: 2022`);
+        console.log(`[Eurovision2022] User authentication status: ${status}`);
+        console.log(`[Eurovision2022] User email: ${session?.user?.email || 'Not signed in'}`);
+        
+        // Add a timestamp to prevent caching issues
+        const response = await fetch(`/api/config/vote-config?year=2022&t=${Date.now()}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`[Eurovision2022] Config API response:`, data);
+          console.log(`[Eurovision2022] isGM status: ${data.isGM}`);
+          console.log(`[Eurovision2022] Mode setting: ${data.mode}`);
+          setVoteConfig(data);
+        }
+      } catch (error) {
+        console.error('Error loading configuration:', error);
+      }
+    }
+    
+    fetchConfig();
+  }, [session, status]);
 
   useEffect(() => {
     // Only fetch results once we know the session status
@@ -404,7 +431,21 @@ export default function Eurovision2022() {
         // Load user's show results preference from localStorage (for both auth and unauth users)
         const savedShowResults = localStorage.getItem('eurovision2022_showResults');
         if (savedShowResults !== null) {
-          setShowResults(JSON.parse(savedShowResults));
+          // Only allow showing results if mode is 'visible' or user is GM
+          const shouldShowResults = JSON.parse(savedShowResults);
+          
+          // Log the decision making process
+          console.log(`[Eurovision2022] Saved preference is to ${shouldShowResults ? 'show' : 'hide'} results`);
+          console.log(`[Eurovision2022] Current mode: ${voteConfig.mode}, isGM: ${voteConfig.isGM}`);
+          
+          if (shouldShowResults && voteConfig.mode === 'hide' && !voteConfig.isGM) {
+            // Don't show results if mode is hide (unless user is GM)
+            setShowResults(false);
+            console.log('[Eurovision2022] Results hidden due to configuration mode: hide');
+          } else {
+            setShowResults(shouldShowResults);
+            console.log(`[Eurovision2022] Setting showResults to: ${shouldShowResults}`);
+          }
         }
         
         // Only set selectedCountries if user is authenticated and has votes
@@ -442,6 +483,12 @@ export default function Eurovision2022() {
   };
 
   const toggleShowResults = () => {
+    // If mode is set to 'hide', don't allow showing results unless user is GM
+    if (!showResults && voteConfig.mode === 'hide' && !voteConfig.isGM) {
+      console.log('Results are hidden by configuration');
+      return;
+    }
+    
     const newShowResults = !showResults;
     setShowResults(newShowResults);
     localStorage.setItem('eurovision2022_showResults', JSON.stringify(newShowResults));
@@ -476,23 +523,23 @@ export default function Eurovision2022() {
   };
 
   if (loading || status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen">Loading results...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
   }
 
   // Show loading during authentication if we expect user data but don't have results yet
   // Only show this if we have absolutely no data to display
   if (status === 'authenticated' && !results) {
-    return <div className="flex items-center justify-center min-h-screen">Loading your votes...</div>;
+  return <div className="flex items-center justify-center min-h-screen">Oylar yükleniyor...</div>;
   }
 
   if (!results) {
-    return <div className="flex items-center justify-center min-h-screen">Error loading results</div>;
+    return <div className="flex items-center justify-center min-h-screen">Sonuçlar yüklenirken bir hata oluştu</div>;
   }
 
   // Sign-in component for unauthenticated users
   const SignInPrompt = () => (
     <div className="bg-[#2c3e50] rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-white mb-4">Your Vote</h2>
+  <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <div className="bg-[#2a3846] border-2 border-dashed border-[#34495e] rounded-lg p-6 w-full">
           <div className="mb-4">
@@ -500,7 +547,7 @@ export default function Eurovision2022() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">Please sign in to start voting</h3>
-            <p className="text-gray-400 mb-6">Sign in with Google to cast your vote and save your preferences</p>
+            <p className="text-gray-400 mb-6">Google ile giriş yaparak oy verin ve tercihlerinizi kaydedin</p>
             <button
               onClick={() => signIn('google')}
               className="bg-[#4285f4] hover:bg-[#3367d6] text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
@@ -517,16 +564,53 @@ export default function Eurovision2022() {
         </div>
       </div>
       
-      <button
-        onClick={toggleShowResults}
-        className={`mt-4 w-full py-2 px-4 rounded font-medium transition-colors ${
-          showResults 
-            ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
-            : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
-        }`}
-      >
-        {showResults ? 'Hide Results' : 'Show Results'}
-      </button>
+      {/* 
+        BUTTON VISIBILITY LOGIC:
+        
+        Show button ONLY when one of these conditions is true:
+        1. User is a GM (admin), OR
+        2. Mode is NOT 'hide', OR
+        3. Results are ALREADY showing (so user can hide them)
+        
+        These are the ONLY cases when the button should be visible
+      */}
+      {(() => {
+        // Wait for auth and config before making decisions
+        if (status === 'loading') {
+          return null; // Don't render while loading
+        }
+        
+        // Debug button visibility decision
+        const isGM = voteConfig.isGM === true;
+        const isNotHideMode = voteConfig.mode !== 'hide';
+        const isShowingResults = showResults === true;
+        
+        // Button should ONLY be shown if ANY of these conditions are true
+        const shouldShowButton = isGM || isNotHideMode || isShowingResults;
+        
+        console.log(`[Button Visibility] Auth status: ${status}`);
+        console.log(`[Button Visibility] Mode:'${voteConfig.mode}', isGM:${voteConfig.isGM}, showResults:${showResults}`);
+        console.log(`[Button Visibility] Should show button: ${shouldShowButton}`);
+        
+        // Only render if we should show the button
+        if (!shouldShowButton) {
+          return null;
+        }
+        
+        // Render the button
+        return (
+          <button
+            onClick={toggleShowResults}
+            className={`mt-4 w-full py-2 px-4 rounded font-medium transition-colors ${
+              showResults 
+                ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
+                : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
+            }`}
+          >
+            {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
+          </button>
+        );
+      })()}
     </div>
   );
 
@@ -543,32 +627,23 @@ export default function Eurovision2022() {
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
 
-  // If you want to temporarily disable the page, toggle UNDER_CONSTRUCTION at top of file.
-  if (UNDER_CONSTRUCTION) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a2e] to-[#16213e] p-8">
-        <div className="bg-[#2c3e50] rounded-lg p-8 max-w-xl text-center">
-          <h1 className="text-3xl font-bold text-white mb-4">Eurovision 2022 — Under Construction</h1>
-          <p className="text-gray-300">This page is temporarily disabled while we make improvements. Please check back soon.</p>
-        </div>
-      </div>
-    );
-  }
+  // Bakım modu kontrolü artık middleware tarafından yapılıyor.
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <div className="container mx-auto px-4">
+        
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2022 Results
+          Eurovision 2022
         </h1>
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex flex-wrap gap-8">
-              {/* Your Vote Section - Show voting if authenticated, sign-in prompt if not */}
+              {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-white mb-4">Your Vote</h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
                   <div className="grid gap-0">
                     {Array.from({ length: 10 }).map((_, index) => (
                       <Droppable 
@@ -621,7 +696,7 @@ export default function Eurovision2022() {
                                 ) : (
                                   <>
                                     <div className="w-6 h-4 bg-[#34495e] rounded opacity-30 flex-shrink-0" />
-                                    <span className="text-gray-500 truncate">Drag a country here</span>
+                                    <span className="text-gray-500 truncate">Sıralama</span>
                                   </>
                                 )}
                               </div>
@@ -652,29 +727,52 @@ export default function Eurovision2022() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    Drag countries from the results list to vote (max 10). Drag countries between slots to reorder.
+                    Sürükle-bırak veya artı düğmesiyle oy verin. <br /> Sıralamayı sürükle-bırak ile değiştirebilirsiniz. <br /> Oylarınız otomatik olarak kaydedilir. <br /> İstediğiniz zaman oylarınızı değiştirebilirsiniz.
                   </div>
-                  <button
-                    onClick={toggleShowResults}
-                    className={`mt-4 w-full py-2 px-4 rounded font-medium transition-colors ${
-                      showResults 
-                        ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
-                        : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
-                    }`}
-                  >
-                    {showResults ? 'Hide Results' : 'Show Results'}
-                  </button>
+                  {(() => {
+                    // Debug button visibility decision
+                    const isGM = voteConfig.isGM === true;
+                    const isNotHideMode = voteConfig.mode !== 'hide';
+                    const isShowingResults = showResults === true;
+                    
+                    // Button should ONLY be shown if ANY of these conditions are true
+                    const shouldShowButton = isGM || isNotHideMode || isShowingResults;
+                    
+                    // Only render if we should show the button
+                    if (!shouldShowButton) {
+                      return null;
+                    }
+                    
+                    return (
+                      <button
+                        onClick={toggleShowResults}
+                        className={`mt-4 w-full py-2 px-4 rounded font-medium transition-colors ${
+                          showResults 
+                            ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
+                            : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
+                        }`}
+                      >
+                        {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
 
-              {/* Overall Results Section - Split into 2 columns */}
+              {/* Sonuçlar Section - Split into 2 columns */}
               <div className="flex-1">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
-                    {showResults 
-                      ? `Overall Results (${results.totalVotes} votes)` 
-                      : 'Countries (Alphabetical)'
-                    }
+                    {showResults ? (
+                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
+                    ) : (
+                      <>
+                        <span>Ülkeler (Alfabetik) </span>
+                        <span className="text-sm font-normal">
+                          | Sonuçlar önce Buğra Şişman Youtube kanalında gösterilecektir.
+                        </span>
+                      </>
+                    )}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     {/* First Column - Higher Rankings */}
@@ -895,12 +993,18 @@ export default function Eurovision2022() {
             {/* Results section for unauthenticated users - no drag and drop */}
             <div className="flex-1">
               <div className="bg-[#2c3e50] rounded-lg p-6">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  {showResults 
-                    ? `Overall Results (${results.totalVotes} votes)` 
-                    : 'Countries (Alphabetical)'
-                  }
-                </h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">
+                    {showResults ? (
+                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
+                    ) : (
+                      <>
+                        <span>Ülkeler (Alfabetik) </span>
+                        <span className="text-sm font-normal">
+                          | Sonuçlar önce Buğra Şişman Youtube kanalında gösterilecektir.
+                        </span>
+                      </>
+                    )}
+                  </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   {/* First Column - Higher Rankings */}
                   <div className="space-y-1">

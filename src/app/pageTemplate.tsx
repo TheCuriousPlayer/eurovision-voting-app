@@ -280,10 +280,10 @@ export default function Eurovision2023Test() {
           </h1>
           
           <div className="flex flex-wrap gap-8">
-            {/* Your Vote Section */}
+            {/* Oylarım Section */}
             <div className="w-full lg:w-[420px]">
               <div className="bg-[#2c3e50] rounded-lg p-6">
-                <h2 className="text-2xl font-bold text-white mb-4">Your Vote</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
                 <div className="grid gap-0">
                   {Array.from({ length: 10 }).map((_, index) => (
                     <Droppable 

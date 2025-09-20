@@ -1,26 +1,26 @@
 # Eurovision Voting Server - Network Configuration Guide
 
 ## Your Server Details
-- **Local IP Address**: 192.168.50.23
+- **Local IP Address**: ***
 - **Local Access**: http://localhost:3000
-- **Network Access**: http://192.168.50.23:3000
+- **Network Access**: ***
 
 ## Environment Configuration
 
 ### For Local Testing (.env.local)
 ```
-GOOGLE_ID=87219256128-7k4p98c0pdp07lg8b3ds0b90u16nbokh.apps.googleusercontent.com 
-GOOGLE_SECRET=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
-NEXTAUTH_SECRET=2b80d6ad2c49db241a51260e30b2e3fd160b9983ea8ec125bb300c5e83bdd7df
+GOOGLE_ID=***
+GOOGLE_SECRET=***
+NEXTAUTH_SECRET=***
 NEXTAUTH_URL=http://localhost:3000
 ```
 
 ### For Network Access (.env.production)
 ```
-GOOGLE_ID=87219256128-7k4p98c0pdp07lg8b3ds0b90u16nbokh.apps.googleusercontent.com 
-GOOGLE_SECRET=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
-NEXTAUTH_SECRET=2b80d6ad2c49db241a51260e30b2e3fd160b9983ea8ec125bb300c5e83bdd7df
-NEXTAUTH_URL=http://192.168.50.23:3000
+GOOGLE_ID=***
+GOOGLE_SECRET=***
+NEXTAUTH_SECRET=***
+NEXTAUTH_URL=***
 ```
 
 ## Google OAuth Configuration
@@ -30,7 +30,7 @@ NEXTAUTH_URL=http://192.168.50.23:3000
 3. Go to "Credentials" → "OAuth 2.0 Client IDs"
 4. Add these URLs to "Authorized redirect URIs":
    - http://localhost:3000/api/auth/callback/google
-   - http://192.168.50.23:3000/api/auth/callback/google
+   - ***
 
 ## Server Access Methods
 
@@ -40,7 +40,7 @@ NEXTAUTH_URL=http://192.168.50.23:3000
 - Access: Only from this computer
 
 ### Method 2: Network Access (Same WiFi)
-- URL: http://192.168.50.23:3000
+- URL: ***
 - Use: .env.production configuration
 - Access: Any device on same network
 
@@ -59,7 +59,7 @@ Windows may block network access. If others can't connect:
 ## Starting the Server
 1. Run: `server-manager.bat`
 2. Choose option 3: "Start Both Services"
-3. Share the URL with others: http://192.168.50.23:3000
+3. Share the URL with others: ***
 
 ## Files Overview
 - `server-manager.bat` - Main control panel

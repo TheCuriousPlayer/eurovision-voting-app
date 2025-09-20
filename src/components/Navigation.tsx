@@ -7,7 +7,7 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/eurovision2023', label: 'Eurovision 2023' },
+    { href: '/eurovision2022', label: 'Eurovision 2022' },
   ];
 
   return (
@@ -30,6 +30,13 @@ export default function Navigation() {
               </svg>
               <span className="sr-only">Home</span>
             </Link>
+            <a
+              href="https://www.youtube.com/watch?v=TJOPmCHlNtk&list=PLvYQzibNzDx01WQHqmrIL-CXvrPHuDl4I"
+              className="ml-30 px-3 py-2 bg-[#e53935] hover:bg-[#d32f2f] text-white rounded-md text-sm font-medium transition-colors"
+              aria-label="Buğra Şişman - Youtube"
+            >
+              Buğra Şişman - Youtube
+            </a>
           </div>
           <div className="flex space-x-4">
             {navItems.map((item) => (

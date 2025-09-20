@@ -16,7 +16,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-4">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-4xl font-bold text-white">Eurovision Song Contest Türkiye</h1>
+            <h1 className="text-4xl font-bold text-white">Eurovision Türkiye</h1>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-4">
                 {session.user?.image && (
@@ -29,7 +29,7 @@ export default function Home() {
                   />
                 )}
                 <div className="text-white">
-                  <p>Welcome, {session.user?.name}!</p>
+                  <p>{session.user?.name}</p>
                   <p className="text-sm text-gray-300">{session.user?.email}</p>
                 </div>
               </div>
@@ -66,9 +66,9 @@ export default function Home() {
                   
                   <div className="text-gray-300 text-sm">
                     {year < 2025 && year > 2021 ? (
-                      <span>Active</span>
+                      <span>Aktif</span>
                     ) : (
-                      <span>Coming Soon</span>
+                      <span>Eklenecek...</span>
                     )}
                   </div>
                 </Link>
@@ -84,7 +84,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-4">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-white">Eurovision Song Contest Türkiye</h1>
+          <h1 className="text-4xl font-bold text-white">Eurovision Türkiye</h1>
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}
             className="bg-[#4285f4] hover:bg-[#357ae8] text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
@@ -100,7 +100,7 @@ export default function Home() {
         </div>
 
         <div className="text-center mb-8">
-          <p className="text-gray-300 text-lg">Sign in with Google to start voting and save your preferences</p>
+          <p className="text-gray-300 text-lg">Google ile giriş yaparak oylamaya başlayın ve tercihlerinizi kaydedin.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -127,9 +127,9 @@ export default function Home() {
                 
                 <div className="text-gray-300 text-sm">
                   {year < 2025 && year > 2021 ? (
-                    <span>Active</span>
+                    <span>Aktif</span>
                   ) : (
-                    <span>Coming Soon</span>
+                    <span>Eklenecek...</span>
                   )}
                 </div>
               </Link>
