@@ -19,7 +19,6 @@ const countryToCode: { [key: string]: string } = {
   'Bosnia & Herzegovina': 'BA',
   'Bulgaria': 'BG',
   'Croatia': 'HR',
-  'Cyprus': 'CY',
   'Czechia': 'CZ',
   'Denmark': 'DK',
   'Estonia': 'EE',
@@ -53,6 +52,7 @@ const countryToCode: { [key: string]: string } = {
   'Serbia Montenegro': 'RM',
   'Slovakia': 'SK',
   'Slovenia': 'SI',
+  'South Cyprus': 'CY',
   'Spain': 'ES',
   'Sweden': 'SE',
   'Switzerland': 'CH',
@@ -65,14 +65,14 @@ const countryToCode: { [key: string]: string } = {
 const countries = [
   'Albania', 'Andorra', 'Armenia', 'Australia', 'Austria',
   'Azerbaijan', 'Belarus', 'Belgium', 'Bosnia & Herzegovina', 'Bulgaria',
-  'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia',
+  'Croatia', 'Czechia', 'Denmark', 'Estonia',
   'Finland', 'France', 'Georgia', 'Germany', 'Greece',
   'Hungary', 'Iceland', 'Ireland', 'Israel', 'Italy',
   'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Moldova',
   'Monaco', 'Montenegro', 'Morocco', 'Netherlands', 'North Macedonia',
   'Norway', 'Poland', 'Portugal', 'Romania', 'Russia',
   'San Marino', 'Serbia', 'Serbia Montenegro', 'Slovakia', 'Slovenia',
-  'Spain', 'Sweden', 'Switzerland', 'Türkiye', 'Ukraine',
+  'South Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Türkiye', 'Ukraine',
   'United Kingdom', 'Yugoslavia'
 ];
 

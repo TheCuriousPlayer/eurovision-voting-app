@@ -11,40 +11,40 @@ interface Vote {
 // Eurovision 2022 Countries
 const EUROVISION_2022_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Bulgaria',
-  'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France',
+  'Croatia', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France',
   'Georgia', 'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy',
   'Latvia', 'Lithuania', 'Malta', 'Moldova', 'Montenegro', 'Netherlands',
   'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'San Marino',
-  'Serbia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
+  'Serbia', 'Slovenia', 'South Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
 ];
 
 // Eurovision 2023 Countries
 const EUROVISION_2023_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-  'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
+  'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'Spain',
+  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain',
   'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
 ];
 
 // Eurovision 2024 Countries (example - update with actual)
 const EUROVISION_2024_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-  'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
+  'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
+  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain', 'Sweden', 'Switzerland',
   'Ukraine', 'United Kingdom'
 ];
 
 // Eurovision 2025 Countries (from src/app/eurovision2025/page.tsx mapping)
 const EUROVISION_2025_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-  'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
+  'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Luxembourg', 'Malta', 'Montenegro', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
+  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain', 'Sweden', 'Switzerland',
   'Ukraine', 'United Kingdom'
 ];
 

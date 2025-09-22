@@ -67,10 +67,10 @@ function calculateCumulative() {
 export function initializeDefaultCountries() {
   const countries = [
     'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-    'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
+    'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
     'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
     'Lithuania', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-    'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'Spain',
+    'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain',
     'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
   ];
   
