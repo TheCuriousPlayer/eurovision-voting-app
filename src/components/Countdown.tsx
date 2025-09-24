@@ -173,15 +173,30 @@ export default function Countdown({ targetDateStr, onComplete }: CountdownProps)
   };
 
   return (
-    <div className="w-full bg-gradient-to-r from-blue-900 to-purple-900 text-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">Test Amaçlıdır. Oylama Tarihi Değiştirilecektir.</h2> 
-      {/* <h2 className="text-2xl font-bold mb-4 text-center">Oylamaya Kalan Süre</h2> */}
-      
-      {renderDynamicCountdown()}
-      
-      <p className="text-center text-sm opacity-70">
-        Oylama Tarihi:  {targetDate.toLocaleDateString('tr-TR', {day: '2-digit', month: '2-digit', year: 'numeric'}).replace(/\./g, '/')} {targetDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}
-      </p>
-    </div>
+<div className="w-full bg-gradient-to-r from-blue-900 to-purple-900 text-white p-6 rounded-lg shadow-lg">
+  <h2 className="text-2xl font-bold mb-4 text-center">
+    <a
+      href="https://www.youtube.com/@BugraSisman/videos"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:underline"
+    >
+      <span className="relative inline-block">
+        <span className="text-yellow-300">🔗&#39;Grand Final 2022&#39;</span>
+        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-yellow-400"></span>
+      </span>
+      <br />
+      videosu yayınlandıktan sonra oylama başlayacak.
+    </a>
+  </h2>
+
+  {/* <h2 className="text-2xl font-bold mb-4 text-center">Oylamaya Kalan Süre</h2> */}
+
+  {renderDynamicCountdown()}
+
+  <p className="text-center text-sm opacity-70">
+    Oylama Tarihi: {targetDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\./g, '/')} {targetDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+  </p>
+</div>
   );
 }

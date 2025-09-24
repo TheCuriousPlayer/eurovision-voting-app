@@ -136,15 +136,15 @@ export class DatabaseStorage {
       }
 
       // Calculate points from vote positions
-      const points: { [country: string]: number } = {};
-      vote.votes.forEach((country, index) => {
-        if (country && country.trim() !== '') {
-          const pointsToAdd = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index];
-          if (pointsToAdd) {
-            points[country] = pointsToAdd;
-          }
-        }
-      });
+          const points: { [country: string]: number } = {};
+          vote.votes.forEach((country, index) => {
+            if (country && country.trim() !== '') {
+              const pointsToAdd = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index];
+              if (pointsToAdd) {
+                points[country] = pointsToAdd;
+              }
+            }
+          });
 
       // Upsert vote
       await prisma.vote.upsert({
@@ -154,20 +154,20 @@ export class DatabaseStorage {
             competitionId: competition.id
           }
         },
-        update: {
-          userName: vote.userName,
-          votes: vote.votes,
-          points: points,
-          updatedAt: new Date()
-        },
-        create: {
-          userId: vote.userId,
-          userName: vote.userName,
-          userEmail: vote.userEmail,
-          competitionId: competition.id,
-          votes: vote.votes,
-          points: points
-        }
+            update: {
+              userName: vote.userName,
+              votes: vote.votes,
+              points: points,
+              updatedAt: new Date()
+            },
+            create: {
+              userId: vote.userId,
+              userName: vote.userName,
+              userEmail: vote.userEmail,
+              competitionId: competition.id,
+              votes: vote.votes,
+              points: points
+            }
       });
 
       // Update cumulative results
