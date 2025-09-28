@@ -6,7 +6,7 @@
 // Oylama tarihleri - "HH:MM DD.MM.YYYY" formatında
 export const VOTE_DATES = {
   // Yıllara göre oylama başlangıç tarihleri
-  '2022': '17:00 28.09.2025', 
+  '2022': '', 
   '2023': '',
   '2024': '',
   '2025': '',
@@ -16,7 +16,7 @@ export const VOTE_DATES = {
 // Oylama yapılandırması
 export const VOTE_CONFIG = {
   '2022': { 
-    Status: true, 
+    Status: false, 
     ShowCountDown: VOTE_DATES['2022'], 
     Mode: 'hide', 
     GMs: 'ozgunciziltepe@gmail.com' 
