@@ -1,11 +1,11 @@
 ﻿import { NextResponse } from 'next/server';
 
-// Minimal GET handler so this file is recognized as a module by Next.js/TypeScript
-export async function GET() {
-	const data = {
-		message: 'No hardcoded data available',
-		timestamp: new Date().toISOString(),
-	};
+// Explicit exported handler to ensure this file is treated as a module by Next.js
+export const GET = async (): Promise<NextResponse> => {
+  const data = {
+    message: 'No hardcoded data available',
+    timestamp: new Date().toISOString(),
+  };
 
-	return NextResponse.json(data);
-}
+  return NextResponse.json(data);
+};
