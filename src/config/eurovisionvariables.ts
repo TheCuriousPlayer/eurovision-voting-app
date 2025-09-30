@@ -19,7 +19,7 @@ export const VOTE_CONFIG = {
     Status: false, 
     ShowCountDown: VOTE_DATES['2022'], 
     Mode: 'hide', 
-    GMs: 'ozgunciziltepe@gmail.com' 
+    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '2023': { 
     Status: false, 
