@@ -49,7 +49,7 @@ export const VOTE_CONFIG = {
 
 // Eurovision yılları için bakım modu ayarları
 export const UNDER_CONSTRUCTION = {
-  '2022': false,    // true: bakım modunda, false: aktif
+  '2022': true,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif
   '2025': false,    // true: bakım modunda, false: aktif

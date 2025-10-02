@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { useSession, signIn } from 'next-auth/react';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 type Results = {
   countryPoints: { [country: string]: number };
@@ -65,18 +67,21 @@ const eurovision2022Songs: { [key: string]: { performer: string; song: string } 
 };
 
 export default function Eurovision2022RevealPage() {
+  // React hooks (always declared in the same order)
+  const { data: session, status } = useSession();
   const [results, setResults] = useState<Results | null>(null);
   const [orderedCountries, setOrderedCountries] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
+  
+  // Effects (declare immediately so hooks run unconditionally)
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch('/api/votes/2022/public');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json() as Results;
+        const data = await res.json() as Results;
         setResults(data);
 
         // Sort countries ascending by score (lowest first)
@@ -93,14 +98,6 @@ export default function Eurovision2022RevealPage() {
     load();
   }, []);
 
-  function showNext() {
-    setVisibleCount(v => Math.min(orderedCountries.length, v + 1));
-  }
-
-  function resetAll() {
-    setVisibleCount(0);
-  }
-
   // Trigger fireworks when the final country (winner) is revealed
   useEffect(() => {
     if (!orderedCountries || orderedCountries.length === 0) return;
@@ -109,8 +106,8 @@ export default function Eurovision2022RevealPage() {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  if (!ctx) return;
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      if (!ctx) return;
 
       // Size canvas for high-DPI displays
       const dpr = window.devicePixelRatio || 1;
@@ -221,12 +218,12 @@ export default function Eurovision2022RevealPage() {
       ctx.clearRect(0, 0, width, height);
       render();
 
-      // stop after 5s
+      // stop after 35s
       const stopTimer = setTimeout(() => {
         cancelAnimationFrame(raf);
         window.removeEventListener('resize', onResize);
         if (ctx) ctx.clearRect(0, 0, width, height);
-      }, 5000);
+      }, 35000);
 
       return () => {
         clearTimeout(stopTimer);
@@ -236,6 +233,54 @@ export default function Eurovision2022RevealPage() {
       };
     }
   }, [visibleCount, orderedCountries]);
+
+  // Reveal helpers (must be declared unconditionally so hooks order is stable)
+  function showNext() {
+    setVisibleCount((v) => Math.min(orderedCountries.length, v + 1));
+  }
+
+  function resetAll() {
+    setVisibleCount(0);
+  }
+
+  // Access control helpers (derived from session)
+  const userEmail = session?.user?.email ?? '';
+  const gmList = VOTE_CONFIG?.['2022']?.GMs
+    ? VOTE_CONFIG['2022'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    : [];
+  const isGM = userEmail ? gmList.includes(userEmail.toLowerCase()) : false;
+
+  // Access control: show sign-in or denied messages for non-GMs
+  if (status === 'loading') {
+    return <div className="min-h-screen flex items-center justify-center">Yükleniyor...</div>;
+  }
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="mb-4">Bu sayfa yalnızca yönetici (GM) erişimine açıktır.</p>
+          <button
+            onClick={() => signIn('google', { callbackUrl: `${window.location.origin}/eurovision2022reveal` })}
+            className="px-4 py-2 bg-[#4a90e2] text-white rounded"
+          >
+            Giriş Yap
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isGM) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Erişim reddedildi</h2>
+          <p>Bu sayfaya erişim yetkiniz yok. Eğer yetkiliyseniz lütfen GM listesini kontrol edin.</p>
+        </div>
+      </div>
+    );
+  }
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
@@ -252,7 +297,7 @@ export default function Eurovision2022RevealPage() {
         className="pointer-events-none fixed inset-0 w-full h-full z-50"
       />
       <aside className="w-full md:w-72 mr-6 flex-shrink-0">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4">Eurovision 2022</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">Eurovision 2022</h1>
 
         {error && <div className="text-red-400 mb-3">Error: {error}</div>}
 
@@ -287,7 +332,7 @@ export default function Eurovision2022RevealPage() {
             return (
               <li
                 key={country}
-                className="flex flex-col gap-1 p-2 rounded-lg bg-[#0b1724] text-white shadow-sm"
+                className="flex flex-col gap-1 p-2 rounded-lg bg-[#122d4b] text-white shadow-sm"
                 style={{
                   animation: 'revealDown 350ms ease',
                 }}

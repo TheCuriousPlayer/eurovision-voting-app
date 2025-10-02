@@ -35,13 +35,3 @@ export const isAdmin = (email: string | null | undefined): boolean => {
   return adminEmails.includes(email);
 };
 
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-    };
-  }
-}
