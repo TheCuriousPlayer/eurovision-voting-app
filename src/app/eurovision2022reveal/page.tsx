@@ -238,7 +238,9 @@ export default function Eurovision2022RevealPage() {
   }, [visibleCount, orderedCountries]);
 
   return (
-  <div className="flex w-full max-w-6xl mx-auto p-4 h-full relative">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      <div className="container mx-auto px-4">
+        <div className="flex w-full max-w-6xl mx-auto p-4 h-full relative">
       <style>{`
         @keyframes revealDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
@@ -316,6 +318,8 @@ export default function Eurovision2022RevealPage() {
             );
           })}
         </ul>
+      </div>
+        </div>
       </div>
     </div>
   );
