@@ -582,7 +582,7 @@ export default function Eurovision2022() {
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2022
+          Eurovision 2022<br/>Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
         </h1>
         
         {session ? (
@@ -717,7 +717,7 @@ export default function Eurovision2022() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar önce Buğra Şişman Youtube kanalında gösterilecektir.
+                          | Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
                         </span>
                       </>
                     )}
@@ -948,7 +948,7 @@ export default function Eurovision2022() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar önce Buğra Şişman Youtube kanalında gösterilecektir.
+                          | Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
                         </span>
                       </>
                     )}
