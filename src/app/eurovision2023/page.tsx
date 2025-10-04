@@ -81,6 +81,8 @@ export default function Eurovision2023() {
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
+  const [pendingSave, setPendingSave] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
@@ -158,6 +160,72 @@ export default function Eurovision2023() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults, loading]);
 
+  // On mount, try to resend any pending votes from localStorage
+  useEffect(() => {
+    const pendingKey = 'eurovision2023_pending_votes';
+
+    async function tryResendPending() {
+      try {
+        const raw = window.localStorage.getItem(pendingKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as { votes: string[]; ts: number };
+        if (!parsed || !Array.isArray(parsed.votes)) return;
+
+        console.log('Found pending votes in localStorage (2023), attempting resend');
+        const resp = await fetch('/api/votes/2023', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ votes: parsed.votes }),
+        });
+
+        if (resp.ok) {
+          window.localStorage.removeItem(pendingKey);
+          setPendingSave(false);
+          setLastSavedAt(Date.now());
+          console.log('Resent pending votes successfully (2023)');
+        } else {
+          console.warn('Resend of pending votes failed (2023), will keep for later');
+          setPendingSave(true);
+        }
+      } catch {
+        console.warn('Error while resending pending votes (2023)');
+        setPendingSave(true);
+      }
+    }
+
+    // Try immediately on mount
+    tryResendPending();
+
+    // Retry when tab becomes visible again
+    function onVisibility() {
+      if (document.visibilityState === 'visible') {
+        tryResendPending();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+
+    // On unload, try to send pending using sendBeacon as a last-effort
+    function onBeforeUnload() {
+      try {
+        const raw = window.localStorage.getItem(pendingKey);
+        if (!raw) return;
+        if (navigator && 'sendBeacon' in navigator) {
+          const url = '/api/votes/2023';
+          const blob = new Blob([raw], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
+        }
+      } catch {
+        // nothing to do - best effort only
+      }
+    }
+    window.addEventListener('beforeunload', onBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+  }, []);
+
   const updateResults = async () => {
     if (!results) return;
 
@@ -227,30 +295,44 @@ export default function Eurovision2023() {
     console.log('New results:', newResults.countryPoints);
     setResults(newResults);
 
-    // Save to database (optional - don't block UI if it fails)
+    // Persist pending vote locally immediately so users leaving the page know it's saved locally
     try {
-      // Send the exact selectedCountries array to preserve slot positions
-      // This maintains empty strings in their exact positions
+      window.localStorage.setItem('eurovision2023_pending_votes', JSON.stringify({ votes: selectedCountries, ts: Date.now() }));
+      setPendingSave(true);
+    } catch (e) {
+      console.warn('Failed to write pending votes to localStorage (2023)', e);
+    }
+
+    // Try to send to server (don't block UI). On success clear pending state/localStorage.
+    try {
       console.log('Sending votes to API (preserving slot positions):', selectedCountries);
-      
       const response = await fetch('/api/votes/2023', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          votes: selectedCountries // Send the full array with empty strings in exact positions
-        }),
+        body: JSON.stringify({ votes: selectedCountries }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.warn('Failed to save votes to server:', response.status, errorData);
+        // leave pending in localStorage for retry
+        setPendingSave(true);
       } else {
         console.log('Votes saved successfully');
+        // Clear local pending copy
+        try {
+          window.localStorage.removeItem('eurovision2023_pending_votes');
+        } catch (e) {
+          console.warn('Failed to remove pending votes from localStorage (2023)', e);
+        }
+        setPendingSave(false);
+        setLastSavedAt(Date.now());
       }
     } catch (error) {
-      console.warn('Error saving votes to server, but continuing with local updates:', error);
+      console.warn('Error saving votes to server, will retry later (2023):', error);
+      setPendingSave(true);
     }
   };
 
@@ -526,7 +608,18 @@ export default function Eurovision2023() {
   // Sign-in component for unauthenticated users
   const SignInPrompt = () => (
     <div className="bg-[#2c3e50] rounded-lg p-6">
-  <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+    <div>
+      {pendingSave ? (
+        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
+      ) : lastSavedAt ? (
+        <div className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded">Kaydedildi.</div>
+      ) : (
+        <div className="bg-yellow-200 text-yellow-800 text-sm px-3 py-1 rounded">Henüz kaydedilmedi</div>
+      )}
+    </div>
+  </div>
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <div className="bg-[#2a3846] border-2 border-dashed border-[#34495e] rounded-lg p-6 w-full">
           <div className="mb-4">
@@ -632,7 +725,18 @@ export default function Eurovision2023() {
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+                    <div>
+                      {pendingSave ? (
+                        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
+                      ) : lastSavedAt ? (
+                        <div className="bg-green-700 text-white text-sm px-3 py-1 rounded">Kaydedildi.</div>
+                      ) : (
+                        <div className="bg-yellow-500 text-black text-sm px-3 py-1 rounded">Henüz kaydedilmedi</div>
+                      )}
+                    </div>
+                  </div>
                   <div className="grid gap-0">
                     {Array.from({ length: 10 }).map((_, index) => (
                       <Droppable 

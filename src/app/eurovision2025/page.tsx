@@ -79,6 +79,8 @@ export default function Eurovision2025() {
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
+  const [pendingSave, setPendingSave] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   // Points mapping for slots (index 0 -> 12 points, index 1 -> 10 points, ...)
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
@@ -157,6 +159,69 @@ export default function Eurovision2025() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults, loading]);
 
+  // On mount, try to resend any pending votes from localStorage
+  useEffect(() => {
+    const pendingKey = 'eurovision2025_pending_votes';
+
+    async function tryResendPending() {
+      try {
+        const raw = window.localStorage.getItem(pendingKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as { votes: string[]; ts: number };
+        if (!parsed || !Array.isArray(parsed.votes)) return;
+
+        console.log('Found pending votes in localStorage (2025), attempting resend');
+        const resp = await fetch('/api/votes/2025', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ votes: parsed.votes }),
+        });
+
+        if (resp.ok) {
+          window.localStorage.removeItem(pendingKey);
+          setPendingSave(false);
+          setLastSavedAt(Date.now());
+          console.log('Resent pending votes successfully (2025)');
+        } else {
+          console.warn('Resend of pending votes failed (2025), will keep for later');
+          setPendingSave(true);
+        }
+      } catch {
+        console.warn('Error while resending pending votes (2025)');
+        setPendingSave(true);
+      }
+    }
+
+    tryResendPending();
+
+    function onVisibility() {
+      if (document.visibilityState === 'visible') {
+        tryResendPending();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+
+    function onBeforeUnload() {
+      try {
+        const raw = window.localStorage.getItem(pendingKey);
+        if (!raw) return;
+        if (navigator && 'sendBeacon' in navigator) {
+          const url = '/api/votes/2025';
+          const blob = new Blob([raw], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
+        }
+      } catch {
+        // nothing to do - best effort only
+      }
+    }
+    window.addEventListener('beforeunload', onBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+  }, []);
+
   const updateResults = async () => {
     if (!results) return;
 
@@ -226,30 +291,44 @@ export default function Eurovision2025() {
     console.log('New results:', newResults.countryPoints);
     setResults(newResults);
 
-    // Save to database (optional - don't block UI if it fails)
+    // Persist pending vote locally immediately so users leaving the page know it's saved locally
     try {
-      // Send the exact selectedCountries array to preserve slot positions
-      // This maintains empty strings in their exact positions
+      window.localStorage.setItem('eurovision2025_pending_votes', JSON.stringify({ votes: selectedCountries, ts: Date.now() }));
+      setPendingSave(true);
+    } catch (e) {
+      console.warn('Failed to write pending votes to localStorage (2025)', e);
+    }
+
+    // Try to send to server (don't block UI). On success clear pending state/localStorage.
+    try {
       console.log('Sending votes to API (preserving slot positions):', selectedCountries);
-      
       const response = await fetch('/api/votes/2025', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          votes: selectedCountries // Send the full array with empty strings in exact positions
-        }),
+        body: JSON.stringify({ votes: selectedCountries }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.warn('Failed to save votes to server:', response.status, errorData);
+        // leave pending in localStorage for retry
+        setPendingSave(true);
       } else {
         console.log('Votes saved successfully');
+        // Clear local pending copy
+        try {
+          window.localStorage.removeItem('eurovision2025_pending_votes');
+        } catch (e) {
+          console.warn('Failed to remove pending votes from localStorage (2025)', e);
+        }
+        setPendingSave(false);
+        setLastSavedAt(Date.now());
       }
     } catch (error) {
-      console.warn('Error saving votes to server, but continuing with local updates:', error);
+      console.warn('Error saving votes to server, will retry later (2025):', error);
+      setPendingSave(true);
     }
   };
 
@@ -633,7 +712,18 @@ export default function Eurovision2025() {
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+                    <div>
+                      {pendingSave ? (
+                        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
+                      ) : lastSavedAt ? (
+                        <div className="bg-green-700 text-white text-sm px-3 py-1 rounded">Kaydedildi.</div>
+                      ) : (
+                        <div className="bg-yellow-500 text-black text-sm px-3 py-1 rounded">Henüz kaydedilmedi</div>
+                      )}
+                    </div>
+                  </div>
                   <div className="grid gap-0">
                     {Array.from({ length: 10 }).map((_, index) => (
                       <Droppable 
