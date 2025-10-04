@@ -248,7 +248,7 @@ export class DatabaseStorage {
                 WHERE x <> ''
               ) > 0
           `;
-          const actualVoteCount = Array.isArray(rawCount) && rawCount[0] && typeof rawCount[0].cnt === 'number' ? rawCount[0].cnt : Number(rawCount?.cnt || 0);
+          const actualVoteCount = Array.isArray(rawCount) && rawCount.length > 0 && typeof rawCount[0].cnt === 'number' ? rawCount[0].cnt : 0;
           console.warn(`Cached shows 0 votes but actual non-empty vote count is ${actualVoteCount}`);
           if (actualVoteCount > 0) {
             console.log('Forcing recalculation due to mismatch...');
