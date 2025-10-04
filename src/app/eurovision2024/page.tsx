@@ -850,7 +850,19 @@ export default function Eurovision2024() {
                                       <span className={`font-bold ml-2 whitespace-nowrap ${
                                         points > 0 ? 'text-white' : 'text-gray-400'
                                       }`}>
-                                        {points} points
+                                        <div className="ml-2 whitespace-nowrap text-right">
+                                          <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                            {points} points
+                                          </div>
+                                          <div className="text-xs text-gray-400">
+                                            {(() => {
+                                              const denom = (results?.totalVotes || 0) * 12;
+                                              if (!denom) return '0%';
+                                              const pct = (points / denom) * 100;
+                                              return `${pct.toFixed(2)}%`;
+                                            })()}
+                                          </div>
+                                        </div>
                                       </span>
                                     )}
                                   </div>
@@ -947,7 +959,19 @@ export default function Eurovision2024() {
                                       <span className={`font-bold ml-2 whitespace-nowrap ${
                                         points > 0 ? 'text-white' : 'text-gray-400'
                                       }`}>
-                                        {points} points
+                                        <div className="ml-2 whitespace-nowrap text-right">
+                                          <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                            {points} points
+                                          </div>
+                                          <div className="text-xs text-gray-400">
+                                            {(() => {
+                                              const denom = (results?.totalVotes || 0) * 12;
+                                              if (!denom) return '0%';
+                                              const pct = (points / denom) * 100;
+                                              return `${pct.toFixed(2)}%`;
+                                            })()}
+                                          </div>
+                                        </div>
                                       </span>
                                     )}
                                   </div>
@@ -1040,7 +1064,19 @@ export default function Eurovision2024() {
                           <span className={`font-bold ml-2 whitespace-nowrap ${
                             points > 0 ? 'text-white' : 'text-gray-400'
                           }`}>
-                            {points} points
+                            <div className="ml-2 whitespace-nowrap text-right">
+                              <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                {points} points
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {(() => {
+                                  const denom = (results?.totalVotes || 0) * 12;
+                                  if (!denom) return '0%';
+                                  const pct = (points / denom) * 100;
+                                  return `${pct.toFixed(2)}%`;
+                                })()}
+                              </div>
+                            </div>
                           </span>
                         )}
                       </div>
@@ -1105,7 +1141,19 @@ export default function Eurovision2024() {
                           <span className={`font-bold ml-2 whitespace-nowrap ${
                             points > 0 ? 'text-white' : 'text-gray-400'
                           }`}>
-                            {points} points
+                            <div className="ml-2 whitespace-nowrap text-right">
+                              <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                {points} points
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {(() => {
+                                  const denom = (results?.totalVotes || 0) * 12;
+                                  if (!denom) return '0%';
+                                  const pct = (points / denom) * 100;
+                                  return `${pct.toFixed(2)}%`;
+                                })()}
+                              </div>
+                            </div>
                           </span>
                         )}
                       </div>

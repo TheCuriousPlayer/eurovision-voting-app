@@ -237,10 +237,19 @@ export class DatabaseStorage {
         
         // Double-check if cached shows 0 but votes exist
         if (cached.totalVotes === 0) {
-          const actualVoteCount = await prisma.vote.count({ 
-            where: { competitionId: competition.id } 
-          });
-          console.warn(`Cached shows 0 votes but actual vote count is ${actualVoteCount}`);
+          // Count only votes that contain at least one non-empty entry
+          const rawCount = await prisma.$queryRaw<Array<{ cnt: number }>>`
+            SELECT COUNT(*)::int AS cnt
+            FROM votes v
+            WHERE v."competitionId" = ${competition.id}
+              AND (
+                SELECT COUNT(*)
+                FROM jsonb_array_elements_text(v.votes::jsonb) AS x
+                WHERE x <> ''
+              ) > 0
+          `;
+          const actualVoteCount = Array.isArray(rawCount) && rawCount[0] && typeof rawCount[0].cnt === 'number' ? rawCount[0].cnt : Number(rawCount?.cnt || 0);
+          console.warn(`Cached shows 0 votes but actual non-empty vote count is ${actualVoteCount}`);
           if (actualVoteCount > 0) {
             console.log('Forcing recalculation due to mismatch...');
             return await this.updateCumulativeResults(year);
@@ -283,17 +292,22 @@ export class DatabaseStorage {
         countryPoints[country] = 0;
       });
 
-      // Sum up all votes
+      // Sum up all votes and count only non-empty submissions for totalVotes
+      let totalVotes = 0;
       competition.votes.forEach(vote => {
-        const points = vote.points as { [country: string]: number };
+        // Add points (if any) to country totals
+        const points = (vote.points as { [country: string]: number }) || {};
         Object.entries(points).forEach(([country, pointsValue]) => {
           if (countryPoints[country] !== undefined) {
             countryPoints[country] += pointsValue;
           }
         });
-      });
 
-      const totalVotes = competition.votes.length;
+        // Determine whether this stored vote has any non-empty vote entries
+  const voteArray = vote.votes as unknown;
+  const hasAny = Array.isArray(voteArray) && (voteArray as unknown[]).some((c) => typeof c === 'string' && c.trim() !== '');
+        if (hasAny) totalVotes++;
+      });
 
       // Cache the results
       await prisma.cumulativeResult.upsert({

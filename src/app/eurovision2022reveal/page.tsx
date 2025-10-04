@@ -377,7 +377,7 @@ export default function Eurovision2022RevealPage() {
       <div className="flex-1 w-full">
         {orderedCountries.length === 0 && !error && <div>Yükleniyor...</div>}
 
-        <ul className="grid grid-cols-1 gap-2">
+        <ul className="grid grid-cols- gap-2">
           {/* Render only the revealed countries, newest revealed on top to push list down */}
           {orderedCountries.slice(0, visibleCount).reverse().map((country) => {
             const score = results?.countryPoints[country] ?? 0;
@@ -389,13 +389,13 @@ export default function Eurovision2022RevealPage() {
             return (
               <li
                 key={country}
-                className="flex flex-col gap-1 p-2 rounded-lg bg-[#122d4b] text-white shadow-sm"
+                className="flex flex-col gap-0 p-1 rounded-lg bg-[#122d4b] text-white shadow-sm"
                 style={{
                   animation: 'revealDown 350ms ease',
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <div className="text-2xl font-bold text-gray-200 mr-0">{rank}.</div>
                     <Image
                       src={`/flags/${country.replace('&', 'and')}_${code}.png`}
@@ -409,6 +409,14 @@ export default function Eurovision2022RevealPage() {
 
                   <div className="text-right">
                     <div className="font-bold text-lg">{score} Puan</div>
+                    <div className="text-xs text-gray-300">
+                      {(() => {
+                        const denom = (results?.totalVotes || 0) * 12;
+                        if (!denom) return '0%';
+                        const pct = (score / denom) * 100;
+                        return `${pct.toFixed(2)}%`;
+                      })()}
+                    </div>
                   </div>
                 </div>
 
