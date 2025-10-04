@@ -10,60 +10,48 @@ type Results = {
   totalVotes: number;
 };
 
-// Minimal country -> ISO code map for flags (same as VotingInterface)
-const countryToCode: { [key: string]: string } = {
-  'Albania': 'AL', 'Armenia': 'AM', 'Australia': 'AU', 'Austria': 'AT', 'Azerbaijan': 'AZ',
-  'Belgium': 'BE', 'Bulgaria': 'BG', 'Croatia': 'HR', 'Czechia': 'CZ', 'Denmark': 'DK',
-  'Estonia': 'EE', 'Finland': 'FI', 'France': 'FR', 'Georgia': 'GE', 'Germany': 'DE',
-  'Greece': 'GR', 'Iceland': 'IS', 'Ireland': 'IE', 'Israel': 'IL', 'Italy': 'IT',
-  'Latvia': 'LV', 'Lithuania': 'LT', 'Malta': 'MT', 'Moldova': 'MD', 'Montenegro': 'ME',
-  'Netherlands': 'NL', 'North Macedonia': 'MK', 'Norway': 'NO', 'Poland': 'PL', 'Portugal': 'PT',
-  'Romania': 'RO', 'San Marino': 'SM', 'Serbia': 'RS', 'Slovenia': 'SI', 'South Cyprus': 'CY',
-  'Spain': 'ES', 'Sweden': 'SE', 'Switzerland': 'CH', 'Ukraine': 'UA', 'United Kingdom': 'GB'
-};
-
-// Performer/song data for 2022 (used to display below revealed countries)
-const eurovision2022Songs: { [key: string]: { performer: string; song: string } } = {
-  'Albania': { performer: 'Ronela Hajati', song: 'Sekret' },
-  'Armenia': { performer: 'Rosa Linn', song: 'Snap' },
-  'Australia': { performer: 'Sheldon Riley', song: 'Not the Same' },
-  'Austria': { performer: 'LUM!X ft. Pia Maria', song: 'Halo' },
-  'Azerbaijan': { performer: 'Nadir Rustamli', song: 'Fade to Black' },
-  'Belgium': { performer: 'Jérémie Makiese', song: 'Miss You' },
-  'Bulgaria': { performer: 'Intelligent Music Project', song: 'Intention' },
-  'Croatia': { performer: 'Mia Dimšić', song: 'Guilty Pleasure' },
-  'Czechia': { performer: 'We Are Domi', song: 'Lights Off' },
-  'Denmark': { performer: 'Reddi', song: 'The Show' },
-  'Estonia': { performer: 'Stefan', song: 'Hope' },
-  'Finland': { performer: 'The Rasmus', song: 'Jezebel' },
-  'France': { performer: 'Alvan & Ahez', song: 'Fulenn' },
-  'Georgia': { performer: 'Circus Mircus', song: 'Lock Me In' },
-  'Germany': { performer: 'Malik Harris', song: 'Rockstars' },
-  'Greece': { performer: 'Amanda Georgiadi Tenfjord', song: 'Die Together' },
-  'Iceland': { performer: 'Systur', song: 'Með Hækkandi Sól' },
-  'Ireland': { performer: 'Brooke', song: "That's Rich" },
-  'Israel': { performer: 'Michael Ben David', song: 'I.M' },
-  'Italy': { performer: 'Mahmood & Blanco', song: 'Brividi' },
-  'Latvia': { performer: 'Citi Zēni', song: 'Eat Your Salad' },
-  'Lithuania': { performer: 'Monika Liu', song: 'Sentimentai' },
-  'Malta': { performer: 'Emma Muscat', song: 'I Am What I Am' },
-  'Moldova': { performer: 'Zdob și Zdub & Advahov Brothers', song: 'Trenulețul' },
-  'Montenegro': { performer: 'Vladana', song: 'Breathe' },
-  'Netherlands': { performer: 'S10', song: 'De Diepte' },
-  'North Macedonia': { performer: 'Andrea', song: 'Circles' },
-  'Norway': { performer: 'Subwoolfer', song: 'Give That Wolf a Banana' },
-  'Poland': { performer: 'Ochman', song: 'River' },
-  'Portugal': { performer: 'Maro', song: 'Saudade, Saudade' },
-  'Romania': { performer: 'WRS', song: 'Llámame' },
-  'San Marino': { performer: 'Achille Lauro', song: 'Stripper' },
-  'Serbia': { performer: 'Konstrakta', song: 'In Corpore Sano' },
-  'Slovenia': { performer: 'LPS', song: 'Disko' },
-  'South Cyprus': { performer: 'Andromache', song: 'Ela' },
-  'Spain': { performer: 'Chanel', song: 'SloMo' },
-  'Sweden': { performer: 'Cornelia Jakobs', song: 'Hold Me Closer' },
-  'Switzerland': { performer: 'Marius Bear', song: 'Boys Do Cry' },
-  'Ukraine': { performer: 'Kalush Orchestra', song: 'Stefania' },
-  'United Kingdom': { performer: 'Sam Ryder', song: 'Space Man' }
+// Combined per-country data: flag code, performer, song, youtube id and optional snippet times
+const eurovision2022Data: { [key: string]: { code: string; performer: string; song: string; youtubeId?: string; times?: { start: number; end: number } } } = {
+  'Albania': { code: 'AL', performer: 'Ronela Hajati', song: 'Sekret', youtubeId: '_jWXmo0-ZjI', times: { start: 67, end: 88 } },
+  'Armenia': { code: 'AM', performer: 'Rosa Linn', song: 'Snap', youtubeId: 'DAJ6vfmD_ic', times: { start: 103, end: 120 } },
+  'Australia': { code: 'AU', performer: 'Sheldon Riley', song: 'Not the Same', youtubeId: 'wosfFz2FJPU', times: { start: 99, end: 116 } },
+  'Austria': { code: 'AT', performer: 'LUM!X ft. Pia Maria', song: 'Halo', youtubeId: 'dMgjHYwXSuo', times: { start: 62, end: 71 } },
+  'Azerbaijan': { code: 'AZ', performer: 'Nadir Rustamli', song: 'Fade to Black', youtubeId: 'tegPzHEL4ms', times: { start: 134, end: 150 } },
+  'Belgium': { code: 'BE', performer: 'Jérémie Makiese', song: 'Miss You', youtubeId: 'sB09advfF6E', times: { start: 129, end: 147 } },
+  'Bulgaria': { code: 'BG', performer: 'Intelligent Music Project', song: 'Intention', youtubeId: 'EwZTI5AoTg4', times: { start: 160, end: 167 } },
+  'Croatia': { code: 'HR', performer: 'Mia Dimšić', song: 'Guilty Pleasure', youtubeId: '9vBQdtW3mJE', times: { start: 118, end: 131 } },
+  'Czechia': { code: 'CZ', performer: 'We Are Domi', song: 'Lights Off', youtubeId: 'EGRzSefqOm0', times: { start: 170, end: 187 } },
+  'Denmark': { code: 'DK', performer: 'Reddi', song: 'The Show', youtubeId: 'cVg6MpVR2Pw', times: { start: 171, end: 182 } },
+  'Estonia': { code: 'EE', performer: 'Stefan', song: 'Hope', youtubeId: 'GdTpQmMem8U', times: { start: 168, end: 184 } },
+  'Finland': { code: 'FI', performer: 'The Rasmus', song: 'Jezebel', youtubeId: 'LSi9nfr65FE', times: { start: 47, end: 62 } },
+  'France': { code: 'FR', performer: 'Alvan & Ahez', song: 'Fulenn', youtubeId: 'H1lcGXwOqJI', times: { start: 130, end: 149 } },
+  'Georgia': { code: 'GE', performer: 'Circus Mircus', song: 'Lock Me In', youtubeId: 'zXiZAbqETvk', times: { start: 147, end: 156 } },
+  'Germany': { code: 'DE', performer: 'Malik Harris', song: 'Rockstars', youtubeId: '2BYIou-oWXA', times: { start: 141, end: 158 } },
+  'Greece': { code: 'GR', performer: 'Amanda Georgiadi Tenfjord', song: 'Die Together', youtubeId: 'BWeT0nJpB3Y', times: { start: 153, end: 167 } },
+  'Iceland': { code: 'IS', performer: 'Systur', song: 'Með Hækkandi Sól', youtubeId: 'G71c48O3j-s', times: { start: 71, end: 82 } },
+  'Ireland': { code: 'IE', performer: 'Brooke', song: "That's Rich", youtubeId: 'Kq2AJrWm04s', times: { start: 164, end: 176 } },
+  'Israel': { code: 'IL', performer: 'Michael Ben David', song: 'I.M', youtubeId: 'XgXjPUsjx4Y', times: { start: 62, end: 72 } },
+  'Italy': { code: 'IT', performer: 'Mahmood & Blanco', song: 'Brividi', youtubeId: 'blEy4xHuMbY', times: { start: 104, end: 120 } },
+  'Latvia': { code: 'LV', performer: 'Citi Zēni', song: 'Eat Your Salad', youtubeId: 'TM0_0WfuxSk', times: { start: 49, end: 62 } },
+  'Lithuania': { code: 'LT', performer: 'Monika Liu', song: 'Sentimentai', youtubeId: 'BVqSTVJhD44', times: { start: 146, end: 158 } },
+  'Malta': { code: 'MT', performer: 'Emma Muscat', song: 'I Am What I Am', youtubeId: 'DFCFM5qtvms', times: { start: 154, end: 163 } },
+  'Moldova': { code: 'MD', performer: 'Zdob și Zdub & Advahov Brothers', song: 'Trenulețul', youtubeId: 'DUqf_zO2QaI', times: { start: 84, end: 99 } },
+  'Montenegro': { code: 'ME', performer: 'Vladana', song: 'Breathe', youtubeId: 'L-ViRVRiGl0', times: { start: 174, end: 186 } },
+  'Netherlands': { code: 'NL', performer: 'S10', song: 'De Diepte', youtubeId: 'sgOnu7ux2-k', times: { start: 52, end: 64 } },
+  'North Macedonia': { code: 'MK', performer: 'Andrea', song: 'Circles', youtubeId: 'zvOihqB4eKk', times: { start: 171, end: 185 } },
+  'Norway': { code: 'NO', performer: 'Subwoolfer', song: 'Give That Wolf a Banana', youtubeId: 'adCU2rQyDeY', times: { start: 145, end: 163 } },
+  'Poland': { code: 'PL', performer: 'Ochman', song: 'River', youtubeId: 'jRVDZ6446eM', times: { start: 106, end: 122 } },
+  'Portugal': { code: 'PT', performer: 'Maro', song: 'Saudade, Saudade', youtubeId: 'mZtbD47u6yI', times: { start: 80, end: 96 } },
+  'Romania': { code: 'RO', performer: 'WRS', song: 'Llámame', youtubeId: 'nPpuwy79sHs', times: { start: 166, end: 183 } },
+  'San Marino': { code: 'SM', performer: 'Achille Lauro', song: 'Stripper', youtubeId: 'vCmX64N_sXM', times: { start: 66, end: 74 } },
+  'Serbia': { code: 'RS', performer: 'Konstrakta', song: 'In Corpore Sano', youtubeId: 'nBtQj1MfNYA', times: { start: 180, end: 191 } },
+  'Slovenia': { code: 'SI', performer: 'LPS', song: 'Disko', youtubeId: 'S1tFqoflsT8', times: { start: 90, end: 105 } },
+  'Southern Cyprus': { code: 'CY', performer: 'Andromache', song: 'Ela', youtubeId: 'W2IUdTl-gAI', times: { start: 170, end: 182 } },
+  'Spain': { code: 'ES', performer: 'Chanel', song: 'SloMo', youtubeId: 'jSQYTt4xg3I', times: { start: 169, end: 191 } },
+  'Sweden': { code: 'SE', performer: 'Cornelia Jakobs', song: 'Hold Me Closer', youtubeId: 'i777psA2gP4', times: { start: 100, end: 120 } },
+  'Switzerland': { code: 'CH', performer: 'Marius Bear', song: 'Boys Do Cry', youtubeId: 'hq2HCmHv5p4', times: { start: 150, end: 169 } },
+  'Ukraine': { code: 'UA', performer: 'Kalush Orchestra', song: 'Stefania', youtubeId: 'F1fl60ypdLs', times: { start: 108, end: 124 } },
+  'United Kingdom': { code: 'GB', performer: 'Sam Ryder', song: 'Space Man', youtubeId: 'RZ0hqX_92zI', times: { start: 96, end: 112 } }
 };
 
 export default function Eurovision2022RevealPage() {
@@ -74,6 +62,9 @@ export default function Eurovision2022RevealPage() {
   const [visibleCount, setVisibleCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [selectedVideoId, setSelectedVideoId] = useState<string>('');
+  const [selectedVideoRange, setSelectedVideoRange] = useState<{ start: number; end: number } | null>(null);
+  const videoCloseTimer = useRef<number | null>(null);
   
   // Effects (declare immediately so hooks run unconditionally)
   useEffect(() => {
@@ -234,6 +225,52 @@ export default function Eurovision2022RevealPage() {
     }
   }, [visibleCount, orderedCountries]);
 
+  // Play a short YouTube clip (open modal) whenever a new country is revealed
+  useEffect(() => {
+    // Only trigger when visibleCount increments to reveal a new country
+    if (!orderedCountries || orderedCountries.length === 0) return;
+    if (visibleCount <= 0) return;
+
+    const idx = visibleCount - 1; // newly revealed country index in orderedCountries
+    if (idx < 0 || idx >= orderedCountries.length) return;
+  const country = orderedCountries[idx];
+  const ytId = eurovision2022Data[country]?.youtubeId;
+    if (!ytId) return; // no video available
+
+    // Clear previous timer if any
+    if (videoCloseTimer.current) {
+      window.clearTimeout(videoCloseTimer.current);
+      videoCloseTimer.current = null;
+    }
+
+    // Determine start/end for this country (fallback to 0..5)
+  const times = eurovision2022Data[country]?.times ?? { start: 0, end: 5 };
+
+    // Clear previous timer if any
+    if (videoCloseTimer.current) {
+      window.clearTimeout(videoCloseTimer.current);
+      videoCloseTimer.current = null;
+    }
+
+    setSelectedVideoRange(times);
+    setSelectedVideoId(ytId);
+
+    // Auto-close after the configured snippet duration (minimum 1s)
+    const durationMs = Math.max(1000, (Math.max(times.end, times.start) - times.start) * 1000);
+    videoCloseTimer.current = window.setTimeout(() => {
+      setSelectedVideoId('');
+      setSelectedVideoRange(null);
+      videoCloseTimer.current = null;
+    }, durationMs);
+    // Cleanup if component unmounts before timer
+    return () => {
+      if (videoCloseTimer.current) {
+        window.clearTimeout(videoCloseTimer.current);
+        videoCloseTimer.current = null;
+      }
+    };
+  }, [visibleCount, orderedCountries]);
+
   // Reveal helpers (must be declared unconditionally so hooks order is stable)
   function showNext() {
     setVisibleCount((v) => Math.min(orderedCountries.length, v + 1));
@@ -296,6 +333,7 @@ export default function Eurovision2022RevealPage() {
         ref={canvasRef}
         className="pointer-events-none fixed inset-0 w-full h-full z-50"
       />
+      {/* YouTube video modal (moved into sidebar) */}
       <aside className="w-full md:w-72 mr-6 flex-shrink-0">
         <h1 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">Eurovision 2022</h1>
 
@@ -316,6 +354,22 @@ export default function Eurovision2022RevealPage() {
           >
             Reset
           </button>
+          {/* YouTube video modal placed under Reset button */}
+          {selectedVideoId && (
+            <div className="mt-3">
+              <div className="bg-transparent rounded-lg shadow-none p-0 relative">
+                <iframe
+                  width="300"
+                  height="175"
+                  src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1&controls=0${selectedVideoRange ? `&start=${selectedVideoRange.start}&end=${selectedVideoRange.end}` : '&start=0&end=5'}`}
+                  title="Eurovision Song Reveal"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  className="rounded"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -327,8 +381,11 @@ export default function Eurovision2022RevealPage() {
           {/* Render only the revealed countries, newest revealed on top to push list down */}
           {orderedCountries.slice(0, visibleCount).reverse().map((country) => {
             const score = results?.countryPoints[country] ?? 0;
-            const code = countryToCode[country] || 'XX';
-            const songInfo = eurovision2022Songs[country];
+            const code = eurovision2022Data[country]?.code || 'XX';
+            const songInfo = eurovision2022Data[country];
+            // Final ranking: 1 = highest points. Since orderedCountries is sorted ascending (lowest first),
+            // compute rank as (total - index).
+            const rank = orderedCountries.length - orderedCountries.indexOf(country);
             return (
               <li
                 key={country}
@@ -339,6 +396,7 @@ export default function Eurovision2022RevealPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <div className="text-2xl font-bold text-gray-200 mr-0">{rank}.</div>
                     <Image
                       src={`/flags/${country.replace('&', 'and')}_${code}.png`}
                       alt={`${country} flag`}

@@ -50,7 +50,7 @@ const eurovision2025Songs: { [key: string]: { code: string; performer: string; s
 //   'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
 //   'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
 'Slovenia': { code: 'SI', performer: 'Klemen', song: 'How Much Time Do We Have Left', youtubeId: 'Jbs9WlvIkg0' },
-'South Cyprus': { code: 'CY', performer: 'Theo Evan', song: 'Shh', youtubeId: 'egPAiAuC57k' },
+'Southern Cyprus': { code: 'CY', performer: 'Theo Evan', song: 'Shh', youtubeId: 'egPAiAuC57k' },
 'Spain': { code: 'ES', performer: 'Melody', song: 'ESA DIVA', youtubeId: 'IEKSa9FVLqA' },
 'Sweden': { code: 'SE', performer: 'KAJ', song: 'Bara Bada Bastu', youtubeId: 'WSh7U3m9KgA' },
 'Switzerland': { code: 'CH', performer: 'Zoë Më', song: 'Voyage', youtubeId: '5TMc6HzimQo' },

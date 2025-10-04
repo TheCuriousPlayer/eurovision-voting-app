@@ -51,7 +51,7 @@ const eurovision2023Songs: { [key: string]: { code: string; performer: string; s
 //   'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
 //   'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
   'Slovenia': { code: 'SI', performer: 'Joker Out', song: 'Carpe Diem', youtubeId: '3LXlPviGiWc' },
-  'South Cyprus': { code: 'CY', performer: 'Andrew Lambrou', song: 'Break a Broken Heart', youtubeId: '49YiimKeyDI' },
+  'Southern Cyprus': { code: 'CY', performer: 'Andrew Lambrou', song: 'Break a Broken Heart', youtubeId: '49YiimKeyDI' },
   'Spain': { code: 'ES', performer: 'Blanca Paloma', song: 'Eaea', youtubeId: 'Vw6qPWhjevk' },
   'Sweden': { code: 'SE', performer: 'Loreen', song: 'Tattoo', youtubeId: 'BE2Fj0W4jP4' },
   'Switzerland': { code: 'CH', performer: 'Remo Forrer', song: 'Watergun', youtubeId: 'l4NDErv49mk' },

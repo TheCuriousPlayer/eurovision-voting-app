@@ -50,7 +50,7 @@ const eurovision2999Songs: { [key: string]: { code: string; performer: string; s
 // 'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
 // 'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
 // 'Slovenia': { code: 'SI', performer: '', song: '', youtubeId: '' },
-// 'South Cyprus': { code: 'CY', performer: '', song: '', youtubeId: '' },
+// 'Southern Cyprus': { code: 'CY', performer: '', song: '', youtubeId: '' },
 // 'Spain': { code: 'ES', performer: '', song: '', youtubeId: '' },
 // 'Sweden': { code: 'SE', performer: '', song: '', youtubeId: '' },
 // 'Switzerland': { code: 'CH', performer: '', song: '', youtubeId: '' },

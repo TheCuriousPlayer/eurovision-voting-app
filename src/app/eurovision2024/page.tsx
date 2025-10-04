@@ -51,7 +51,7 @@ const eurovision2024Songs: { [key: string]: { code: string; performer: string; s
 //   'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
 //   'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
   'Slovenia': { code: 'SI', performer: 'Raiven', song: 'Veronika', youtubeId: 'l86DxpRnz5M' },
-  'South Cyprus': { code: 'CY', performer: 'Silia Kapsis', song: 'Liar', youtubeId: 'c4wMioZXbMk' },
+  'Southern Cyprus': { code: 'CY', performer: 'Silia Kapsis', song: 'Liar', youtubeId: 'c4wMioZXbMk' },
   'Spain': { code: 'ES', performer: 'Nebulossa', song: 'ZORRA', youtubeId: 'FOMoQoHG5aU' },
   'Sweden': { code: 'SE', performer: 'Marcus & Martinus', song: 'Unforgettable', youtubeId: 'DcZpzObYzxs' },
   'Switzerland': { code: 'CH', performer: 'Nemo', song: 'The Code', youtubeId: 'CO_qJf-nW0k' },

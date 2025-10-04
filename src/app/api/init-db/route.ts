@@ -6,7 +6,7 @@ const EUROVISION_2023_COUNTRIES = [
   'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain',
+  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain',
   'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
 ];
 

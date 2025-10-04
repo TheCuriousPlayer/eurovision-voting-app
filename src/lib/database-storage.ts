@@ -15,7 +15,7 @@ const EUROVISION_2022_COUNTRIES = [
   'Georgia', 'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy',
   'Latvia', 'Lithuania', 'Malta', 'Moldova', 'Montenegro', 'Netherlands',
   'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'San Marino',
-  'Serbia', 'Slovenia', 'South Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
+  'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
 ];
 
 // Eurovision 2023 Countries
@@ -24,7 +24,7 @@ const EUROVISION_2023_COUNTRIES = [
   'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain',
+  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain',
   'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
 ];
 
@@ -34,7 +34,7 @@ const EUROVISION_2024_COUNTRIES = [
   'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain', 'Sweden', 'Switzerland',
+  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland',
   'Ukraine', 'United Kingdom'
 ];
 
@@ -44,7 +44,7 @@ const EUROVISION_2025_COUNTRIES = [
   'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
   'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
   'Lithuania', 'Luxembourg', 'Malta', 'Montenegro', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'South Cyprus', 'Spain', 'Sweden', 'Switzerland',
+  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland',
   'Ukraine', 'United Kingdom'
 ];
 

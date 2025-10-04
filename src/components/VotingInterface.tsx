@@ -3,64 +3,11 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Image from 'next/image';
+import { eurovision2022Data } from '@/data/eurovision2022';
 
 const points = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
 
-// Map of country names to their ISO codes for flags
-const countryToCode: { [key: string]: string } = {
-  'Albania': 'AL',
-  'Andorra': 'AD',
-  'Armenia': 'AM',
-  'Australia': 'AU',
-  'Austria': 'AT',
-  'Azerbaijan': 'AZ',
-  'Belarus': 'BY',
-  'Belgium': 'BE',
-  'Bosnia & Herzegovina': 'BA',
-  'Bulgaria': 'BG',
-  'Croatia': 'HR',
-  'Czechia': 'CZ',
-  'Denmark': 'DK',
-  'Estonia': 'EE',
-  'Finland': 'FI',
-  'France': 'FR',
-  'Georgia': 'GE',
-  'Germany': 'DE',
-  'Greece': 'GR',
-  'Hungary': 'HU',
-  'Iceland': 'IS',
-  'Ireland': 'IE',
-  'Israel': 'IL',
-  'Italy': 'IT',
-  'Latvia': 'LV',
-  'Lithuania': 'LT',
-  'Luxembourg': 'LU',
-  'Malta': 'MT',
-  'Moldova': 'MD',
-  'Monaco': 'MC',
-  'Montenegro': 'ME',
-  'Morocco': 'MA',
-  'Netherlands': 'NL',
-  'North Macedonia': 'MK',
-  'Norway': 'NO',
-  'Poland': 'PL',
-  'Portugal': 'PT',
-  'Romania': 'RO',
-  'Russia': 'RU',
-  'San Marino': 'SM',
-  'Serbia': 'RS',
-  'Serbia Montenegro': 'RM',
-  'Slovakia': 'SK',
-  'Slovenia': 'SI',
-  'South Cyprus': 'CY',
-  'Spain': 'ES',
-  'Sweden': 'SE',
-  'Switzerland': 'CH',
-  'Türkiye': 'TR',
-  'Ukraine': 'UA',
-  'United Kingdom': 'GB',
-  'Yugoslavia': 'YU'
-};
+// NOTE: use eurovision2022Data for country metadata (code, performer, song, youtubeId, times)
 
 const countries = [
   'Albania', 'Andorra', 'Armenia', 'Australia', 'Austria',
@@ -72,7 +19,7 @@ const countries = [
   'Monaco', 'Montenegro', 'Morocco', 'Netherlands', 'North Macedonia',
   'Norway', 'Poland', 'Portugal', 'Romania', 'Russia',
   'San Marino', 'Serbia', 'Serbia Montenegro', 'Slovakia', 'Slovenia',
-  'South Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Türkiye', 'Ukraine',
+  'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Türkiye', 'Ukraine',
   'United Kingdom', 'Yugoslavia'
 ];
 
@@ -165,7 +112,7 @@ export default function VotingInterface() {
                         >
                           <div className="flex items-center gap-2">
                             <Image 
-                              src={`/flags/${country.replace('&', 'and')}_${countryToCode[country]}.png`}
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2022Data[country]?.code || 'XX'}.png`}
                               alt={`${country} flag`}
                               width={24}
                               height={16}
@@ -219,7 +166,7 @@ export default function VotingInterface() {
                         >
                           <div className="flex items-center gap-2">
                             <Image 
-                              src={`/flags/${country.replace('&', 'and')}_${countryToCode[country]}.png`}
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2022Data[country]?.code || 'XX'}.png`}
                               alt={`${country} flag`}
                               width={24}
                               height={16}

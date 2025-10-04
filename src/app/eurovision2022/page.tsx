@@ -3,63 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
+import { eurovision2022Data } from '@/data/eurovision2022';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
-const eurovision2022Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
-  'Albania': { code: 'AL', performer: 'Ronela Hajati', song: 'Sekret', youtubeId: '_jWXmo0-ZjI' },
-//   'Andorra': { code: 'AD', performer: '', song: '', youtubeId: '' },
-  'Armenia': { code: 'AM', performer: 'Rosa Linn', song: 'Snap', youtubeId: 'DAJ6vfmD_ic' },
-  'Australia': { code: 'AU', performer: 'Sheldon Riley', song: 'Not the Same', youtubeId: 'wosfFz2FJPU' },
-  'Austria': { code: 'AT', performer: 'LUM!X ft. Pia Maria', song: 'Halo', youtubeId: 'dMgjHYwXSuo' },
-  'Azerbaijan': { code: 'AZ', performer: 'Nadir Rustamli', song: 'Fade to Black', youtubeId: 'tegPzHEL4ms' },
-//   'Belarus': { code: 'BY', performer: '', song: '', youtubeId: '' },
-  'Belgium': { code: 'BE', performer: 'Jérémie Makiese', song: 'Miss You', youtubeId: 'sB09advfF6E' },
-//   'Bosnia & Herzegovina': { code: 'BA', performer: '', song: '', youtubeId: '' },
-  'Bulgaria': { code: 'BG', performer: 'Intelligent Music Project', song: 'Intention', youtubeId: 'EwZTI5AoTg4' },
-  'Croatia': { code: 'HR', performer: 'Mia Dimšić', song: 'Guilty Pleasure', youtubeId: '9vBQdtW3mJE' },
-  'Czechia': { code: 'CZ', performer: 'We Are Domi', song: 'Lights Off', youtubeId: 'EGRzSefqOm0' },
-  'Denmark': { code: 'DK', performer: 'Reddi', song: 'The Show', youtubeId: 'cVg6MpVR2Pw' },
-  'Estonia': { code: 'EE', performer: 'Stefan', song: 'Hope', youtubeId: 'GdTpQmMem8U' },
-  'Finland': { code: 'FI', performer: 'The Rasmus', song: 'Jezebel', youtubeId: 'LSi9nfr65FE' },
-  'France': { code: 'FR', performer: 'Alvan & Ahez', song: 'Fulenn', youtubeId: 'H1lcGXwOqJI' },
-  'Georgia': { code: 'GE', performer: 'Circus Mircus', song: 'Lock Me In', youtubeId: 'zXiZAbqETvk' },
-  'Germany': { code: 'DE', performer: 'Malik Harris', song: 'Rockstars', youtubeId: '2BYIou-oWXA' },
-  'Greece': { code: 'GR', performer: 'Amanda Georgiadi Tenfjord', song: 'Die Together', youtubeId: 'BWeT0nJpB3Y' },
-//   'Hungary': { code: 'HU', performer: '', song: '', youtubeId: '' },
-  'Iceland': { code: 'IS', performer: 'Systur', song: 'Með Hækkandi Sól', youtubeId: 'G71c48O3j-s' },
-  'Ireland': { code: 'IE', performer: 'Brooke', song: 'That\'s Rich', youtubeId: 'Kq2AJrWm04s' },
-  'Israel': { code: 'IL', performer: 'Michael Ben David', song: 'I.M', youtubeId: 'XgXjPUsjx4Y' },
-  'Italy': { code: 'IT', performer: 'Mahmood & Blanco', song: 'Brividi', youtubeId: 'blEy4xHuMbY' },
-  'Latvia': { code: 'LV', performer: 'Citi Zēni', song: 'Eat Your Salad', youtubeId: 'TM0_0WfuxSk' },
-  'Lithuania': { code: 'LT', performer: 'Monika Liu', song: 'Sentimentai', youtubeId: 'BVqSTVJhD44' },
-//   'Luxembourg': { code: 'LU', performer: '', song: '', youtubeId: '' },
-  'Malta': { code: 'MT', performer: 'Emma Muscat', song: 'I Am What I Am', youtubeId: 'DFCFM5qtvms' },
-  'Moldova': { code: 'MD', performer: 'Zdob și Zdub & Advahov Brothers', song: 'Trenulețul', youtubeId: 'DUqf_zO2QaI' },
-//   'Monaco': { code: 'MC', performer: '', song: '', youtubeId: '' },
-  'Montenegro': { code: 'ME', performer: 'Vladana', song: 'Breathe', youtubeId: 'L-ViRVRiGl0' },
-//   'Morocco': { code: 'MA', performer: '', song: '', youtubeId: '' },
-  'Netherlands': { code: 'NL', performer: 'S10', song: 'De Diepte', youtubeId: 'sgOnu7ux2-k' },
-  'North Macedonia': { code: 'MK', performer: 'Andrea', song: 'Circles', youtubeId: 'zvOihqB4eKk' },
-  'Norway': { code: 'NO', performer: 'Subwoolfer', song: 'Give That Wolf a Banana', youtubeId: 'adCU2rQyDeY' },
-  'Poland': { code: 'PL', performer: 'Ochman', song: 'River', youtubeId: 'jRVDZ6446eM' },
-  'Portugal': { code: 'PT', performer: 'Maro', song: 'Saudade, Saudade', youtubeId: 'mZtbD47u6yI' },
-  'Romania': { code: 'RO', performer: 'WRS', song: 'Llámame', youtubeId: 'nPpuwy79sHs' },
-//   'Russia': { code: 'RU', performer: '', song: '', youtubeId: '' },
-  'San Marino': { code: 'SM', performer: 'Achille Lauro', song: 'Stripper', youtubeId: 'vCmX64N_sXM' },
-  'Serbia': { code: 'RS', performer: 'Konstrakta', song: 'In Corpore Sano', youtubeId: 'nBtQj1MfNYA' },
-//   'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
-//   'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
-  'Slovenia': { code: 'SI', performer: 'LPS', song: 'Disko', youtubeId: 'S1tFqoflsT8' },
-  'South Cyprus': { code: 'CY', performer: 'Andromache', song: 'Ela', youtubeId: 'W2IUdTl-gAI' },
-  'Spain': { code: 'ES', performer: 'Chanel', song: 'SloMo', youtubeId: 'jSQYTt4xg3I' },
-  'Sweden': { code: 'SE', performer: 'Cornelia Jakobs', song: 'Hold Me Closer', youtubeId: 'i777psA2gP4' },
-  'Switzerland': { code: 'CH', performer: 'Marius Bear', song: 'Boys Do Cry', youtubeId: 'hq2HCmHv5p4' },
-//   'Türkiye': { code: 'TR', performer: '', song: '', youtubeId: '' },
-  'Ukraine': { code: 'UA', performer: 'Kalush Orchestra', song: 'Stefania', youtubeId: 'F1fl60ypdLs' },
-  'United Kingdom': { code: 'GB', performer: 'Sam Ryder', song: 'Space Man', youtubeId: 'RZ0hqX_92zI' }
-//   'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
-};
+const eurovision2022Songs = eurovision2022Data;
 
 export default function Eurovision2022() {
 
