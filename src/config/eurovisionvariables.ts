@@ -18,31 +18,31 @@ export const VOTE_CONFIG = {
   '2022': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2022'], 
-    Mode: 'hide', 
+    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '2023': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2023'], 
-    Mode: 'visible', 
+    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
     GMs: '' 
   },
   '2024': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2024'], 
-    Mode: 'visible', 
+    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
     GMs: '' 
   },
   '2025': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2025'], 
-    Mode: 'visible', 
+    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
     GMs: '' 
   },
   '2026': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2026'], 
-    Mode: 'hide', 
+    Mode: 'hide', // 'visible' | 'hide' | 'gm-only'
     GMs: '' 
   }
 };
