@@ -2,39 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-const navItems = [
-  {
-    href: '/eurovision2020/semi-final-a',
-    label: (
-      <>
-        2020 Yarı Final<br />
-        A Gurubu
-      </>
-    ),
-  },
-  {
-    href: '/eurovision2020/semi-final-b',
-    label: (
-      <>
-        2020 Yarı Final<br />
-        B Gurubu
-      </>
-    ),
-  },
-  {
-    href: '/eurovision2020',
-    label: (
-      <>
-        2020<br />
-        Final 
-      </>
-    ),
-  },
-];
+  const navItems = [
+    {
+      href: '/eurovision2020/semi-final-a',
+      label: 'Yarı Final A Gurubu',
+    },
+    {
+      href: '/eurovision2020/semi-final-b',
+      label: 'Yarı Final B Gurubu',
+    },
+    {
+      href: '/eurovision2020',
+      label: 'Final',
+    },
+  ];
 
 
   return (
@@ -66,20 +53,42 @@ const navItems = [
               YouTube
             </a>
           </div>
-          <div className="flex space-x-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors text-center ${
-                  pathname === item.href
-                    ? 'bg-[#2c3e50] text-white'
-                    : 'text-gray-300 hover:bg-[#2c3e50] hover:text-white'
-                }`}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="px-4 py-2 rounded-md text-sm font-medium transition-colors text-center bg-[#2c3e50] text-white hover:bg-[#34495e] flex items-center gap-2"
+            >
+              Eurovision 2020
+              <svg 
+                className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
               >
-                {item.label}
-              </Link>
-            ))}
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 rounded-md shadow-lg bg-[#1a1a2e] ring-1 ring-black ring-opacity-5 z-50">
+                <div className="py-1">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsDropdownOpen(false)}
+                      className={`block px-4 py-2 text-sm transition-colors ${
+                        pathname === item.href
+                          ? 'bg-[#2c3e50] text-white'
+                          : 'text-gray-300 hover:bg-[#2c3e50] hover:text-white'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

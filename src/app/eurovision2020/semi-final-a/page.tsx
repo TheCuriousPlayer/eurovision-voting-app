@@ -670,8 +670,11 @@ export default function Eurovision2020SemiFinalA() {
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <div className="container mx-auto px-4">
         
-        <h1 className="text-4xl font-bold text-center text-white mb-8">
+        <h1 className="text-4xl font-bold text-center text-white mb-1">
           Eurovision 2020 Yarı Final A
+        </h1>
+        <h1 className="text-l font-bold text-center text-white mb-8">
+          10 Ülke Finale Yükseliyor
         </h1>
         
         {session ? (
