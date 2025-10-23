@@ -43,37 +43,120 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => (
-              <div key={year} className="group">
-                <Link 
-                  href={`/eurovision${year}`}
-                  className={`
-                    block relative overflow-hidden rounded-xl p-6 
-                    ${year < 2026 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
-                    transform transition-all duration-300 shadow-lg
-                    hover:scale-105 hover:shadow-xl
-                  `}
-                >
-                  <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
-                    <div className="transform rotate-45 translate-x-8 -translate-y-8">
-                      <div className="w-20 h-20 border-4 border-white rounded-full" />
+            {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => {
+              // After Eurovision 2020, add semi-finals boxes
+              if (year === 2020) {
+                return (
+                  <div key={year} className="contents">
+                    <div className="group">
+                      <Link 
+                        href={`/eurovision${year}`}
+                        className={`
+                          block relative overflow-hidden rounded-xl p-6 
+                          ${year < 2026 && year > 2021 || year === 2020 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                          transform transition-all duration-300 shadow-lg
+                          hover:scale-105 hover:shadow-xl
+                        `}
+                      >
+                        <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                          <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                            <div className="w-20 h-20 border-4 border-white rounded-full" />
+                          </div>
+                        </div>
+                        
+                        <h2 className="text-2xl font-bold text-white mb-2">
+                          Eurovision {year}
+                        </h2>
+                        
+                        <div className="text-gray-300 text-sm">
+                          {year < 2026 && year > 2021 || year === 2020 ? (
+                            <span>Aktif</span>
+                          ) : (
+                            <span>Eklenecek...</span>
+                          )}
+                        </div>
+                    </Link>
+                  </div>
+                  
+                  {/* Semi-Final B */}
+                  <div className="group">
+                    <Link 
+                      href="/eurovision2020/semi-final-b"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#3498db] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-xl font-bold text-white mb-2">
+                        Eurovision 2020
+                      </h2>
+                      <h3 className="text-sm font-semibold text-white mb-1">
+                        Yarı Final B
+                      </h3>
+                      
+
+                    </Link>
+                  </div>
+
+                  {/* Semi-Final A */}
+                  <div className="group">
+                    <Link 
+                      href="/eurovision2020/semi-final-a"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#3498db] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-xl font-bold text-white mb-2">
+                        Eurovision 2020
+                      </h2>
+                      <h3 className="text-sm font-semibold text-white mb-1">
+                        Yarı Final A
+                      </h3>
+                      
+
+                    </Link>
+                  </div>
+                </div>
+              );
+            }              return (
+                <div key={year} className="group">
+                  <Link 
+                    href={`/eurovision${year}`}
+                    className={`
+                      block relative overflow-hidden rounded-xl p-6 
+                      ${year < 2026 && year > 2021 || year === 2020 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                      transform transition-all duration-300 shadow-lg
+                      hover:scale-105 hover:shadow-xl
+                    `}
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                      <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                        <div className="w-20 h-20 border-4 border-white rounded-full" />
+                      </div>
                     </div>
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    Eurovision {year}
-                  </h2>
-                  
-                  <div className="text-gray-300 text-sm">
-                    {year < 2026 && year > 2021 ? (
-                      <span>Aktif</span>
-                    ) : (
-                      <span>Eklenecek...</span>
-                    )}
-                  </div>
-                </Link>
-              </div>
-            ))}
+                    
+                    <h2 className="text-2xl font-bold text-white mb-2">
+                      Eurovision {year}
+                    </h2>
+                    
+                    <div className="text-gray-300 text-sm">
+                      {year < 2026 && year > 2021 || year === 2020 ? (
+                        <span>Aktif</span>
+                      ) : (
+                        <span>Eklenecek...</span>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -104,37 +187,120 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => (
-            <div key={year} className="group">
-              <Link 
-                href={`/eurovision${year}`}
-                className={`
-                  block relative overflow-hidden rounded-xl p-6 
-                  ${year < 2026 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
-                  transform transition-all duration-300 shadow-lg
-                  hover:scale-105 hover:shadow-xl
-                `}
-              >
-                <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
-                  <div className="transform rotate-45 translate-x-8 -translate-y-8">
-                    <div className="w-20 h-20 border-4 border-white rounded-full" />
+          {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => {
+            // After Eurovision 2020, add semi-finals boxes
+            if (year === 2020) {
+              return (
+                <div key={year} className="contents">
+                  <div className="group">
+                    <Link 
+                      href={`/eurovision${year}`}
+                      className={`
+                        block relative overflow-hidden rounded-xl p-6 
+                        ${year < 2026 && year > 2021 || year === 2020 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                        transform transition-all duration-300 shadow-lg
+                        hover:scale-105 hover:shadow-xl
+                      `}
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-2xl font-bold text-white mb-2">
+                        Eurovision {year}
+                      </h2>
+                      
+                      <div className="text-gray-300 text-sm">
+                        {year < 2026 && year > 2021 || year === 2020 ? (
+                          <span>Aktif</span>
+                        ) : (
+                          <span>Eklenecek...</span>
+                        )}
+                      </div>
+                    </Link>
+                  </div>
+                  
+                  {/* Semi-Final B */}
+                  <div className="group">
+                    <Link 
+                      href="/eurovision2020/semi-final-b"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#3498db] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-xl font-bold text-white mb-2">
+                        Eurovision 2020
+                      </h2>
+                      <h3 className="text-sm font-semibold text-white mb-1">
+                        Yarı Final B
+                      </h3>
+                      
+                    </Link>
+                  </div>
+
+                  {/* Semi-Final A */}
+                  <div className="group">
+                    <Link 
+                      href="/eurovision2020/semi-final-a"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#3498db] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-xl font-bold text-white mb-2">
+                        Eurovision 2020
+                      </h2>
+                      <h3 className="text-sm font-semibold text-white mb-1">
+                        Yarı Final A
+                      </h3>
+
+                    </Link>
                   </div>
                 </div>
-                
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Eurovision {year}
-                </h2>
-                
-                <div className="text-gray-300 text-sm">
-                  {year < 2026 && year > 2021 ? (
-                    <span>Aktif</span>
-                  ) : (
-                    <span>Eklenecek...</span>
-                  )}
-                </div>
-              </Link>
-            </div>
-          ))}
+              );
+            }
+            
+            return (
+              <div key={year} className="group">
+                <Link 
+                  href={`/eurovision${year}`}
+                  className={`
+                    block relative overflow-hidden rounded-xl p-6 
+                    ${year < 2026 && year > 2021 || year === 2020 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                    transform transition-all duration-300 shadow-lg
+                    hover:scale-105 hover:shadow-xl
+                  `}
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                    <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                      <div className="w-20 h-20 border-4 border-white rounded-full" />
+                    </div>
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Eurovision {year}
+                  </h2>
+                  
+                  <div className="text-gray-300 text-sm">
+                    {year < 2026 && year > 2021 || year === 2020 ? (
+                      <span>Aktif</span>
+                    ) : (
+                      <span>Eklenecek...</span>
+                    )}
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { prisma } from './prisma';
+﻿import { prisma } from './prisma';
 
 interface Vote {
   userId: string;
@@ -8,143 +8,45 @@ interface Vote {
   timestamp: Date;
 }
 
-// Eurovision 2022 Countries
-const EUROVISION_2022_COUNTRIES = [
-  'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Bulgaria',
-  'Croatia', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France',
-  'Georgia', 'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy',
-  'Latvia', 'Lithuania', 'Malta', 'Moldova', 'Montenegro', 'Netherlands',
-  'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'San Marino',
-  'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
-];
-
-// Eurovision 2023 Countries
-const EUROVISION_2023_COUNTRIES = [
-  'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-  'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
-  'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
-  'Lithuania', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain',
-  'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'
-];
-
-// Eurovision 2024 Countries (example - update with actual)
-const EUROVISION_2024_COUNTRIES = [
-  'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-  'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
-  'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
-  'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland',
-  'Ukraine', 'United Kingdom'
-];
-
-// Eurovision 2025 Countries (from src/app/eurovision2025/page.tsx mapping)
-const EUROVISION_2025_COUNTRIES = [
-  'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
-  'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia',
-  'Germany', 'Greece', 'Iceland', 'Ireland', 'Israel', 'Italy', 'Latvia',
-  'Lithuania', 'Luxembourg', 'Malta', 'Montenegro', 'Netherlands', 'Norway', 'Poland',
-  'Portugal', 'San Marino', 'Serbia', 'Slovenia', 'Southern Cyprus', 'Spain', 'Sweden', 'Switzerland',
-  'Ukraine', 'United Kingdom'
-];
-
-export class DatabaseStorage {
-  
-  // Initialize competitions (run once)
+class DatabaseStorage {
   async initializeCompetitions() {
     try {
-      // Check if competitions already exist first to avoid unnecessary upserts
-      const existing2022 = await prisma.competition.findUnique({
-        where: { year: 2022 }
-      });
-
-      if (!existing2022) {
-        await prisma.competition.create({
-          data: {
-            year: 2022,
-            name: 'Eurovision 2022',
-            countries: EUROVISION_2022_COUNTRIES,
-            isActive: true
-          }
-        });
-      }
-
-      const existing2023 = await prisma.competition.findUnique({
-        where: { year: 2023 }
-      });
-
-      if (!existing2023) {
-        await prisma.competition.create({
-          data: {
-            year: 2023,
-            name: 'Eurovision 2023',
-            countries: EUROVISION_2023_COUNTRIES,
-            isActive: true
-          }
-        });
-      }
-
-      // Create Eurovision 2024 if not exists
-      const existing2024 = await prisma.competition.findUnique({
-        where: { year: 2024 }
-      });
-
-      if (!existing2024) {
-        await prisma.competition.create({
-          data: {
-            year: 2024,
-            name: 'Eurovision 2024',
-            countries: EUROVISION_2024_COUNTRIES,
-            isActive: true
-          }
-        });
-      }
-
-      // Create Eurovision 2025 if not exists
-      const existing2025 = await prisma.competition.findUnique({
-        where: { year: 2025 }
-      });
-
-      if (!existing2025) {
-        await prisma.competition.create({
-          data: {
-            year: 2025,
-            name: 'Eurovision 2025',
-            countries: EUROVISION_2025_COUNTRIES,
-            isActive: true
-          }
-        });
-      }
-
-      console.log('Competitions initialized successfully');
+      // Competitions are already created manually in Supabase:
+      // - 202000: Eurovision 2020 Final
+      // - 202001: Eurovision 2020A (Semi-Final A)  
+      // - 202002: Eurovision 2020B (Semi-Final B)
+      console.log('Competitions already exist in database');
+      return;
     } catch (error) {
-      console.error('Error initializing competitions:', error);
-      // Continue without throwing - competitions may already exist
+      console.error('Error checking competitions:', error);
+      throw error;
     }
   }
 
-  // Add or update a vote
-  async addOrUpdateVote(vote: Vote, year: number) {
+  // Store or update a vote
+  async addOrUpdateVote(vote: Vote, yearCode: number) {
     try {
       // Get competition
-      const competition = await prisma.competition.findUnique({
-        where: { year }
+      const competition = await prisma.competition.findFirst({
+        where: { 
+          year: yearCode
+        }
       });
 
       if (!competition) {
-        throw new Error(`Competition for year ${year} not found`);
+        throw new Error(`Competition for year code ${yearCode} not found`);
       }
 
       // Calculate points from vote positions
-          const points: { [country: string]: number } = {};
-          vote.votes.forEach((country, index) => {
-            if (country && country.trim() !== '') {
-              const pointsToAdd = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index];
-              if (pointsToAdd) {
-                points[country] = pointsToAdd;
-              }
-            }
-          });
+      const points: { [country: string]: number } = {};
+      vote.votes.forEach((country, index) => {
+        if (country && country.trim() !== '') {
+          const pointsToAdd = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index];
+          if (pointsToAdd) {
+            points[country] = pointsToAdd;
+          }
+        }
+      });
 
       // Upsert vote
       await prisma.vote.upsert({
@@ -154,37 +56,38 @@ export class DatabaseStorage {
             competitionId: competition.id
           }
         },
-            update: {
-              userName: vote.userName,
-              votes: vote.votes,
-              points: points,
-              updatedAt: new Date()
-            },
-            create: {
-              userId: vote.userId,
-              userName: vote.userName,
-              userEmail: vote.userEmail,
-              competitionId: competition.id,
-              votes: vote.votes,
-              points: points
-            }
+        update: {
+          userName: vote.userName,
+          userEmail: vote.userEmail,
+          votes: vote.votes,
+          points: points
+        },
+        create: {
+          userId: vote.userId,
+          userName: vote.userName,
+          userEmail: vote.userEmail,
+          votes: vote.votes,
+          points: points,
+          competitionId: competition.id
+        }
       });
 
-      // Update cumulative results
-      await this.updateCumulativeResults(year);
+      // Update cumulative results after vote change
+      await this.updateCumulativeResults(yearCode);
 
-      console.log(`Vote saved for user ${vote.userId} in ${year}`);
+      console.log(`Vote saved for user ${vote.userId} in competition ${yearCode}`);
     } catch (error) {
-      console.error('Error saving vote:', error);
+      console.error('Error adding/updating vote:', error);
       throw error;
     }
   }
 
-  // Get user's vote for a specific year
-  async getUserVote(userId: string, year: number) {
+  async getUserVote(userId: string, yearCode: number) {
     try {
-      const competition = await prisma.competition.findUnique({
-        where: { year }
+      const competition = await prisma.competition.findFirst({
+        where: { 
+          year: yearCode
+        }
       });
 
       if (!competition) return null;
@@ -205,7 +108,7 @@ export class DatabaseStorage {
         userName: vote.userName || vote.userEmail, // Fallback to email if userName is null
         userEmail: vote.userEmail,
         votes: vote.votes as string[],
-        timestamp: vote.updatedAt
+        timestamp: vote.createdAt
       };
     } catch (error) {
       console.error('Error getting user vote:', error);
@@ -213,15 +116,17 @@ export class DatabaseStorage {
     }
   }
 
-  // Get cumulative results for a year
-  async getCumulativeResults(year: number) {
+  // Get cumulative results for a year (using code-based lookup)
+  async getCumulativeResults(yearCode: number) {
     try {
-      const competition = await prisma.competition.findUnique({
-        where: { year }
+      const competition = await prisma.competition.findFirst({
+        where: { 
+          year: yearCode
+        }
       });
 
       if (!competition) {
-        console.log(`Competition for year ${year} not found`);
+        console.log(`Competition for year code ${yearCode} not found`);
         return { countryPoints: {}, totalVotes: 0 };
       }
 
@@ -231,7 +136,7 @@ export class DatabaseStorage {
       });
 
       if (cached) {
-        console.log(`Found cached results for ${year}: ${cached.totalVotes} votes`);
+        console.log(`Found cached results for ${yearCode}: ${cached.totalVotes} votes`);
         console.log('Cached results object keys:', Object.keys(cached.results as Record<string, unknown>));
         console.log('Cached results sample:', JSON.stringify(cached.results).substring(0, 200));
         
@@ -252,7 +157,7 @@ export class DatabaseStorage {
           console.warn(`Cached shows 0 votes but actual non-empty vote count is ${actualVoteCount}`);
           if (actualVoteCount > 0) {
             console.log('Forcing recalculation due to mismatch...');
-            return await this.updateCumulativeResults(year);
+            return await this.updateCumulativeResults(yearCode);
           }
         }
         
@@ -262,21 +167,21 @@ export class DatabaseStorage {
         };
       }
 
-      // Calculate if not cached
-      console.log(`No cached results found for ${year}, calculating...`);
-      return await this.updateCumulativeResults(year);
+      // No cached results, calculate fresh
+      console.log(`No cached results found for ${yearCode}, calculating fresh...`);
+      return await this.updateCumulativeResults(yearCode);
     } catch (error) {
       console.error('Error getting cumulative results:', error);
-      // Return empty results instead of throwing
       return { countryPoints: {}, totalVotes: 0 };
     }
   }
 
-  // Update cumulative results (called after each vote)
-  private async updateCumulativeResults(year: number) {
+  private async updateCumulativeResults(yearCode: number) {
     try {
-      const competition = await prisma.competition.findUnique({
-        where: { year },
+      const competition = await prisma.competition.findFirst({
+        where: { 
+          year: yearCode
+        },
         include: { votes: true }
       });
 
@@ -303,24 +208,30 @@ export class DatabaseStorage {
           }
         });
 
-        // Determine whether this stored vote has any non-empty vote entries
-  const voteArray = vote.votes as unknown;
-  const hasAny = Array.isArray(voteArray) && (voteArray as unknown[]).some((c) => typeof c === 'string' && c.trim() !== '');
-        if (hasAny) totalVotes++;
+        // Count this vote if it has at least one non-empty entry
+        const votes = vote.votes as string[];
+        const hasNonEmptyVote = votes.some(v => v && v.trim() !== '');
+        if (hasNonEmptyVote) {
+          totalVotes++;
+        }
       });
+
+      console.log(`Calculated results for ${yearCode}: ${totalVotes} total votes`);
+      console.log('Point totals:', countryPoints);
 
       // Cache the results
       await prisma.cumulativeResult.upsert({
         where: { competitionId: competition.id },
         update: {
           results: countryPoints,
-          totalVotes,
+          totalVotes: totalVotes,
           lastUpdated: new Date()
         },
         create: {
           competitionId: competition.id,
           results: countryPoints,
-          totalVotes
+          totalVotes: totalVotes,
+          lastUpdated: new Date()
         }
       });
 
@@ -328,18 +239,6 @@ export class DatabaseStorage {
     } catch (error) {
       console.error('Error updating cumulative results:', error);
       return { countryPoints: {}, totalVotes: 0 };
-    }
-  }
-
-  // Get all competitions
-  async getCompetitions() {
-    try {
-      return await prisma.competition.findMany({
-        orderBy: { year: 'desc' }
-      });
-    } catch (error) {
-      console.error('Error getting competitions:', error);
-      return [];
     }
   }
 }

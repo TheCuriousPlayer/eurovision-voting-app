@@ -6,9 +6,36 @@ import { usePathname } from 'next/navigation';
 export default function Navigation() {
   const pathname = usePathname();
 
-  const navItems = [
-    { href: '/eurovision2022', label: 'Eurovision 2022' },
-  ];
+const navItems = [
+  {
+    href: '/eurovision2020/semi-final-a',
+    label: (
+      <>
+        Eurovision 2020<br />
+        Yarı Final A Gurubu
+      </>
+    ),
+  },
+  {
+    href: '/eurovision2020/semi-final-b',
+    label: (
+      <>
+        Eurovision 2020<br />
+        Yarı Final B Gurubu
+      </>
+    ),
+  },
+  {
+    href: '/eurovision2020',
+    label: (
+      <>
+        Eurovision 2020<br />
+        Final 
+      </>
+    ),
+  },
+];
+
 
   return (
     <nav className="bg-[#0f1123] shadow-lg">
@@ -43,7 +70,7 @@ export default function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors text-center ${
                   pathname === item.href
                     ? 'bg-[#2c3e50] text-white'
                     : 'text-gray-300 hover:bg-[#2c3e50] hover:text-white'

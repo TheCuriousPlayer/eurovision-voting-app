@@ -6,6 +6,7 @@
 // Oylama tarihleri - "HH:MM DD.MM.YYYY" formatında
 export const VOTE_DATES = {
   // Yıllara göre oylama başlangıç tarihleri
+  '2020': '',
   '2022': '', 
   '2023': '',
   '2024': '',
@@ -15,40 +16,61 @@ export const VOTE_DATES = {
 
 // Oylama yapılandırması
 export const VOTE_CONFIG = {
+  '202000': { 
+    Status: false, 
+    ShowCountDown: VOTE_DATES['2020'], 
+    Mode: 'hide', // 'visible' | 'hide'
+    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+  },
+  '202001': { 
+    Status: false, 
+    ShowCountDown: VOTE_DATES['2020'], 
+    Mode: 'hide', // 'visible' | 'hide'
+    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+  },
+  '202002': { 
+    Status: false, 
+    ShowCountDown: VOTE_DATES['2020'], 
+    Mode: 'hide', // 'visible' | 'hide'
+    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+  },
   '2022': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2022'], 
-    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '2023': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2023'], 
-    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: '' 
   },
   '2024': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2024'], 
-    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: '' 
   },
   '2025': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2025'], 
-    Mode: 'visible', // 'visible' | 'hide' | 'gm-only'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: '' 
   },
   '2026': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2026'], 
-    Mode: 'hide', // 'visible' | 'hide' | 'gm-only'
+    Mode: 'hide', // 'visible' | 'hide'
     GMs: '' 
   }
 };
 
 // Eurovision yılları için bakım modu ayarları
 export const UNDER_CONSTRUCTION = {
+  '202000': true,  // true: bakım modunda, false: aktif
+  '202001': false,  // true: bakım modunda, false: aktif
+  '202002': true,  // true: bakım modunda, false: aktif
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif

@@ -12,6 +12,12 @@ function isRequestFromOurApp(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   const host = request.headers.get('host');
   
+  // Development mode - allow localhost and development hosts
+  const isDevelopment = process.env.NODE_ENV === 'development' || host?.includes('localhost') || host?.includes('127.0.0.1');
+  if (isDevelopment) {
+    return true;
+  }
+  
   // Geçerli kendi alan adınızı burada belirtin
   const allowedHosts = new Set([host]);
   
@@ -51,7 +57,7 @@ export function middleware(request: NextRequest) {
   console.log(`[Middleware] Processing request for path: ${path}`);
   
   // Log the matcher check for root Eurovision paths
-  if (path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025' || path === '/eurovision2026') {
+  if (path === '/eurovision2020' || path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025' || path === '/eurovision2026') {
     console.log(`[Middleware] EXACT MATCH for Eurovision year path: ${path}`);
   }
   
@@ -72,11 +78,44 @@ export function middleware(request: NextRequest) {
   if (yearMatch) {
     const year = yearMatch[1];
     
-    // Eğer bu yıl bakım modundaysa, bakım sayfasına yönlendir
-    if (UNDER_CONSTRUCTION[year as keyof typeof UNDER_CONSTRUCTION]) {
-      return NextResponse.rewrite(
-        new URL(`/eurovision${year}/under-construction`, request.url)
-      );
+    // Semi-final sayfalarını kontrol et
+    const isSemiFinalA = path.includes('/semi-final-a');
+    const isSemiFinalB = path.includes('/semi-final-b');
+    
+    // Eurovision 2020 özel durumu - year code mapping
+    if (year === '2020') {
+      if (isSemiFinalA) {
+        // Semi-Final A için 202001 year code'unu kontrol et
+        if (UNDER_CONSTRUCTION['202001']) {
+          return NextResponse.rewrite(
+            new URL(`/eurovision2020/semi-final-a/under-construction`, request.url)
+          );
+        }
+      } else if (isSemiFinalB) {
+        // Semi-Final B için 202002 year code'unu kontrol et
+        if (UNDER_CONSTRUCTION['202002']) {
+          return NextResponse.rewrite(
+            new URL(`/eurovision2020/semi-final-b/under-construction`, request.url)
+          );
+        }
+      } else {
+        // Ana Eurovision 2020 sayfası için 202000 year code'unu kontrol et
+        if (UNDER_CONSTRUCTION['202000']) {
+          return NextResponse.rewrite(
+            new URL(`/eurovision2020/under-construction`, request.url)
+          );
+        }
+      }
+    } else {
+      // Diğer yıllar için normal bakım modu kontrolü
+      const isSemiFinalPage = isSemiFinalA || isSemiFinalB;
+      
+      // Eğer bu yıl bakım modundaysa VE semi-final sayfası değilse, bakım sayfasına yönlendir
+      if (UNDER_CONSTRUCTION[year as keyof typeof UNDER_CONSTRUCTION] && !isSemiFinalPage) {
+        return NextResponse.rewrite(
+          new URL(`/eurovision${year}/under-construction`, request.url)
+        );
+      }
     }
     
     // Ana sayfa ve oylama sayfası kontrolü
@@ -185,15 +224,19 @@ export const config = {
     '/admin/:path*',
     '/debug',
     '/debug/:path*',
+    '/eurovision2020',       // Add exact root path for Eurovision 2020
     '/eurovision2022',       // Add exact root path for Eurovision 2022
     '/eurovision2023',       // Add exact root path for Eurovision 2023
     '/eurovision2024',       // Add exact root path for Eurovision 2024
     '/eurovision2025',       // Add exact root path for Eurovision 2025
     '/eurovision2026',       // Add exact root path for Eurovision 2026
+    '/eurovision2020/:path*', 
     '/eurovision2023/:path*', 
     '/eurovision2024/:path*',
     '/eurovision2025/:path*',
     '/eurovision2026/:path*',
+    '/eurovision2020/vote/:path*',
+    '/eurovision2020/voting/:path*',
     '/eurovision2022/vote/:path*',
     '/eurovision2022/voting/:path*',
     '/eurovision2023/vote/:path*',
