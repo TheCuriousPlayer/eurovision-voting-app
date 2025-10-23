@@ -11,8 +11,8 @@ const navItems = [
     href: '/eurovision2020/semi-final-a',
     label: (
       <>
-        Eurovision 2020<br />
-        Yarı Final A Gurubu
+        2020 Yarı Final<br />
+        A Gurubu
       </>
     ),
   },
@@ -20,8 +20,8 @@ const navItems = [
     href: '/eurovision2020/semi-final-b',
     label: (
       <>
-        Eurovision 2020<br />
-        Yarı Final B Gurubu
+        2020 Yarı Final<br />
+        B Gurubu
       </>
     ),
   },
@@ -29,7 +29,7 @@ const navItems = [
     href: '/eurovision2020',
     label: (
       <>
-        Eurovision 2020<br />
+        2020<br />
         Final 
       </>
     ),
@@ -59,10 +59,11 @@ const navItems = [
             </Link>
             <a
               href="https://www.youtube.com/playlist?list=PLvYQzibNzDx01WQHqmrIL-CXvrPHuDl4I"
-              className="ml-30 px-3 py-2 bg-[#e53935] hover:bg-[#d32f2f] text-white rounded-md text-sm font-medium transition-colors"
+              className="ml-30 px-3 py-2 bg-[#e53935] hover:bg-[#d32f2f] text-white rounded-md text-sm font-medium transition-colors text-center"
               aria-label="Buğra Şişman - Youtube"
             >
-              Buğra Şişman - Youtube
+              Buğra Şişman<br />
+              YouTube
             </a>
           </div>
           <div className="flex space-x-4">
