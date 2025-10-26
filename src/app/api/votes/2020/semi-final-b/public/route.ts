@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { ResultsData } from '@/types/votes';
@@ -18,8 +18,8 @@ export async function GET() {
     }
 
     const userEmail = session.user.email.toLowerCase();
-    const gmList = VOTE_CONFIG?.['2024']?.GMs
-      ? VOTE_CONFIG['2024'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    const gmList = VOTE_CONFIG?.['202002']?.GMs
+      ? VOTE_CONFIG['202002'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
       : [];
     
     if (!gmList.includes(userEmail)) {
@@ -29,9 +29,9 @@ export async function GET() {
     // Initialize competitions
     await dbStorage.initializeCompetitions();
     
-    // Get cumulative results from database
-    const cumulativeResults = await dbStorage.getCumulativeResults(2024);
-    console.log('Public API: Read cumulative results with', cumulativeResults.totalVotes, 'total votes');
+    // Get cumulative results from database for Semi-Final B (202002)
+    const cumulativeResults = await dbStorage.getCumulativeResults(202002);
+    console.log('Public API (Semi-Final B): Read cumulative results with', cumulativeResults.totalVotes, 'total votes');
 
     const results: ResultsData = {
       countryPoints: cumulativeResults.countryPoints,
@@ -39,13 +39,13 @@ export async function GET() {
       // No userVote for public endpoint (omitting the property)
     };
 
-    console.log('Public API: Returning cumulative results with total votes:', results.totalVotes);
+    console.log('Public API (Semi-Final B): Returning cumulative results with total votes:', results.totalVotes);
 
     const response = NextResponse.json(results);
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return response;
   } catch (error) {
-    console.error('Error in GET /api/votes/2024/public:', error);
+    console.error('Error in GET /api/votes/2020/semi-final-b/public:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

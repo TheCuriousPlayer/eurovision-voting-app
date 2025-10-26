@@ -59,8 +59,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
     const ytId = eurovision2020DataGroupA[country]?.youtubeId;
     if (!ytId) return; // no video available
 
-    const totalCountries = Object.keys(eurovision2020DataGroupA).length;
-    // console.log('Revealed countries:', revealedCountries.length , '/', totalCountries);
+    // console.log('Revealed countries:', revealedCountries.length);
     // Clear previous timer if any
     if (videoCloseTimer.current) {
       window.clearTimeout(videoCloseTimer.current);
@@ -637,7 +636,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
                       height="175"
                       src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1&controls=0&vq=large${selectedVideoRange ? `&start=${selectedVideoRange.start}&end=${selectedVideoRange.end}` : '&start=0&end=5'}`}
                       title="Eurovision Song Reveal"
-                      allow="autoplay; encrypted-media"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="rounded"
                     />
