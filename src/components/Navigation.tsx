@@ -46,7 +46,7 @@ export default function Navigation() {
             </Link>
             <a
               href="https://www.youtube.com/playlist?list=PLvYQzibNzDx01WQHqmrIL-CXvrPHuDl4I"
-              className="ml-30 px-3 py-2 bg-[#e53935] hover:bg-[#d32f2f] text-white rounded-md text-sm font-medium transition-colors text-center"
+              className="ml-10 px-3 py-2 bg-[#e53935] hover:bg-[#d32f2f] text-white rounded-md text-sm font-medium transition-colors text-center"
               aria-label="Buğra Şişman - Youtube"
             >
               Buğra Şişman<br />
