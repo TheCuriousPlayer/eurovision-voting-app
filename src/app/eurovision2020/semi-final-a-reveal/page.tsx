@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
-import { eurovision2020DataGroupA } from '@/data/eurovision2020';
+import { eurovision2020DataGroupA, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
 
 type Results = {
   countryPoints: { [country: string]: number };
@@ -25,6 +25,8 @@ export default function Eurovision2020SemiFinalARevealPage() {
   const [revealingCountry, setRevealingCountry] = useState<string | null>(null);
   const travelIntervalRef = useRef<number | null>(null);
   const [revealedCountries, setRevealedCountries] = useState<string[]>([]);
+  const [directFinalist, setDirectFinalist] = useState<number>(0);
+  const [isNetherlandsPlaying, setIsNetherlandsPlaying] = useState(false);
   
   // Effects (declare immediately so hooks run unconditionally)
   useEffect(() => {
@@ -57,6 +59,8 @@ export default function Eurovision2020SemiFinalARevealPage() {
     const ytId = eurovision2020DataGroupA[country]?.youtubeId;
     if (!ytId) return; // no video available
 
+    const totalCountries = Object.keys(eurovision2020DataGroupA).length;
+    // console.log('Revealed countries:', revealedCountries.length , '/', totalCountries);
     // Clear previous timer if any
     if (videoCloseTimer.current) {
       window.clearTimeout(videoCloseTimer.current);
@@ -75,6 +79,32 @@ export default function Eurovision2020SemiFinalARevealPage() {
       setSelectedVideoId('');
       setSelectedVideoRange(null);
       videoCloseTimer.current = null;
+      
+      // Check if all countries have been revealed
+      const totalCountries = Object.keys(eurovision2020DataGroupA).length;
+      if (revealedCountries.length >= totalCountries) {
+        setDirectFinalist(revealedCountries.length + 1);
+        // All countries revealed, play Netherlands video after 1 second
+        setTimeout(() => {
+          const netherlandsData = eurovision2020DataGroupFinal['Netherlands'];
+          
+          if (netherlandsData && netherlandsData.youtubeId && netherlandsData.times) {
+            setIsNetherlandsPlaying(true);
+            const netherlandsTimes = netherlandsData.times;
+            setSelectedVideoRange(netherlandsTimes);
+            setSelectedVideoId(netherlandsData.youtubeId);
+            
+            // Auto-close Netherlands video after duration
+            const netherlandsDurationMs = Math.max(1000, (netherlandsTimes.end - netherlandsTimes.start) * 1000);
+            videoCloseTimer.current = window.setTimeout(() => {
+              setSelectedVideoId('');
+              setSelectedVideoRange(null);
+              videoCloseTimer.current = null;
+              // setIsNetherlandsPlaying(false);
+            }, netherlandsDurationMs);
+          }
+        }, 1000);
+      }
     }, durationMs);
 
     // Cleanup if component unmounts before timer
@@ -110,53 +140,48 @@ export default function Eurovision2020SemiFinalARevealPage() {
     const clickNumber = revealedCountries.length;
     const isEvenClick = clickNumber % 2 === 0;
     
-    console.log('Click #', clickNumber, 'isEven:', isEvenClick, 'should pick:', isEvenClick ? 'FINALIST' : 'ELIMINATED');
+    // console.log('Click #', clickNumber, 'isEven:', isEvenClick, 'should pick:', isEvenClick ? 'FINALIST' : 'ELIMINATED');
     
     // Filter unrevealed countries by finalist status
     const finalistUnrevealed = unrevealedCountries.filter(country => top10Countries.includes(country));
     const eliminatedUnrevealed = unrevealedCountries.filter(country => !top10Countries.includes(country));
     
-    console.log('Finalist unrevealed:', finalistUnrevealed);
-    console.log('Eliminated unrevealed:', eliminatedUnrevealed);
+    // console.log('Finalist unrevealed:', finalistUnrevealed);
+    // console.log('Eliminated unrevealed:', eliminatedUnrevealed);
     
     // Pick from the appropriate pool
     let finalCountry: string;
     if (isEvenClick && finalistUnrevealed.length > 0) {
       // Even click: pick a random finalist
       finalCountry = finalistUnrevealed[Math.floor(Math.random() * finalistUnrevealed.length)];
-      console.log('Picked FINALIST:', finalCountry);
+      // console.log('Picked FINALIST:', finalCountry);
     } else if (!isEvenClick && eliminatedUnrevealed.length > 0) {
       // Odd click: pick a random eliminated country
       finalCountry = eliminatedUnrevealed[Math.floor(Math.random() * eliminatedUnrevealed.length)];
-      console.log('Picked ELIMINATED:', finalCountry);
+      // console.log('Picked ELIMINATED:', finalCountry);
     } else {
       // Fallback: pick any unrevealed country if the preferred pool is empty
       finalCountry = unrevealedCountries[Math.floor(Math.random() * unrevealedCountries.length)];
-      console.log('Picked FALLBACK:', finalCountry);
+      // console.log('Picked FALLBACK:', finalCountry);
     }
     
     // Set revealing state
     setIsRevealing(true);
     
-    // Random duration between 3~4.5 seconds for the traveling effect ( 0.1s units )
-    const travelDuration = (30 + Math.random() * 15) * 100;
+    // Random duration between 2.3~3.8 seconds for the traveling effect
+    const travelDuration = (23 + Math.random() * 15) * 100;
     
-    // Travel effect: randomly jump between unrevealed countries
+    // Travel effect: randomly jump between unrevealed countries with gradual slowdown
     let travelElapsed = 0;
-    const travelInterval = 80; // Change country every 80ms
+    let currentInterval = 80; // Start at 80ms
     
-    travelIntervalRef.current = window.setInterval(() => {
+    const jump = () => {
       const randomCountry = unrevealedCountries[Math.floor(Math.random() * unrevealedCountries.length)];
       setRevealingCountry(randomCountry);
-      travelElapsed += travelInterval;
+      travelElapsed += currentInterval;
       
       if (travelElapsed >= travelDuration) {
         // Stop traveling and settle on the final country
-        if (travelIntervalRef.current) {
-          window.clearInterval(travelIntervalRef.current);
-          travelIntervalRef.current = null;
-        }
-        
         setRevealingCountry(finalCountry);
 
         // Show YouTube clip immediately when settled on final country
@@ -183,21 +208,28 @@ export default function Eurovision2020SemiFinalARevealPage() {
           }, durationMs);
         }
 
-        // After 80ms of fire chain on final country, finalize the reveal
+        // After currentInterval ms of fire chain on final country, finalize the reveal
         setTimeout(() => {
           setRevealedCountries(prev => [...prev, finalCountry]);
           setVisibleCount((v) => v + 1);
           setRevealingCountry(null);
           setIsRevealing(false);
-        }, 80); // Just 80ms on the final country
+        }, currentInterval);
+      } else {
+        // Gradually slow down - increase interval by 10ms each jump
+        currentInterval += 10;
+        travelIntervalRef.current = window.setTimeout(jump, currentInterval);
       }
-    }, travelInterval);
+    };
+    
+    // Start the first jump immediately
+    jump();
   }
 
   function resetAll() {
-    // Clear any ongoing travel interval
+    // Clear any ongoing travel timeout
     if (travelIntervalRef.current) {
-      window.clearInterval(travelIntervalRef.current);
+      window.clearTimeout(travelIntervalRef.current);
       travelIntervalRef.current = null;
     }
     // Clear video timer/modal if open
@@ -212,16 +244,11 @@ export default function Eurovision2020SemiFinalARevealPage() {
     setVisibleCount(0);
     setIsRevealing(false);
     setRevealingCountry(null);
+    setDirectFinalist(0);
+    setIsNetherlandsPlaying(false);
   }
 
   function replayVideo() {
-    // Get the last revealed country
-    if (revealedCountries.length === 0) return;
-    
-    const lastCountry = revealedCountries[revealedCountries.length - 1];
-    const ytId = eurovision2020DataGroupA[lastCountry]?.youtubeId;
-    if (!ytId) return;
-
     // Clear previous timer if any
     if (videoCloseTimer.current) {
       window.clearTimeout(videoCloseTimer.current);
@@ -231,6 +258,39 @@ export default function Eurovision2020SemiFinalARevealPage() {
     // Close current video first (force refresh)
     setSelectedVideoId('');
     setSelectedVideoRange(null);
+
+    // Check if all countries have been revealed - if so, play Netherlands
+    const totalCountries = Object.keys(eurovision2020DataGroupA).length;
+    if (directFinalist > totalCountries) {
+      // Play Netherlands video
+      setTimeout(() => {
+        const netherlandsData = eurovision2020DataGroupFinal['Netherlands'];
+        
+        if (netherlandsData && netherlandsData.youtubeId && netherlandsData.times) {
+          setIsNetherlandsPlaying(true);
+          const netherlandsTimes = netherlandsData.times;
+          setSelectedVideoRange(netherlandsTimes);
+          setSelectedVideoId(netherlandsData.youtubeId);
+          
+          // Auto-close Netherlands video after duration
+          const netherlandsDurationMs = Math.max(1000, (netherlandsTimes.end - netherlandsTimes.start) * 1000);
+          videoCloseTimer.current = window.setTimeout(() => {
+            setSelectedVideoId('');
+            setSelectedVideoRange(null);
+            videoCloseTimer.current = null;
+            // setIsNetherlandsPlaying(false);
+          }, netherlandsDurationMs);
+        }
+      }, 100);
+      return;
+    }
+
+    // Otherwise, replay the last revealed country
+    if (revealedCountries.length === 0) return;
+    
+    const lastCountry = revealedCountries[revealedCountries.length - 1];
+    const ytId = eurovision2020DataGroupA[lastCountry]?.youtubeId;
+    if (!ytId) return;
 
     // Reopen after a brief delay to force iframe remount
     setTimeout(() => {
@@ -245,6 +305,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
         setSelectedVideoId('');
         setSelectedVideoRange(null);
         videoCloseTimer.current = null;
+        setDirectFinalist(revealedCountries.length + 1);
       }, durationMs);
     }, 100);
   }
@@ -531,7 +592,22 @@ export default function Eurovision2020SemiFinalARevealPage() {
               </button>
               
               {/* Holland Golden Card */}
-              <div className="golden-ticket flex items-center justify-between p-2 rounded relative">
+              <div className={`golden-ticket flex items-center justify-between p-2 rounded relative ${isNetherlandsPlaying ? 'chain-effect' : ''}`}>
+                {/* Checkmark for Netherlands when chain is active */}
+                {isNetherlandsPlaying && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: '8px',
+                    transform: 'translateY(-50%)',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: '#8b6914',
+                    textShadow: '0 0 4px rgba(255, 215, 0, 0.8)',
+                    pointerEvents: 'none',
+                    zIndex: 5
+                  }}>✓</span>
+                )}
                 <div className="flex items-center gap-2">
                   <div className="flex-shrink-0">
                     <Image 
@@ -589,7 +665,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     const isRevealed = revealedCountries.includes(country);
                     const isCurrentlyRevealing = revealingCountry === country;
                     const lastRevealedCountry = revealedCountries[revealedCountries.length - 1];
-                    const keepChain = isCurrentlyRevealing || (!isRevealing && isRevealed && country === lastRevealedCountry);
+                    const keepChain = !isNetherlandsPlaying && (isCurrentlyRevealing || (!isRevealing && isRevealed && country === lastRevealedCountry));
                     
                     // Calculate top 10 finalists (highest points)
                     const allCountriesWithPoints = Object.entries(results?.countryPoints || {})
@@ -657,7 +733,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     const isRevealed = revealedCountries.includes(country);
                     const isCurrentlyRevealing = revealingCountry === country;
                     const lastRevealedCountry = revealedCountries[revealedCountries.length - 1];
-                    const keepChain = isCurrentlyRevealing || (!isRevealing && isRevealed && country === lastRevealedCountry);
+                    const keepChain = !isNetherlandsPlaying && (isCurrentlyRevealing || (!isRevealing && isRevealed && country === lastRevealedCountry));
                     
                     // Calculate top 10 finalists (highest points)
                     const allCountriesWithPoints = Object.entries(results?.countryPoints || {})
