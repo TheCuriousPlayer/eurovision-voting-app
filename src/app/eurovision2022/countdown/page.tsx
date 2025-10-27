@@ -10,15 +10,15 @@ export default function CountDownPage() {
   const year = pathname.match(/eurovision(20\d{2})/)?.[1] || '2022';
   const { data: session } = useSession();
   
-  // Sayfa yapýlandýrmasý için state
+  // Sayfa yapÄ±landÄ±rmasÄ± iÃ§in state
   const [config, setConfig] = useState({
     status: true,
-    showCountDown: '', // API'den alýnacak
+    showCountDown: '', // API'den alÄ±nacak
     mode: 'hide',
     isGM: false
   });
   
-  // Sunucudan yapýlandýrmayý al
+  // Sunucudan yapÄ±landÄ±rmayÄ± al
   useEffect(() => {
     async function fetchConfig() {
       try {
@@ -30,7 +30,7 @@ export default function CountDownPage() {
           setConfig(data);
         }
       } catch (error) {
-        console.error('Yapýlandýrma yüklenirken hata:', error);
+        console.error('YapÄ±landÄ±rma yÃ¼klenirken hata:', error);
       }
     }
     
@@ -45,12 +45,12 @@ export default function CountDownPage() {
         </h1>
         
         <div className="mx-auto max-w-3xl">
-          {/* Geri Sayým */}
+          {/* Geri SayÄ±m */}
           <div>
             <Countdown 
               targetDateStr={config.showCountDown}
               onComplete={() => {
-                // Geri sayým tamamlandýðýnda sayfayý yenile
+                // Geri sayÄ±m tamamlandÄ±ÄŸÄ±nda sayfayÄ± yenile
                 window.location.reload();
               }} 
             />
