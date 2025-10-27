@@ -22,15 +22,15 @@ export default function DebugPage() {
             <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-10v1m-3.707 7.297a7 7 0 1 1 9.9-9.9 7 7 0 0 1-9.9 9.9z" />
             </svg>
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Erişim Engellendi</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">EriÅŸim Engellendi</h1>
             <p className="text-gray-600 mb-6">
-              Debug sayfasına erişmek için giriş yapmanız gerekmektedir.
+              Debug sayfasÄ±na eriÅŸmek iÃ§in giriÅŸ yapmanÄ±z gerekmektedir.
             </p>
             <button
               onClick={() => window.location.href = '/api/auth/signin'}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
             >
-              Giriş Yap
+              GiriÅŸ Yap
             </button>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function DebugPage() {
     );
   }
   
-  // Admin kontrolü - yalnızca belirli e-posta adreslerine izin verilir
+  // Admin kontrolÃ¼ - yalnÄ±zca belirli e-posta adreslerine izin verilir
   const adminEmails = ['ozgunciziltepe@gmail.com'];
   if (!adminEmails.includes(session.user?.email || '')) {
     return (
@@ -48,12 +48,12 @@ export default function DebugPage() {
             <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-10v1m-3.707 7.297a7 7 0 1 1 9.9-9.9 7 7 0 0 1-9.9 9.9z" />
             </svg>
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Yetkisiz Erişim</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Yetkisiz EriÅŸim</h1>
             <p className="text-gray-600 mb-6">
-              Bu sayfaya erişim yetkiniz bulunmamaktadır. Yalnızca sistem yöneticileri bu sayfayı görüntüleyebilir.
+              Bu sayfaya eriÅŸim yetkiniz bulunmamaktadÄ±r. YalnÄ±zca sistem yÃ¶neticileri bu sayfayÄ± gÃ¶rÃ¼ntÃ¼leyebilir.
             </p>
             <div className="text-sm text-gray-500">
-              Giriş yapılan hesap: {session.user?.email}
+              GiriÅŸ yapÄ±lan hesap: {session.user?.email}
             </div>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function DebugPage() {
                 onClick={() => window.location.href = '/api/auth/signout'}
                 className="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded transition-colors"
               >
-                Çıkış Yap
+                Ã‡Ä±kÄ±ÅŸ Yap
               </button>
             </div>
           </div>

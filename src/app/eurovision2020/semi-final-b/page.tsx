@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
@@ -661,17 +661,17 @@ export default function Eurovision2020SemiFinalB() {
   };
 
   if (loading || status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen">Y?kleniyor...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
   }
 
   // Show loading during authentication if we expect user data but don't have results yet
   // Only show this if we have absolutely no data to display
   if (status === 'authenticated' && !results) {
-  return <div className="flex items-center justify-center min-h-screen">Oylar y?kleniyor...</div>;
+  return <div className="flex items-center justify-center min-h-screen">Oylar yükleniyor...</div>;
   }
 
   if (!results) {
-    return <div className="flex items-center justify-center min-h-screen">Sonu?lar y?klenirken bir hata olu?tu</div>;
+    return <div className="flex items-center justify-center min-h-screen">Sonuçlar yüklenirken bir hata oluştu</div>;
   }
 
   // Sign-in component for unauthenticated users
@@ -679,7 +679,7 @@ export default function Eurovision2020SemiFinalB() {
     <div className="bg-[#2c3e50] rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold text-white mb-0">Oylar?m</h2>
+          <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
           <div className="relative" ref={infoTooltipRef}>
             <button
               onClick={() => setShowInfoTooltip(!showInfoTooltip)}
@@ -697,8 +697,8 @@ export default function Eurovision2020SemiFinalB() {
                   ?
                 </button>
                 <div className="text-sm text-gray-300 space-y-2 pt-2">
-                  <p>- &quot;Oylar?m&quot; penceresi ?zerinde ye?il &quot;Kaydedildi.&quot; yaz?s?n? g?rd?yseniz, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
-                  <p>- Sayfay? yeniledi?inizde veya yeniden ziyaret etti?inizde, mevcut oylar?n?z sorunsuz bir ?ekilde &quot;Oylar?m&quot; penceresinde g?r?n?yorsa, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
+                  <p>- &quot;Oylarım&quot; penceresi üzerinde yeşil &quot;Kaydedildi.&quot; yazısını gördüyseniz, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
+                  <p>- Sayfayı yenilediğinizde veya yeniden ziyaret ettiğinizde, mevcut oylarınız sorunsuz bir şekilde &quot;Oylarım&quot; penceresinde görünüyorsa, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
                 </div>
               </div>
             )}
@@ -712,7 +712,7 @@ export default function Eurovision2020SemiFinalB() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">Please sign in to start voting</h3>
-            <p className="text-gray-400 mb-6">Google ile giri? yaparak oy verin ve tercihlerinizi kaydedin</p>
+            <p className="text-gray-400 mb-6">Google ile giriş yaparak oy verin ve tercihlerinizi kaydedin</p>
             <button
               onClick={() => signIn('google')}
               className="bg-[#4285f4] hover:bg-[#3367d6] text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
@@ -772,7 +772,7 @@ export default function Eurovision2020SemiFinalB() {
                 : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
             }`}
           >
-            {showResults ? 'Sonu?lar? Gizle' : 'Sonu?lar? G?ster'}
+            {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
           </button>
         );
       })()}
@@ -792,28 +792,28 @@ export default function Eurovision2020SemiFinalB() {
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
 
-  // Bak?m modu kontrol? art?k middleware taraf?ndan yap?l?yor.
+  // Bakım modu kontrolü artık middleware tarafından yapılıyor.
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-1">
-          Eurovision 2020 Yar? Final B
+          Eurovision 2020 Yarı Final B
         </h1>
         <h1 className="text-l font-bold text-center text-white mb-8">
-          10 ?lke Finale Y?kseliyor
+          10 ülke Finale Yükseliyor
         </h1>
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex flex-wrap gap-8">
-              {/* Oylar?m Section - Show voting if authenticated, sign-in prompt if not */}
+              {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold text-white mb-0">Oylar?m</h2>
+                      <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
                       <div className="relative" ref={infoTooltipRef}>
                         <button
                           onClick={() => setShowInfoTooltip(!showInfoTooltip)}
@@ -831,8 +831,8 @@ export default function Eurovision2020SemiFinalB() {
                               ?
                             </button>
                             <div className="text-sm text-gray-300 space-y-2 pt-2">
-                              <p>- &quot;Oylar?m&quot; penceresi ?zerinde ye?il &quot;Kaydedildi.&quot; yaz?s?n? g?rd?yseniz, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
-                              <p>- Sayfay? yeniledi?inizde veya yeniden ziyaret etti?inizde, mevcut oylar?n?z sorunsuz bir ?ekilde &quot;Oylar?m&quot; penceresinde g?r?n?yorsa, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
+                              <p>- &quot;Oylarım&quot; penceresi üzerinde yeşil &quot;Kaydedildi.&quot; yazısını gördüyseniz, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
+                              <p>- Sayfayı yenilediğinizde veya yeniden ziyaret ettiğinizde, mevcut oylarınız sorunsuz bir şekilde &quot;Oylarım&quot; penceresinde görünüyorsa, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
                             </div>
                           </div>
                         )}
@@ -840,7 +840,7 @@ export default function Eurovision2020SemiFinalB() {
                     </div>
                     <div>
                       {pendingSave ? (
-                        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayr�lmay�n...</div>
+                        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
                       ) : selectedCountries.some(country => country !== '') ? (
                         <div className="bg-green-700 text-white text-sm px-3 py-1 rounded">Kaydedildi.</div>
                       ) : null}
@@ -898,7 +898,7 @@ export default function Eurovision2020SemiFinalB() {
                                 ) : (
                                   <>
                                     <div className="w-6 h-4 bg-[#34495e] rounded opacity-30 flex-shrink-0" />
-                                    <span className="text-gray-500 truncate">S?ralama</span>
+                                    <span className="text-gray-500 truncate">Sıralama</span>
                                   </>
                                 )}
                               </div>
@@ -926,7 +926,7 @@ export default function Eurovision2020SemiFinalB() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    S?r?kle-b?rak veya art? d??mesiyle oy verin. <br /> S?ralamay? s?r?kle-b?rak ile de?i?tirebilirsiniz. <br /> Oylar?n?z otomatik olarak kaydedilir. <br /> ?stedi?iniz zaman oylar?n?z? de?i?tirebilirsiniz.
+                    Sürükle-bırak veya artı düğmesiyle oy verin. <br /> Sıralamayı sürükle-bırak ile değiştirebilirsiniz. <br /> Oylarınız otomatik olarak kaydedilir. <br /> İstediğiniz zaman oylarınızı değiştirebilirsiniz.
                   </div>
                   {(() => {
                     // Debug button visibility decision
@@ -951,24 +951,24 @@ export default function Eurovision2020SemiFinalB() {
                             : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
                         }`}
                       >
-                        {showResults ? 'Sonu?lar? Gizle' : 'Sonu?lar? G?ster'}
+                        {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
                       </button>
                     );
                   })()}
                 </div>
               </div>
 
-              {/* Sonu?lar Section - Split into 2 columns */}
+              {/* Sonuçlar Section - Split into 2 columns */}
               <div className="flex-1">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
-                      `Sonu?lar (Toplam Kullan?c?: ${results.totalVotes})`
+                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
                     ) : (
                       <>
-                        <span>?lkeler (Alfabetik) </span>
+                        <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonu?lar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Bu?ra ?i?man YouTube</a> kanal?nda a??klanacak.
+                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
                         </span>
                       </>
                     )}
@@ -1082,9 +1082,9 @@ export default function Eurovision2020SemiFinalB() {
                                               {(() => {
                                                 const voteCount = results.countryVoteCounts[country] || 0;
                                                 const totalVoters = results.totalVotes || 0;
-                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">??</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">??</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1209,9 +1209,9 @@ export default function Eurovision2020SemiFinalB() {
                                               {(() => {
                                                 const voteCount = results.countryVoteCounts[country] || 0;
                                                 const totalVoters = results.totalVotes || 0;
-                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">??</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">??</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1244,12 +1244,12 @@ export default function Eurovision2020SemiFinalB() {
               <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
-                      `Sonu?lar (Toplam Kullan?c?: ${results.totalVotes})`
+                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
                     ) : (
                       <>
-                        <span>?lkeler (Alfabetik) </span>
+                        <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonu?lar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Bu?ra ?i?man YouTube</a> kanal?nda a??klanacak.
+                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
                         </span>
                       </>
                     )}
@@ -1466,7 +1466,7 @@ export default function Eurovision2020SemiFinalB() {
                   <div className="text-white font-bold text-lg">Netherlands</div>
                   <div className="text-sm text-gray-100">{netherlandsFinalist.performer}</div>
                   <div className="text-sm text-gray-300">{netherlandsFinalist.song}</div>
-                  <div className="text-xs text-gray-200 mt-1">Finalist (2019 Kazanan?)</div>
+                  <div className="text-xs text-gray-200 mt-1">Finalist (2019 Kazananı)</div>
                 </div>
               </div>
             </div>
@@ -1519,9 +1519,9 @@ export default function Eurovision2020SemiFinalB() {
             className="bg-[#1a2332] rounded-lg p-6 max-w-md w-full mx-4 relative border-2 border-red-600"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-bold mb-4 text-white">?? Uyar?</h3>
+            <h3 className="text-xl font-bold mb-4 text-white">Uyarı</h3>
             <p className="text-gray-300 mb-6">
-              Veri merkezindeki t?m oylar? silmek istedi?inizden emin misiniz?
+              Veri merkezindeki tüm oyları silmek istediğinizden emin misiniz?
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -1532,7 +1532,7 @@ export default function Eurovision2020SemiFinalB() {
                 }}
                 className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors"
               >
-                Hay�r
+                Hayır
               </button>
               <button
                 onClick={() => {

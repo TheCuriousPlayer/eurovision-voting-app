@@ -1092,9 +1092,9 @@ export default function Eurovision2020SemiFinalA() {
                                               {(() => {
                                                 const voteCount = results.countryVoteCounts[country] || 0;
                                                 const totalVoters = results.totalVotes || 0;
-                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1230,9 +1230,9 @@ export default function Eurovision2020SemiFinalA() {
                                               {(() => {
                                                 const voteCount = results.countryVoteCounts[country] || 0;
                                                 const totalVoters = results.totalVotes || 0;
-                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
                                               })()}
                                             </div>
                                           )}

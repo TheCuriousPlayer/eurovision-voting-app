@@ -153,7 +153,7 @@ export default function Navigation() {
                         onChange={toggleVoterPercentage}
                         className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                       />
-                      <span className="text-gray-300 text-sm group-hover:text-white transition-colors"><span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span> göster (Oy veren yüzdesi)</span>
+                        <span className="text-gray-300 text-sm group-hover:text-white transition-colors"><span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> göster (Oy veren yüzdesi)</span>
                     </label>
                   </div>
                 </div>
