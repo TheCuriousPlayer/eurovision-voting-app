@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Model for Eurovision competitions (each year)
@@ -51,6 +52,7 @@ model CumulativeResult {
   id            String      @id @default(cuid())
   competitionId String      @unique
   results       Json        // JSON object of country -> total points
+  voteCounts    Json?       // JSON object of country -> vote count (how many users voted for it)
   totalVotes    Int         @default(0)
   lastUpdated   DateTime    @default(now())
   

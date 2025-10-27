@@ -1,11 +1,12 @@
-﻿'use client';
+'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { eurovision2020DataGroupB, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
   const eurovision2020Songs = eurovision2020DataGroupB;
   // Direct finalists (not voteable on this page)
@@ -15,10 +16,10 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 export default function Eurovision2020SemiFinalB() {
 
   const { data: session, status } = useSession();
+  const { preferences } = useDisplayPreferences();
   const [results, setResults] = useState<ResultsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingSave, setPendingSave] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const pendingKey = 'eurovision2020_semi_final_b_pending_votes';
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
   const [showResults, setShowResults] = useState(false); // Toggle for showing results with points
@@ -32,6 +33,13 @@ export default function Eurovision2020SemiFinalB() {
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const infoTooltipRef = useRef<HTMLDivElement>(null);
+  const hasLoadedVotesFromDB = useRef(false);
+  const previousVotesRef = useRef<string[]>([]);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
+  const [clearCountdown, setClearCountdown] = useState(7);
 
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
@@ -88,10 +96,44 @@ export default function Eurovision2020SemiFinalB() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  // Countdown effect for clear confirmation
+  useEffect(() => {
+    if (showClearConfirmation && clearCountdown > 0) {
+      const timer = setTimeout(() => {
+        setClearCountdown(clearCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showClearConfirmation, clearCountdown]);
+
   // Update results whenever selectedCountries changes
   useEffect(() => {
     if (results && !loading && selectedCountries.length === 10) {
-      console.log('useEffect triggered, calling updateResults');
+      // Layer 1: Skip auto-save if this is from loading votes from database
+      if (!hasLoadedVotesFromDB.current) {
+        console.log('?? BLOCKED: Skipping auto-save - votes not yet loaded from database');
+        console.log('?? Flag status:', hasLoadedVotesFromDB.current);
+        console.log('?? Selected countries:', selectedCountries);
+        return;
+      }
+      
+      // Layer 2: Check if votes actually changed (deep comparison)
+      const votesChanged = JSON.stringify(previousVotesRef.current) !== JSON.stringify(selectedCountries);
+      if (!votesChanged) {
+        console.log('?? BLOCKED: Votes unchanged, skipping update');
+        console.log('?? Previous:', previousVotesRef.current);
+        console.log('?? Current:', selectedCountries);
+        return;
+      }
+      
+      console.log('? ALLOWED: useEffect triggered, calling updateResults');
+      console.log('? Flag status:', hasLoadedVotesFromDB.current);
+      console.log('? Previous votes:', previousVotesRef.current);
+      console.log('? New votes:', selectedCountries);
+      
+      // Update the reference with current votes
+      previousVotesRef.current = [...selectedCountries];
+      
       updateResults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,7 +175,6 @@ export default function Eurovision2020SemiFinalB() {
         if (resp.ok) {
           window.localStorage.removeItem(pendingKey);
           setPendingSave(false);
-          setLastSavedAt(Date.now());
           console.log('Resent pending votes successfully');
         } else {
           console.warn('Resend of pending votes failed, will keep for later');
@@ -179,6 +220,23 @@ export default function Eurovision2020SemiFinalB() {
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
   }, []);
+
+  // Close info tooltip when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (infoTooltipRef.current && !infoTooltipRef.current.contains(event.target as Node)) {
+        setShowInfoTooltip(false);
+      }
+    }
+
+    if (showInfoTooltip) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showInfoTooltip]);
 
   const updateResults = async () => {
     if (!results) return;
@@ -282,7 +340,6 @@ export default function Eurovision2020SemiFinalB() {
           console.warn('Failed to remove pending votes from localStorage', e);
         }
         setPendingSave(false);
-        setLastSavedAt(Date.now());
       }
     } catch (error) {
       console.warn('Error saving votes to server, will retry later:', error);
@@ -321,14 +378,14 @@ export default function Eurovision2020SemiFinalB() {
       clearTimeout(autoRefreshTimer);
     }
     
-    // Start new 30-second timer
+    // Start new 60-second timer
     const newTimer = setTimeout(() => {
       fetchFreshResults();
       startAutoRefresh(); // Restart the timer
-    }, 30000); // 30 seconds
+    }, 60000); // 60 seconds
     
     setAutoRefreshTimer(newTimer);
-    console.log('Auto-refresh timer started (30 seconds)');
+    console.log('Auto-refresh timer started (60 seconds)');
   };
 
   const resetAutoRefreshTimer = () => {
@@ -497,6 +554,18 @@ export default function Eurovision2020SemiFinalB() {
           
           setSelectedCountries(newSelectedCountries);
           console.log('User votes loaded into selectedCountries:', newSelectedCountries);
+          
+          // Store in previousVotesRef so useEffect knows these are from DB
+          previousVotesRef.current = [...newSelectedCountries];
+          
+          // Mark that we've loaded votes from database - allow saves from now on
+          hasLoadedVotesFromDB.current = true;
+        } else if (!data.userVote) {
+          // User is authenticated but has no votes yet - allow saves immediately
+          console.log('No existing votes found - user can start voting');
+          // Set previousVotesRef to empty array
+          previousVotesRef.current = Array(10).fill('');
+          hasLoadedVotesFromDB.current = true;
         }
       } else {
         console.error('Error fetching results:', response.status);
@@ -559,24 +628,83 @@ export default function Eurovision2020SemiFinalB() {
     }
   };
 
+  // Helper function to check if removing this country would clear all votes
+  const wouldClearAllVotes = (indexToRemove: number): boolean => {
+    const remainingVotes = selectedCountries.filter((country, idx) => 
+      idx !== indexToRemove && country !== ''
+    );
+    return remainingVotes.length === 0;
+  };
+
+  // Helper function to handle country removal with confirmation
+  const handleRemoveCountry = (index: number) => {
+    if (wouldClearAllVotes(index)) {
+      // Show confirmation dialog
+      setPendingClearAction(() => () => {
+        const newSelectedCountries = [...selectedCountries];
+        newSelectedCountries[index] = '';
+        setSelectedCountries(newSelectedCountries);
+        resetAutoRefreshTimer();
+        setShowClearConfirmation(false);
+        setPendingClearAction(null);
+        setClearCountdown(7);
+      });
+      setShowClearConfirmation(true);
+      setClearCountdown(7);
+    } else {
+      // Directly remove if not clearing all votes
+      const newSelectedCountries = [...selectedCountries];
+      newSelectedCountries[index] = '';
+      setSelectedCountries(newSelectedCountries);
+      resetAutoRefreshTimer();
+    }
+  };
+
   if (loading || status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Y?kleniyor...</div>;
   }
 
   // Show loading during authentication if we expect user data but don't have results yet
   // Only show this if we have absolutely no data to display
   if (status === 'authenticated' && !results) {
-  return <div className="flex items-center justify-center min-h-screen">Oylar yükleniyor...</div>;
+  return <div className="flex items-center justify-center min-h-screen">Oylar y?kleniyor...</div>;
   }
 
   if (!results) {
-    return <div className="flex items-center justify-center min-h-screen">Sonuçlar yüklenirken bir hata oluştu</div>;
+    return <div className="flex items-center justify-center min-h-screen">Sonu?lar y?klenirken bir hata olu?tu</div>;
   }
 
   // Sign-in component for unauthenticated users
   const SignInPrompt = () => (
     <div className="bg-[#2c3e50] rounded-lg p-6">
-  <h2 className="text-2xl font-bold text-white mb-2">Oylarım</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-white mb-0">Oylar?m</h2>
+          <div className="relative" ref={infoTooltipRef}>
+            <button
+              onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+              className="w-6 h-6 rounded-full bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors flex items-center justify-center"
+              title="Bilgi"
+            >
+              i
+            </button>
+            {showInfoTooltip && (
+              <div className="absolute left-0 top-8 z-50 w-80 bg-[#1a2332] border-2 border-red-600 rounded-lg p-4 shadow-xl">
+                <button
+                  onClick={() => setShowInfoTooltip(false)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                >
+                  ?
+                </button>
+                <div className="text-sm text-gray-300 space-y-2 pt-2">
+                  <p>- &quot;Oylar?m&quot; penceresi ?zerinde ye?il &quot;Kaydedildi.&quot; yaz?s?n? g?rd?yseniz, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
+                  <p>- Sayfay? yeniledi?inizde veya yeniden ziyaret etti?inizde, mevcut oylar?n?z sorunsuz bir ?ekilde &quot;Oylar?m&quot; penceresinde g?r?n?yorsa, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <div className="bg-[#2a3846] border-2 border-dashed border-[#34495e] rounded-lg p-6 w-full">
           <div className="mb-4">
@@ -584,7 +712,7 @@ export default function Eurovision2020SemiFinalB() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">Please sign in to start voting</h3>
-            <p className="text-gray-400 mb-6">Google ile giriş yaparak oy verin ve tercihlerinizi kaydedin</p>
+            <p className="text-gray-400 mb-6">Google ile giri? yaparak oy verin ve tercihlerinizi kaydedin</p>
             <button
               onClick={() => signIn('google')}
               className="bg-[#4285f4] hover:bg-[#3367d6] text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
@@ -644,7 +772,7 @@ export default function Eurovision2020SemiFinalB() {
                 : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
             }`}
           >
-            {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
+            {showResults ? 'Sonu?lar? Gizle' : 'Sonu?lar? G?ster'}
           </button>
         );
       })()}
@@ -664,35 +792,58 @@ export default function Eurovision2020SemiFinalB() {
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
 
-  // Bakım modu kontrolü artık middleware tarafından yapılıyor.
+  // Bak?m modu kontrol? art?k middleware taraf?ndan yap?l?yor.
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-1">
-          Eurovision 2020 Yarı Final B
+          Eurovision 2020 Yar? Final B
         </h1>
         <h1 className="text-l font-bold text-center text-white mb-8">
-          10 Ülke Finale Yükseliyor
+          10 ?lke Finale Y?kseliyor
         </h1>
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex flex-wrap gap-8">
-              {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
+              {/* Oylar?m Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-2xl font-bold text-white mb-0">Oylar?m</h2>
+                      <div className="relative" ref={infoTooltipRef}>
+                        <button
+                          onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                          className="w-6 h-6 rounded-full bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors flex items-center justify-center"
+                          title="Bilgi"
+                        >
+                          i
+                        </button>
+                        {showInfoTooltip && (
+                          <div className="absolute left-0 top-8 z-50 w-80 bg-[#1a2332] border-2 border-red-600 rounded-lg p-4 shadow-xl">
+                            <button
+                              onClick={() => setShowInfoTooltip(false)}
+                              className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                            >
+                              ?
+                            </button>
+                            <div className="text-sm text-gray-300 space-y-2 pt-2">
+                              <p>- &quot;Oylar?m&quot; penceresi ?zerinde ye?il &quot;Kaydedildi.&quot; yaz?s?n? g?rd?yseniz, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
+                              <p>- Sayfay? yeniledi?inizde veya yeniden ziyaret etti?inizde, mevcut oylar?n?z sorunsuz bir ?ekilde &quot;Oylar?m&quot; penceresinde g?r?n?yorsa, oylar?n?z?n kaydedildi?inden %100 emin olabilirsiniz.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div>
                       {pendingSave ? (
-                        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
-                      ) : lastSavedAt ? (
+                        <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayr�lmay�n...</div>
+                      ) : selectedCountries.some(country => country !== '') ? (
                         <div className="bg-green-700 text-white text-sm px-3 py-1 rounded">Kaydedildi.</div>
-                      ) : (
-                        <div className="bg-yellow-500 text-black text-sm px-3 py-1 rounded">Henüz kaydedilmedi</div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                   <div className="grid gap-0">
@@ -747,7 +898,7 @@ export default function Eurovision2020SemiFinalB() {
                                 ) : (
                                   <>
                                     <div className="w-6 h-4 bg-[#34495e] rounded opacity-30 flex-shrink-0" />
-                                    <span className="text-gray-500 truncate">Sıralama</span>
+                                    <span className="text-gray-500 truncate">S?ralama</span>
                                   </>
                                 )}
                               </div>
@@ -759,14 +910,11 @@ export default function Eurovision2020SemiFinalB() {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      const newSelectedCountries = [...selectedCountries];
-                                      newSelectedCountries[index] = '';
-                                      setSelectedCountries(newSelectedCountries);
-                                      resetAutoRefreshTimer(); // Reset timer on remove
+                                      handleRemoveCountry(index);
                                     }}
                                     className="bg-[#e74c3c] hover:bg-[#c0392b] text-white w-6 h-6 rounded flex items-center justify-center transition-colors"
                                   >
-                                    ×
+                                    ?
                                   </button>
                                 )}
                               </div>
@@ -778,7 +926,7 @@ export default function Eurovision2020SemiFinalB() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    Sürükle-bırak veya artı düğmesiyle oy verin. <br /> Sıralamayı sürükle-bırak ile değiştirebilirsiniz. <br /> Oylarınız otomatik olarak kaydedilir. <br /> İstediğiniz zaman oylarınızı değiştirebilirsiniz.
+                    S?r?kle-b?rak veya art? d??mesiyle oy verin. <br /> S?ralamay? s?r?kle-b?rak ile de?i?tirebilirsiniz. <br /> Oylar?n?z otomatik olarak kaydedilir. <br /> ?stedi?iniz zaman oylar?n?z? de?i?tirebilirsiniz.
                   </div>
                   {(() => {
                     // Debug button visibility decision
@@ -803,24 +951,24 @@ export default function Eurovision2020SemiFinalB() {
                             : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
                         }`}
                       >
-                        {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
+                        {showResults ? 'Sonu?lar? Gizle' : 'Sonu?lar? G?ster'}
                       </button>
                     );
                   })()}
                 </div>
               </div>
 
-              {/* Sonuçlar Section - Split into 2 columns */}
+              {/* Sonu?lar Section - Split into 2 columns */}
               <div className="flex-1">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
-                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
+                      `Sonu?lar (Toplam Kullan?c?: ${results.totalVotes})`
                     ) : (
                       <>
-                        <span>Ülkeler (Alfabetik) </span>
+                        <span>?lkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
+                          | Sonu?lar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Bu?ra ?i?man YouTube</a> kanal?nda a??klanacak.
                         </span>
                       </>
                     )}
@@ -884,7 +1032,7 @@ export default function Eurovision2020SemiFinalB() {
                                             title="Watch Eurovision Performance"
                                           >
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0  0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
                                               <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                                             </svg>
                                           </button>
@@ -912,19 +1060,36 @@ export default function Eurovision2020SemiFinalB() {
                                       )}
                                     </div>
                                     {showResults && (
-                                      <div className="ml-2 whitespace-nowrap text-right">
-                                        <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                          {points} points
+                                      <span className={`font-bold ml-2 whitespace-nowrap ${
+                                        points > 0 ? 'text-white' : 'text-gray-400'
+                                      }`}>
+                                        <div className="ml-2 whitespace-nowrap text-right">
+                                          <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                            {points} points
+                                          </div>
+                                          {preferences.showWeightPercentage && (
+                                            <div className="text-xs text-gray-400">
+                                              {(() => {
+                                                const denom = (results?.totalVotes || 0) * 12;
+                                                if (!denom) return <>0% <strong>?</strong></>;
+                                                const pct = (points / denom) * 100;
+                                                 return <>{pct.toFixed(2)}% <strong>?</strong></>;
+                                              })()}
+                                            </div>
+                                          )}
+                                          {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                            <div className="text-xs text-gray-400">
+                                              {(() => {
+                                                const voteCount = results.countryVoteCounts[country] || 0;
+                                                const totalVoters = results.totalVotes || 0;
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                                const userPct = (voteCount / totalVoters) * 100;
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                              })()}
+                                            </div>
+                                          )}
                                         </div>
-                                        <div className="text-xs text-gray-400">
-                                          {(() => {
-                                            const denom = (results?.totalVotes || 0) * 12;
-                                            if (!denom) return '0%';
-                                            const pct = (points / denom) * 100;
-                                            return `${pct.toFixed(2)}%`;
-                                          })()}
-                                        </div>
-                                      </div>
+                                      </span>
                                     )}
                                   </div>
                                 )}
@@ -1022,19 +1187,36 @@ export default function Eurovision2020SemiFinalB() {
                                       )}
                                     </div>
                                     {showResults && (
-                                      <div className="ml-2 whitespace-nowrap text-right">
-                                        <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                          {points} points
+                                      <span className={`font-bold ml-2 whitespace-nowrap ${
+                                        points > 0 ? 'text-white' : 'text-gray-400'
+                                      }`}>
+                                        <div className="ml-2 whitespace-nowrap text-right">
+                                          <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                            {points} points
+                                          </div>
+                                          {preferences.showWeightPercentage && (
+                                            <div className="text-xs text-gray-400">
+                                              {(() => {
+                                                const denom = (results?.totalVotes || 0) * 12;
+                                                if (!denom) return <>0% <strong>?</strong></>;
+                                                const pct = (points / denom) * 100;
+                                                 return <>{pct.toFixed(2)}% <strong>?</strong></>;
+                                              })()}
+                                            </div>
+                                          )}
+                                          {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                            <div className="text-xs text-gray-400">
+                                              {(() => {
+                                                const voteCount = results.countryVoteCounts[country] || 0;
+                                                const totalVoters = results.totalVotes || 0;
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                                const userPct = (voteCount / totalVoters) * 100;
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">??</span></>);
+                                              })()}
+                                            </div>
+                                          )}
                                         </div>
-                                        <div className="text-xs text-gray-400">
-                                          {(() => {
-                                            const denom = (results?.totalVotes || 0) * 12;
-                                            if (!denom) return '0%';
-                                            const pct = (points / denom) * 100;
-                                            return `${pct.toFixed(2)}%`;
-                                          })()}
-                                        </div>
-                                      </div>
+                                      </span>
                                     )}
                                   </div>
                                 )}
@@ -1062,12 +1244,12 @@ export default function Eurovision2020SemiFinalB() {
               <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
-                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
+                      `Sonu?lar (Toplam Kullan?c?: ${results.totalVotes})`
                     ) : (
                       <>
-                        <span>Ülkeler (Alfabetik) </span>
+                        <span>?lkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
+                          | Sonu?lar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Bu?ra ?i?man YouTube</a> kanal?nda a??klanacak.
                         </span>
                       </>
                     )}
@@ -1138,19 +1320,23 @@ export default function Eurovision2020SemiFinalB() {
                           
                         </div>
                         {showResults && (
-                          <div className="ml-2 whitespace-nowrap text-right">
-                            <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                              {points} points
+                          <span className={`font-bold ml-2 whitespace-nowrap ${
+                            points > 0 ? 'text-white' : 'text-gray-400'
+                          }`}>
+                            <div className="ml-2 whitespace-nowrap text-right">
+                              <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                {points} points
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {(() => {
+                                  const denom = (results?.totalVotes || 0) * 12;
+                                  if (!denom) return '0%';
+                                  const pct = (points / denom) * 100;
+                                  return `${pct.toFixed(2)}%`;
+                                })()}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-400">
-                              {(() => {
-                                const denom = (results?.totalVotes || 0) * 12;
-                                if (!denom) return '0%';
-                                const pct = (points / denom) * 100;
-                                return `${pct.toFixed(2)}%`;
-                              })()}
-                            </div>
-                          </div>
+                          </span>
                         )}
                       </div>
                     ))}
@@ -1220,19 +1406,23 @@ export default function Eurovision2020SemiFinalB() {
                           </div>
                         </div>
                         {showResults && (
-                          <div className="ml-2 whitespace-nowrap text-right">
-                            <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                              {points} points
+                          <span className={`font-bold ml-2 whitespace-nowrap ${
+                            points > 0 ? 'text-white' : 'text-gray-400'
+                          }`}>
+                            <div className="ml-2 whitespace-nowrap text-right">
+                              <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                {points} points
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {(() => {
+                                  const denom = (results?.totalVotes || 0) * 12;
+                                  if (!denom) return '0%';
+                                  const pct = (points / denom) * 100;
+                                  return `${pct.toFixed(2)}%`;
+                                })()}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-400">
-                              {(() => {
-                                const denom = (results?.totalVotes || 0) * 12;
-                                if (!denom) return '0%';
-                                const pct = (points / denom) * 100;
-                                return `${pct.toFixed(2)}%`;
-                              })()}
-                            </div>
-                          </div>
+                          </span>
                         )}
                       </div>
                     ))}
@@ -1276,7 +1466,7 @@ export default function Eurovision2020SemiFinalB() {
                   <div className="text-white font-bold text-lg">Netherlands</div>
                   <div className="text-sm text-gray-100">{netherlandsFinalist.performer}</div>
                   <div className="text-sm text-gray-300">{netherlandsFinalist.song}</div>
-                  <div className="text-xs text-gray-200 mt-1">Finalist (2019 Kazananı)</div>
+                  <div className="text-xs text-gray-200 mt-1">Finalist (2019 Kazanan?)</div>
                 </div>
               </div>
             </div>
@@ -1298,7 +1488,7 @@ export default function Eurovision2020SemiFinalB() {
               onClick={closeYouTubeModal}
               className="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl z-10"
             >
-              ×
+              ?
             </button>
             <h3 className="text-xl font-bold mb-4 text-white">{selectedCountryName} - Eurovision 2020</h3>
             <div className="aspect-video">
@@ -1316,6 +1506,52 @@ export default function Eurovision2020SemiFinalB() {
         </div>
       )}
 
+      {/* Clear All Votes Confirmation Modal */}
+      {showClearConfirmation && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+          onClick={() => {
+            setShowClearConfirmation(false);
+            setPendingClearAction(null);
+          }}
+        >
+          <div 
+            className="bg-[#1a2332] rounded-lg p-6 max-w-md w-full mx-4 relative border-2 border-red-600"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4 text-white">?? Uyar?</h3>
+            <p className="text-gray-300 mb-6">
+              Veri merkezindeki t?m oylar? silmek istedi?inizden emin misiniz?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowClearConfirmation(false);
+                  setPendingClearAction(null);
+                  setClearCountdown(7);
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors"
+              >
+                Hay�r
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingClearAction) {
+                    pendingClearAction();
+                  }
+                }}
+                disabled={clearCountdown > 0}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px]"
+              >
+                {clearCountdown > 0 ? `Evet (${clearCountdown})` : 'Evet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+
+

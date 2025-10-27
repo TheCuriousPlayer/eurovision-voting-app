@@ -18,12 +18,12 @@ export default function DateTestPage() {
     }
     
     try {
-      // "HH:MM DD.MM.YYYY" formatÄ±nÄ± ayrÄ±ÅŸtÄ±r
+      // "HH:MM DD.MM.YYYY" formatını ayrıştır
       const [timeStr, dateStr] = dateString.split(' ');
       const [hours, minutes] = timeStr.split(':').map(Number);
       const [day, month, year] = dateStr.split('.').map(Number);
       
-      // JavaScript'te aylar 0-11 arasÄ±nda (0=Ocak, 11=AralÄ±k)
+      // JavaScript'te aylar 0-11 arasında (0=Ocak, 11=Aralık)
       const parsedDate = new Date(year, month - 1, day, hours, minutes);
       setError(null);
       return parsedDate;

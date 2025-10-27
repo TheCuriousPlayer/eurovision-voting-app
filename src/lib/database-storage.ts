@@ -127,7 +127,7 @@ class DatabaseStorage {
 
       if (!competition) {
         console.log(`Competition for year code ${yearCode} not found`);
-        return { countryPoints: {}, totalVotes: 0 };
+        return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
       }
 
       // Try to get cached results first
@@ -163,7 +163,8 @@ class DatabaseStorage {
         
         return {
           countryPoints: cached.results as { [country: string]: number },
-          totalVotes: cached.totalVotes
+          totalVotes: cached.totalVotes,
+          countryVoteCounts: (cached.voteCounts as { [country: string]: number }) || {}
         };
       }
 
@@ -172,7 +173,7 @@ class DatabaseStorage {
       return await this.updateCumulativeResults(yearCode);
     } catch (error) {
       console.error('Error getting cumulative results:', error);
-      return { countryPoints: {}, totalVotes: 0 };
+      return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
     }
   }
 
@@ -186,15 +187,17 @@ class DatabaseStorage {
       });
 
       if (!competition) {
-        return { countryPoints: {}, totalVotes: 0 };
+        return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
       }
 
-      // Calculate cumulative points
+      // Calculate cumulative points and vote counts
       const countryPoints: { [country: string]: number } = {};
+      const countryVoteCounts: { [country: string]: number } = {};
       
       // Initialize all countries to 0
       competition.countries.forEach(country => {
         countryPoints[country] = 0;
+        countryVoteCounts[country] = 0;
       });
 
       // Sum up all votes and count only non-empty submissions for totalVotes
@@ -213,32 +216,42 @@ class DatabaseStorage {
         const hasNonEmptyVote = votes.some(v => v && v.trim() !== '');
         if (hasNonEmptyVote) {
           totalVotes++;
+          
+          // Count how many users voted for each country
+          votes.forEach(country => {
+            if (country && country.trim() !== '' && countryVoteCounts[country] !== undefined) {
+              countryVoteCounts[country]++;
+            }
+          });
         }
       });
 
       console.log(`Calculated results for ${yearCode}: ${totalVotes} total votes`);
       console.log('Point totals:', countryPoints);
+      console.log('Vote counts:', countryVoteCounts);
 
       // Cache the results
       await prisma.cumulativeResult.upsert({
         where: { competitionId: competition.id },
         update: {
           results: countryPoints,
+          voteCounts: countryVoteCounts,
           totalVotes: totalVotes,
           lastUpdated: new Date()
         },
         create: {
           competitionId: competition.id,
           results: countryPoints,
+          voteCounts: countryVoteCounts,
           totalVotes: totalVotes,
           lastUpdated: new Date()
         }
       });
 
-      return { countryPoints, totalVotes };
+      return { countryPoints, totalVotes, countryVoteCounts };
     } catch (error) {
       console.error('Error updating cumulative results:', error);
-      return { countryPoints: {}, totalVotes: 0 };
+      return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
     }
   }
 }

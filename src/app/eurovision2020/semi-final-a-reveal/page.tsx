@@ -1,19 +1,22 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 import { eurovision2020DataGroupA, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
+import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
 type Results = {
   countryPoints: { [country: string]: number };
   totalVotes: number;
+  countryVoteCounts?: { [country: string]: number };
 };
 
 export default function Eurovision2020SemiFinalARevealPage() {
   // React hooks (always declared in the same order)
   const { data: session, status } = useSession();
+  const { preferences } = useDisplayPreferences();
   const [results, setResults] = useState<Results | null>(null);
   const [orderedCountries, setOrderedCountries] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(0);
@@ -25,8 +28,9 @@ export default function Eurovision2020SemiFinalARevealPage() {
   const [revealingCountry, setRevealingCountry] = useState<string | null>(null);
   const travelIntervalRef = useRef<number | null>(null);
   const [revealedCountries, setRevealedCountries] = useState<string[]>([]);
-  const [directFinalist, setDirectFinalist] = useState<number>(0);
   const [isNetherlandsPlaying, setIsNetherlandsPlaying] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(7);
   
   // Effects (declare immediately so hooks run unconditionally)
   useEffect(() => {
@@ -82,7 +86,6 @@ export default function Eurovision2020SemiFinalARevealPage() {
       // Check if all countries have been revealed
       const totalCountries = Object.keys(eurovision2020DataGroupA).length;
       if (revealedCountries.length >= totalCountries) {
-        setDirectFinalist(revealedCountries.length + 1);
         // All countries revealed, play Netherlands video after 1 second
         setTimeout(() => {
           const netherlandsData = eurovision2020DataGroupFinal['Netherlands'];
@@ -114,6 +117,16 @@ export default function Eurovision2020SemiFinalARevealPage() {
       }
     };
   }, [revealedCountries]);
+
+  // Countdown effect for reset confirmation
+  useEffect(() => {
+    if (showResetConfirmation && resetCountdown > 0) {
+      const timer = setTimeout(() => {
+        setResetCountdown(resetCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showResetConfirmation, resetCountdown]);
 
   // Reveal helpers (must be declared unconditionally so hooks order is stable)
   function showNext() {
@@ -243,70 +256,19 @@ export default function Eurovision2020SemiFinalARevealPage() {
     setVisibleCount(0);
     setIsRevealing(false);
     setRevealingCountry(null);
-    setDirectFinalist(0);
     setIsNetherlandsPlaying(false);
+    setShowResetConfirmation(false);
+    setResetCountdown(7);
   }
 
-  function replayVideo() {
-    // Clear previous timer if any
-    if (videoCloseTimer.current) {
-      window.clearTimeout(videoCloseTimer.current);
-      videoCloseTimer.current = null;
-    }
+  function handleResetClick() {
+    setShowResetConfirmation(true);
+    setResetCountdown(7);
+  }
 
-    // Close current video first (force refresh)
-    setSelectedVideoId('');
-    setSelectedVideoRange(null);
-
-    // Check if all countries have been revealed - if so, play Netherlands
-    const totalCountries = Object.keys(eurovision2020DataGroupA).length;
-    if (directFinalist > totalCountries) {
-      // Play Netherlands video
-      setTimeout(() => {
-        const netherlandsData = eurovision2020DataGroupFinal['Netherlands'];
-        
-        if (netherlandsData && netherlandsData.youtubeId && netherlandsData.times) {
-          setIsNetherlandsPlaying(true);
-          const netherlandsTimes = netherlandsData.times;
-          setSelectedVideoRange(netherlandsTimes);
-          setSelectedVideoId(netherlandsData.youtubeId);
-          
-          // Auto-close Netherlands video after duration
-          const netherlandsDurationMs = Math.max(1000, (netherlandsTimes.end - netherlandsTimes.start) * 1000);
-          videoCloseTimer.current = window.setTimeout(() => {
-            setSelectedVideoId('');
-            setSelectedVideoRange(null);
-            videoCloseTimer.current = null;
-            // setIsNetherlandsPlaying(false);
-          }, netherlandsDurationMs);
-        }
-      }, 100);
-      return;
-    }
-
-    // Otherwise, replay the last revealed country
-    if (revealedCountries.length === 0) return;
-    
-    const lastCountry = revealedCountries[revealedCountries.length - 1];
-    const ytId = eurovision2020DataGroupA[lastCountry]?.youtubeId;
-    if (!ytId) return;
-
-    // Reopen after a brief delay to force iframe remount
-    setTimeout(() => {
-      const times = eurovision2020DataGroupA[lastCountry]?.times ?? { start: 0, end: 5 };
-      
-      setSelectedVideoRange(times);
-      setSelectedVideoId(ytId);
-
-      // Auto-close after the configured snippet duration (minimum 1s)
-      const durationMs = Math.max(1000, (Math.max(times.end, times.start) - times.start) * 1000);
-      videoCloseTimer.current = window.setTimeout(() => {
-        setSelectedVideoId('');
-        setSelectedVideoRange(null);
-        videoCloseTimer.current = null;
-        setDirectFinalist(revealedCountries.length + 1);
-      }, durationMs);
-    }, 100);
+  function handleCancelReset() {
+    setShowResetConfirmation(false);
+    setResetCountdown(7);
   }
 
   // Access control helpers (derived from session)
@@ -576,22 +538,61 @@ export default function Eurovision2020SemiFinalARevealPage() {
                 {isRevealing ? 'Açıklanıyor...' : 'Rastgele Göster'}
               </button>
               <button
-                onClick={replayVideo}
-                className="px-4 py-2 bg-[#27ae60] text-white rounded hover:brightness-110 disabled:opacity-50"
-                disabled={revealedCountries.length === 0}
-              >
-                Tekrar Oynat
-              </button>
-              <button
-                onClick={resetAll}
+                onClick={handleResetClick}
                 className="px-4 py-2 bg-[#e74c3c] text-white rounded hover:brightness-110 disabled:opacity-50"
                 disabled={revealedCountries.length === 0}
               >
                 Reset
               </button>
               
+              {/* Reset Confirmation Modal */}
+              {showResetConfirmation && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-[#2c3e50] rounded-lg p-6 max-w-sm mx-4">
+                    <h3 className="text-white text-lg font-semibold mb-4">
+                      Başa dönmek istediğinizden emin misiniz?
+                    </h3>
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        onClick={handleCancelReset}
+                        className="px-4 py-2 bg-gray-600 text-white rounded hover:brightness-110"
+                      >
+                        Hayır
+                      </button>
+                      <button
+                        onClick={resetAll}
+                        disabled={resetCountdown > 0}
+                        className="px-4 py-2 bg-[#e74c3c] text-white rounded hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px]"
+                      >
+                        {resetCountdown > 0 ? `Evet (${resetCountdown})` : 'Evet'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Holland Golden Card */}
-              <div className={`golden-ticket flex items-center justify-between p-2 rounded relative ${isNetherlandsPlaying ? 'chain-effect' : ''}`}>
+              <div 
+                onClick={() => {
+                  const netherlandsData = eurovision2020DataGroupFinal['Netherlands'];
+                  if (netherlandsData && netherlandsData.youtubeId && netherlandsData.times) {
+                    const times = netherlandsData.times;
+                    if (videoCloseTimer.current) {
+                      window.clearTimeout(videoCloseTimer.current);
+                      videoCloseTimer.current = null;
+                    }
+                    setSelectedVideoRange(times);
+                    setSelectedVideoId(netherlandsData.youtubeId);
+                    const durationMs = Math.max(1000, (times.end - times.start) * 1000);
+                    videoCloseTimer.current = window.setTimeout(() => {
+                      setSelectedVideoId('');
+                      setSelectedVideoRange(null);
+                      videoCloseTimer.current = null;
+                    }, durationMs);
+                  }
+                }}
+                className={`golden-ticket flex items-center justify-between p-2 rounded relative cursor-pointer hover:brightness-110 ${isNetherlandsPlaying ? 'chain-effect' : ''}`}
+              >
                 {/* Checkmark for Netherlands when chain is active */}
                 {isNetherlandsPlaying && (
                   <span style={{
@@ -618,7 +619,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     />
                   </div>
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-xs text-gray-600">Direct Final - (2019 winner)</span>
+                    <span className="text-xs text-gray-600">Direct Finalist - (2019 winner)</span>
                     <span className="country-name text-sm font-semibold">Netherlands</span>
                     <span className="text-xs text-gray-700">Jeangu Macrooy</span>
                     <span className="text-xs text-gray-600">Grow</span>
@@ -636,7 +637,6 @@ export default function Eurovision2020SemiFinalARevealPage() {
                       height="175"
                       src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1&controls=0&vq=large${selectedVideoRange ? `&start=${selectedVideoRange.start}&end=${selectedVideoRange.end}` : '&start=0&end=5'}`}
                       title="Eurovision Song Reveal"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="rounded"
                     />
@@ -652,9 +652,22 @@ export default function Eurovision2020SemiFinalARevealPage() {
               <h2 className="text-2xl font-bold text-white mb-4">
                 <span>Ülkeler (Alfabetik) </span>
                 <span className="text-sm font-normal">
-                  | Gerçek sıralama ve puanlar, final oyları belli olduktan sonra duyurulacaktır.
+                  | Tüm sıralama ve puanlar, final oyları belli olduktan sonra duyurulacaktır.
                 </span>
               </h2>
+              
+              {/* Information text */}
+              <div className="mb-3 p-2 bg-[#1a2332] rounded text-sm text-gray-300 space-y-1">
+                <p>-&quot;Rastgele Göster&quot; önce 1 tane finalist, sonra 1 tane elenini gösterir.</p>
+                <p>-Finalistlerin sıralaması ve puanları gösterilmez.</p>
+                <p>-Elenenlerin sıralaması ve puanları gösterilir.</p>
+                <p>-Gösterilen ülkelerin video kesitleri otomatik başlar. Başlamazsa ülke kartına tıklayarak denemeye devam edin.</p>
+                <p>-Birden fazla hesapla kullanılan oylar yönetici tarafından temizlendi.</p>
+                <p>* X puan (tüm kullanıcılardan alınan toplam puan)</p>
+                <p>* 100% Σ (Tüm kullanıcılar 12 puan verirse)</p>
+                <p>* 100% 👤 (Tüm kullanıcıların ilk 10 listesinde olursa)</p>
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 {/* First Column */}
                 <div className="space-y-3">
@@ -676,9 +689,29 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     return (
                       <div
                         key={country}
+                        onClick={() => {
+                          if (isRevealed) {
+                            const ytId = eurovision2020DataGroupA[country]?.youtubeId;
+                            if (ytId) {
+                              const times = eurovision2020DataGroupA[country]?.times ?? { start: 0, end: 5 };
+                              if (videoCloseTimer.current) {
+                                window.clearTimeout(videoCloseTimer.current);
+                                videoCloseTimer.current = null;
+                              }
+                              setSelectedVideoRange(times);
+                              setSelectedVideoId(ytId);
+                              const durationMs = Math.max(1000, (Math.max(times.end, times.start) - times.start) * 1000);
+                              videoCloseTimer.current = window.setTimeout(() => {
+                                setSelectedVideoId('');
+                                setSelectedVideoRange(null);
+                                videoCloseTimer.current = null;
+                              }, durationMs);
+                            }
+                          }
+                        }}
                         className={`flex items-center justify-between p-1 rounded relative ${
                           (isRevealed ? (isFinalist ? 'golden-ticket' : 'bg-gray-700 eliminated-glow') : 'bg-[#2a3846]')
-                        } ${keepChain ? 'chain-effect' : ''}`}
+                        } ${keepChain ? 'chain-effect' : ''} ${isRevealed ? 'cursor-pointer hover:brightness-110' : ''}`}
                         style={!isRevealed ? { border: '4px solid #2a3846' } : {}}
                       >
                         {/* Checkmark for golden tickets when chain is active (since chain uses ::after) */}
@@ -697,6 +730,11 @@ export default function Eurovision2020SemiFinalARevealPage() {
                           }}>✓</span>
                         )}
                         <div className="flex items-center gap-2">
+                          {isRevealed && !isFinalist && (
+                            <span className="text-lg font-bold text-red-300">
+                              {allCountriesWithPoints.findIndex(c => c.country === country) + 1}.
+                            </span>
+                          )}
                           <div className="flex-shrink-0 flex flex-col items-center">
                             <Image 
                               src={`/flags/${country.replace('&', 'and')}_${code}.png`}
@@ -720,6 +758,43 @@ export default function Eurovision2020SemiFinalARevealPage() {
                             )}
                           </div>
                         </div>
+                        {/* Show stats for eliminated countries on the right side */}
+                        {isRevealed && !isFinalist && results && (
+                          <div className="ml-2 whitespace-nowrap text-right">
+                            <div className="font-bold text-red-300">
+                              {results.countryPoints[country] || 0} puan
+                            </div>
+                            {preferences.showWeightPercentage && (
+                              <div className="text-xs text-red-200">
+                                {(() => {
+                                  const denom = (results.totalVotes || 0) * 12;
+                                  if (!denom) return '0%';
+                                  const pct = ((results.countryPoints[country] || 0) / denom) * 100;
+                                   return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+                                })()}
+                              </div>
+                            )}
+                            {preferences.showVoterPercentage && results.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                              <div className="text-xs text-red-200">
+                                {(() => {
+                                  const voteCount = results.countryVoteCounts[country] || 0;
+                                  const totalVoters = results.totalVotes || 0;
+                                  if (!totalVoters) return (
+                                    <>
+                                      <span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span>
+                                    </>
+                                  );
+                                  const userPct = (voteCount / totalVoters) * 100;
+                                  return (
+                                    <>
+                                      <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -744,9 +819,29 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     return (
                       <div
                         key={country}
+                        onClick={() => {
+                          if (isRevealed) {
+                            const ytId = eurovision2020DataGroupA[country]?.youtubeId;
+                            if (ytId) {
+                              const times = eurovision2020DataGroupA[country]?.times ?? { start: 0, end: 5 };
+                              if (videoCloseTimer.current) {
+                                window.clearTimeout(videoCloseTimer.current);
+                                videoCloseTimer.current = null;
+                              }
+                              setSelectedVideoRange(times);
+                              setSelectedVideoId(ytId);
+                              const durationMs = Math.max(1000, (Math.max(times.end, times.start) - times.start) * 1000);
+                              videoCloseTimer.current = window.setTimeout(() => {
+                                setSelectedVideoId('');
+                                setSelectedVideoRange(null);
+                                videoCloseTimer.current = null;
+                              }, durationMs);
+                            }
+                          }
+                        }}
                         className={`flex items-center justify-between p-1 rounded relative ${
                           (isRevealed ? (isFinalist ? 'golden-ticket' : 'bg-gray-700 eliminated-glow') : 'bg-[#2a3846]')
-                        } ${keepChain ? 'chain-effect' : ''}`}
+                        } ${keepChain ? 'chain-effect' : ''} ${isRevealed ? 'cursor-pointer hover:brightness-110' : ''}`}
                         style={!isRevealed ? { border: '4px solid #2a3846' } : {}}
                       >
                         {/* Checkmark for golden tickets when chain is active (since chain uses ::after) */}
@@ -765,6 +860,11 @@ export default function Eurovision2020SemiFinalARevealPage() {
                           }}>✓</span>
                         )}
                         <div className="flex items-center gap-2">
+                          {isRevealed && !isFinalist && (
+                            <span className="text-lg font-bold text-red-300">
+                              {allCountriesWithPoints.findIndex(c => c.country === country) + 1}.
+                            </span>
+                          )}
                           <div className="flex-shrink-0 flex flex-col items-center">
                             <Image 
                               src={`/flags/${country.replace('&', 'and')}_${code}.png`}
@@ -788,6 +888,43 @@ export default function Eurovision2020SemiFinalARevealPage() {
                             )}
                           </div>
                         </div>
+                        {/* Show stats for eliminated countries on the right side */}
+                        {isRevealed && !isFinalist && results && (
+                          <div className="ml-2 whitespace-nowrap text-right">
+                            <div className="font-bold text-red-300">
+                              {results.countryPoints[country] || 0} puan
+                            </div>
+                            {preferences.showWeightPercentage && (
+                              <div className="text-xs text-red-200">
+                                {(() => {
+                                  const denom = (results.totalVotes || 0) * 12;
+                                  if (!denom) return '0%';
+                                  const pct = ((results.countryPoints[country] || 0) / denom) * 100;
+                                   return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+                                })()}
+                              </div>
+                            )}
+                            {preferences.showVoterPercentage && results.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                              <div className="text-xs text-red-200">
+                                {(() => {
+                                  const voteCount = results.countryVoteCounts[country] || 0;
+                                  const totalVoters = results.totalVotes || 0;
+                                  if (!totalVoters) return (
+                                    <>
+                                      <span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span>
+                                    </>
+                                  );
+                                  const userPct = (voteCount / totalVoters) * 100;
+                                  return (
+                                    <>
+                                      <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -800,3 +937,5 @@ export default function Eurovision2020SemiFinalARevealPage() {
     </div>
   );
 }
+
+

@@ -11,7 +11,7 @@ export default function CountDownPage() {
   const year = pathname.match(/eurovision(20\d{2})/)?.[1] || '2025';
   const { data: session } = useSession();
   
-  // Sayfa yapÄ±landÄ±rmasÄ± iÃ§in state
+  // Sayfa yapýlandýrmasý için state
   const [config, setConfig] = useState({
     status: false,
     showCountDown: '',
@@ -19,7 +19,7 @@ export default function CountDownPage() {
     isGM: false
   });
   
-  // Sunucudan yapÄ±landÄ±rmayÄ± al
+  // Sunucudan yapýlandýrmayý al
   useEffect(() => {
     async function fetchConfig() {
       try {
@@ -29,14 +29,14 @@ export default function CountDownPage() {
           setConfig(data);
         }
       } catch (error) {
-        console.error('YapÄ±landÄ±rma yÃ¼klenirken hata:', error);
+        console.error('Yapýlandýrma yüklenirken hata:', error);
       }
     }
     
     fetchConfig();
   }, [year, session]);
 
-  // Vote controller'Ä± yapÄ±landÄ±r
+  // Vote controller'ý yapýlandýr
   const voteController = VoteController({
     mode: config.mode as 'visible' | 'hide' | 'gm-only',
     isGM: config.isGM,
@@ -47,22 +47,22 @@ export default function CountDownPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] p-8">
       <div className="container mx-auto max-w-6xl">
         <h1 className="text-4xl md:text-5xl font-bold text-center text-white mb-8">
-          Eurovision <span className="text-yellow-400">{year}</span> â€” Oylama BaÅŸlÄ±yor
+          Eurovision <span className="text-yellow-400">{year}</span> — Oylama Baþlýyor
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Sol Kolon - Geri SayÄ±m */}
+          {/* Sol Kolon - Geri Sayým */}
           <div className="md:col-span-2">
             <Countdown 
               targetDateStr={config.showCountDown}
               onComplete={() => {
-                // Geri sayÄ±m tamamlandÄ±ÄŸÄ±nda sayfayÄ± yenile
+                // Geri sayým tamamlandýðýnda sayfayý yenile
                 window.location.reload();
               }} 
             />
           </div>
           
-          {/* SaÄŸ Kolon - Oylama KontrolÃ¼ */}
+          {/* Sað Kolon - Oylama Kontrolü */}
           <div className="md:col-span-1">
             <voteController.SignInPrompt />
           </div>

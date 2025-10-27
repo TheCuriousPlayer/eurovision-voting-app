@@ -47,6 +47,7 @@ export async function GET() {
 
     const responsePayload = {
       countryPoints: cumulativeResult?.results || {},
+      countryVoteCounts: cumulativeResult?.voteCounts || {},
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,
       authPending: false,

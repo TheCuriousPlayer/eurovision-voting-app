@@ -92,5 +92,8 @@ export const eurovision2020Data: { [key: string]: { code: string; performer: str
   'United Kingdom': { code: 'GB', performer: 'James Newman', song: 'My Last Breath', youtubeId: '6iS-lV909T4' }
 };
 
+
+
+
 // Re-export for compatibility
 export const eurovision2020Songs = eurovision2020Data;

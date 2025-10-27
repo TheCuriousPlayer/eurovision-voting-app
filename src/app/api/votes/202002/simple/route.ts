@@ -47,6 +47,7 @@ export async function GET() {
 
     const responsePayload = {
       countryPoints: cumulativeResult?.results || {},
+      countryVoteCounts: cumulativeResult?.voteCounts || {},
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,
       authPending: false,
@@ -55,7 +56,8 @@ export async function GET() {
 
     console.log('Final API response for 202002:', {
       ...responsePayload,
-      countryPointsCount: Object.keys(responsePayload.countryPoints).length
+      countryPointsCount: Object.keys(responsePayload.countryPoints).length,
+      countryVoteCountsCount: Object.keys(responsePayload.countryVoteCounts || {}).length
     });
 
     return NextResponse.json(responsePayload, {

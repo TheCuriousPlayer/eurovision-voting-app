@@ -36,6 +36,7 @@ export async function GET() {
     const results: ResultsData = {
       countryPoints: cumulativeResults.countryPoints,
       totalVotes: cumulativeResults.totalVotes,
+      countryVoteCounts: cumulativeResults.countryVoteCounts || {},
       // No userVote for public endpoint (omitting the property)
     };
 

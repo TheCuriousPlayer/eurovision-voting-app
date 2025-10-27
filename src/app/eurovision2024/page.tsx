@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
 const eurovision2024Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
   'Albania': { code: 'AL', performer: 'BESA', song: 'TITAN', youtubeId: 'aQG22XJIdWw' },
@@ -66,6 +67,7 @@ export default function Eurovision2024() {
   // (Removed unused currentTime state and timer)
   
   const { data: session, status } = useSession();
+  const { preferences } = useDisplayPreferences();
   const [results, setResults] = useState<ResultsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
@@ -80,8 +82,14 @@ export default function Eurovision2024() {
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const infoTooltipRef = useRef<HTMLDivElement>(null);
   const [pendingSave, setPendingSave] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const hasLoadedVotesFromDB = useRef(false);
+  const previousVotesRef = useRef<string[]>([]);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
+  const [clearCountdown, setClearCountdown] = useState(7);
 
   // Points mapping for slots (index 0 -> 12 points, index 1 -> 10 points, ...)
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
@@ -136,10 +144,44 @@ export default function Eurovision2024() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  // Countdown effect for clear confirmation
+  useEffect(() => {
+    if (showClearConfirmation && clearCountdown > 0) {
+      const timer = setTimeout(() => {
+        setClearCountdown(clearCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showClearConfirmation, clearCountdown]);
+
   // Update results whenever selectedCountries changes
   useEffect(() => {
     if (results && !loading && selectedCountries.length === 10) {
-      console.log('useEffect triggered, calling updateResults');
+      // Skip auto-save if this is from loading votes from database
+      if (!hasLoadedVotesFromDB.current) {
+        console.log('🛑 BLOCKED: Skipping auto-save - votes not yet loaded from database');
+        console.log('🛑 Flag status:', hasLoadedVotesFromDB.current);
+        console.log('🛑 Selected countries:', selectedCountries);
+        return;
+      }
+      
+      // Check if votes actually changed (deep comparison)
+      const votesChanged = JSON.stringify(previousVotesRef.current) !== JSON.stringify(selectedCountries);
+      if (!votesChanged) {
+        console.log('🛑 BLOCKED: Votes unchanged, skipping update');
+        console.log('🛑 Previous:', previousVotesRef.current);
+        console.log('🛑 Current:', selectedCountries);
+        return;
+      }
+      
+      console.log('✅ ALLOWED: useEffect triggered, calling updateResults');
+      console.log('✅ Flag status:', hasLoadedVotesFromDB.current);
+      console.log('✅ Previous votes:', previousVotesRef.current);
+      console.log('✅ New votes:', selectedCountries);
+      
+      // Update the reference with current votes
+      previousVotesRef.current = [...selectedCountries];
+      
       updateResults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,7 +223,6 @@ export default function Eurovision2024() {
         if (resp.ok) {
           window.localStorage.removeItem(pendingKey);
           setPendingSave(false);
-          setLastSavedAt(Date.now());
           console.log('Resent pending votes successfully (2024)');
         } else {
           console.warn('Resend of pending votes failed (2024), will keep for later');
@@ -222,6 +263,23 @@ export default function Eurovision2024() {
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
   }, []);
+
+  // Close info tooltip when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (infoTooltipRef.current && !infoTooltipRef.current.contains(event.target as Node)) {
+        setShowInfoTooltip(false);
+      }
+    }
+
+    if (showInfoTooltip) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showInfoTooltip]);
 
   const updateResults = async () => {
     if (!results) return;
@@ -325,7 +383,6 @@ export default function Eurovision2024() {
           console.warn('Failed to remove pending votes from localStorage (2024)', e);
         }
         setPendingSave(false);
-        setLastSavedAt(Date.now());
       }
     } catch (error) {
       console.warn('Error saving votes to server, will retry later (2024):', error);
@@ -364,14 +421,14 @@ export default function Eurovision2024() {
       clearTimeout(autoRefreshTimer);
     }
     
-    // Start new 30-second timer
+    // Start new 60-second timer
     const newTimer = setTimeout(() => {
       fetchFreshResults();
       startAutoRefresh(); // Restart the timer
-    }, 30000); // 30 seconds
+    }, 60000); // 60 seconds
     
     setAutoRefreshTimer(newTimer);
-    console.log('Auto-refresh timer started (30 seconds)');
+    console.log('Auto-refresh timer started (60 seconds)');
   };
 
   const resetAutoRefreshTimer = () => {
@@ -393,6 +450,38 @@ export default function Eurovision2024() {
       const updatedCountries = [...selectedCountries];
       updatedCountries[firstEmptyIndex] = country;
       setSelectedCountries(updatedCountries);
+      resetAutoRefreshTimer();
+    }
+  };
+
+  // Helper function to check if removing this country would clear all votes
+  const wouldClearAllVotes = (indexToRemove: number): boolean => {
+    const remainingVotes = selectedCountries.filter((country, idx) => 
+      idx !== indexToRemove && country !== ''
+    );
+    return remainingVotes.length === 0;
+  };
+
+  // Helper function to handle country removal with confirmation
+  const handleRemoveCountry = (index: number) => {
+    if (wouldClearAllVotes(index)) {
+      // Show confirmation dialog
+      setPendingClearAction(() => () => {
+        const newSelectedCountries = [...selectedCountries];
+        newSelectedCountries[index] = '';
+        setSelectedCountries(newSelectedCountries);
+        resetAutoRefreshTimer();
+        setShowClearConfirmation(false);
+        setPendingClearAction(null);
+        setClearCountdown(7);
+      });
+      setShowClearConfirmation(true);
+      setClearCountdown(7);
+    } else {
+      // Directly remove if not clearing all votes
+      const newSelectedCountries = [...selectedCountries];
+      newSelectedCountries[index] = '';
+      setSelectedCountries(newSelectedCountries);
       resetAutoRefreshTimer();
     }
   };
@@ -532,6 +621,10 @@ export default function Eurovision2024() {
         
         // Only set selectedCountries if user is authenticated and has votes
         if (session && loading && data.userVote?.votes) {
+          // Mark that we've loaded votes from database BEFORE setting state
+          // This prevents the useEffect from triggering a save
+          hasLoadedVotesFromDB.current = true;
+          
           // Create an array of 10 elements with empty strings
           const newSelectedCountries = Array(10).fill('');
           
@@ -540,8 +633,17 @@ export default function Eurovision2024() {
             newSelectedCountries[index] = country;
           });
           
+          // Store in previousVotesRef so useEffect knows these are from DB
+          previousVotesRef.current = [...newSelectedCountries];
+          
           setSelectedCountries(newSelectedCountries);
           console.log('User votes loaded into selectedCountries:', newSelectedCountries);
+        } else if (!data.userVote) {
+          // User is authenticated but has no votes yet - allow saves immediately
+          console.log('No existing votes found - user can start voting');
+          hasLoadedVotesFromDB.current = true;
+          // Set previousVotesRef to empty array
+          previousVotesRef.current = Array(10).fill('');
         }
       } else {
         console.error('Error fetching results:', response.status);
@@ -605,7 +707,34 @@ export default function Eurovision2024() {
   // Sign-in component for unauthenticated users
   const SignInPrompt = () => (
     <div className="bg-[#2c3e50] rounded-lg p-6">
-  <h2 className="text-2xl font-bold text-white mb-4">Oylarım</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+          <div className="relative" ref={infoTooltipRef}>
+            <button
+              onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+              className="w-6 h-6 rounded-full bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors flex items-center justify-center"
+              title="Bilgi"
+            >
+              i
+            </button>
+            {showInfoTooltip && (
+              <div className="absolute left-0 top-8 z-50 w-80 bg-[#1a2332] border-2 border-red-600 rounded-lg p-4 shadow-xl">
+                <button
+                  onClick={() => setShowInfoTooltip(false)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+                <div className="text-sm text-gray-300 space-y-2 pt-2">
+                  <p>- &quot;Oylarım&quot; penceresi üzerinde yeşil &quot;Kaydedildi.&quot; yazısını gördüyseniz, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
+                  <p>- Sayfayı yenilediğinizde veya yeniden ziyaret ettiğinizde, mevcut oylarınız sorunsuz bir şekilde &quot;Oylarım&quot; penceresinde görünüyorsa, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <div className="bg-[#2a3846] border-2 border-dashed border-[#34495e] rounded-lg p-6 w-full">
           <div className="mb-4">
@@ -714,15 +843,38 @@ export default function Eurovision2024() {
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
+                      <div className="relative" ref={infoTooltipRef}>
+                        <button
+                          onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                          className="w-6 h-6 rounded-full bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors flex items-center justify-center"
+                          title="Bilgi"
+                        >
+                          i
+                        </button>
+                        {showInfoTooltip && (
+                          <div className="absolute left-0 top-8 z-50 w-80 bg-[#1a2332] border-2 border-red-600 rounded-lg p-4 shadow-xl">
+                            <button
+                              onClick={() => setShowInfoTooltip(false)}
+                              className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                            >
+                              ✕
+                            </button>
+                            <div className="text-sm text-gray-300 space-y-2 pt-2">
+                              <p>- &quot;Oylarım&quot; penceresi üzerinde yeşil &quot;Kaydedildi.&quot; yazısını gördüyseniz, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
+                              <p>- Sayfayı yenilediğinizde veya yeniden ziyaret ettiğinizde, mevcut oylarınız sorunsuz bir şekilde &quot;Oylarım&quot; penceresinde görünüyorsa, oylarınızın kaydedildiğinden %100 emin olabilirsiniz.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div>
                       {pendingSave ? (
                         <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
-                      ) : lastSavedAt ? (
+                      ) : selectedCountries.some(country => country !== '') ? (
                         <div className="bg-green-700 text-white text-sm px-3 py-1 rounded">Kaydedildi.</div>
-                      ) : (
-                        <div className="bg-yellow-500 text-black text-sm px-3 py-1 rounded">Henüz kaydedilmedi</div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                   <div className="grid gap-0">
@@ -789,10 +941,7 @@ export default function Eurovision2024() {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      const newSelectedCountries = [...selectedCountries];
-                                      newSelectedCountries[index] = '';
-                                      setSelectedCountries(newSelectedCountries);
-                                      resetAutoRefreshTimer(); // Reset timer on remove
+                                      handleRemoveCountry(index);
                                     }}
                                     className="bg-[#e74c3c] hover:bg-[#c0392b] text-white w-6 h-6 rounded flex items-center justify-center transition-colors"
                                   >
@@ -842,6 +991,7 @@ export default function Eurovision2024() {
 
               {/* Sonuçlar Section - Split into 2 columns */}
               <div className="flex-1">
+                {/* Display Preferences */}
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults 
@@ -885,11 +1035,22 @@ export default function Eurovision2024() {
                                           </button>
                                         </div>
                                       ) : (
-                                        <span className={`text-lg font-bold ${
-                                          showResults && points > 0 ? 'text-white' : 'text-gray-400'
-                                        }`}>
-                                          {index + 1}.
-                                        </span>
+                                        <div className="flex flex-col items-center min-w-[28px]">
+                                          <span className={`text-lg font-bold leading-tight ${
+                                            showResults && points > 0 ? 'text-white' : 'text-gray-400'
+                                          }`}>
+                                            {index + 1}.
+                                          </span>
+                                          {session && selectedCountries.includes(country) ? (
+                                            <span className="text-xs text-gray-400 leading-tight">
+                                              #{selectedCountries.indexOf(country) + 1}
+                                            </span>
+                                          ) : (
+                                            <span className="text-xs text-transparent leading-tight">
+                                              #0
+                                            </span>
+                                          )}
+                                        </div>
                                       )}
                                       <div className="flex-shrink-0 flex flex-col items-center">
                                         <Image 
@@ -929,12 +1090,6 @@ export default function Eurovision2024() {
                                           </div>
                                         )}
                                       </div>
-                                      {/* moved youtube button under flag above */}
-                                      {session && selectedCountries.includes(country) && (
-                                        <span className="text-xs text-gray-400 whitespace-nowrap">
-                                          (#{selectedCountries.indexOf(country) + 1})
-                                        </span>
-                                      )}
                                     </div>
                                     {showResults && (
                                       <span className={`font-bold ml-2 whitespace-nowrap ${
@@ -944,14 +1099,36 @@ export default function Eurovision2024() {
                                           <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
                                             {points} points
                                           </div>
-                                          <div className="text-xs text-gray-400">
-                                            {(() => {
-                                              const denom = (results?.totalVotes || 0) * 12;
-                                              if (!denom) return '0%';
-                                              const pct = (points / denom) * 100;
-                                              return `${pct.toFixed(2)}%`;
-                                            })()}
-                                          </div>
+                                          {preferences.showWeightPercentage && (
+
+                                            <div className="text-xs text-gray-400">
+
+                                              {(() => {
+
+                                                const denom = (results?.totalVotes || 0) * 12;
+
+                                                if (!denom) return <>0% <strong>Σ</strong></>;
+
+                                                const pct = (points / denom) * 100;
+
+                                                 return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+
+                                              })()}
+
+                                            </div>
+
+                                          )}
+                                          {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                            <div className="text-xs text-gray-400">
+                                              {(() => {
+                                                const voteCount = results.countryVoteCounts[country] || 0;
+                                                const totalVoters = results.totalVotes || 0;
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                const userPct = (voteCount / totalVoters) * 100;
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                              })()}
+                                            </div>
+                                          )}
                                         </div>
                                       </span>
                                     )}
@@ -1000,11 +1177,22 @@ export default function Eurovision2024() {
                                           </button>
                                         </div>
                                       ) : (
-                                        <span className={`text-lg font-bold ${
-                                          showResults && points > 0 ? 'text-white' : 'text-gray-400'
-                                        }`}>
-                                          {index + Math.ceil(sortedCountries.length / 2) + 1}.
-                                        </span>
+                                        <div className="flex flex-col items-center min-w-[28px]">
+                                          <span className={`text-lg font-bold leading-tight ${
+                                            showResults && points > 0 ? 'text-white' : 'text-gray-400'
+                                          }`}>
+                                            {index + Math.ceil(sortedCountries.length / 2) + 1}.
+                                          </span>
+                                          {session && selectedCountries.includes(country) ? (
+                                            <span className="text-xs text-gray-400 leading-tight">
+                                              #{selectedCountries.indexOf(country) + 1}
+                                            </span>
+                                          ) : (
+                                            <span className="text-xs text-transparent leading-tight">
+                                              #0
+                                            </span>
+                                          )}
+                                        </div>
                                       )}
                                       <div className="flex-shrink-0 flex flex-col items-center">
                                         <Image 
@@ -1053,14 +1241,36 @@ export default function Eurovision2024() {
                                           <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
                                             {points} points
                                           </div>
-                                          <div className="text-xs text-gray-400">
-                                            {(() => {
-                                              const denom = (results?.totalVotes || 0) * 12;
-                                              if (!denom) return '0%';
-                                              const pct = (points / denom) * 100;
-                                              return `${pct.toFixed(2)}%`;
-                                            })()}
-                                          </div>
+                                          {preferences.showWeightPercentage && (
+
+                                            <div className="text-xs text-gray-400">
+
+                                              {(() => {
+
+                                                const denom = (results?.totalVotes || 0) * 12;
+
+                                                if (!denom) return <>0% <strong>Σ</strong></>;
+
+                                                const pct = (points / denom) * 100;
+
+                                                 return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+
+                                              })()}
+
+                                            </div>
+
+                                          )}
+                                          {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                            <div className="text-xs text-gray-400">
+                                              {(() => {
+                                                const voteCount = results.countryVoteCounts[country] || 0;
+                                                const totalVoters = results.totalVotes || 0;
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                const userPct = (voteCount / totalVoters) * 100;
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                              })()}
+                                            </div>
+                                          )}
                                         </div>
                                       </span>
                                     )}
@@ -1158,14 +1368,36 @@ export default function Eurovision2024() {
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
                                 {points} points
                               </div>
-                              <div className="text-xs text-gray-400">
-                                {(() => {
-                                  const denom = (results?.totalVotes || 0) * 12;
-                                  if (!denom) return '0%';
-                                  const pct = (points / denom) * 100;
-                                  return `${pct.toFixed(2)}%`;
-                                })()}
-                              </div>
+                              {preferences.showWeightPercentage && (
+
+                                <div className="text-xs text-gray-400">
+
+                                  {(() => {
+
+                                    const denom = (results?.totalVotes || 0) * 12;
+
+                                    if (!denom) return <>0% <strong>Σ</strong></>;
+
+                                    const pct = (points / denom) * 100;
+
+                                     return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+
+                                  })()}
+
+                                </div>
+
+                              )}
+                              {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const voteCount = results.countryVoteCounts[country] || 0;
+                                    const totalVoters = results.totalVotes || 0;
+                                    if (!totalVoters) return '0% 👤';
+                                    const userPct = (voteCount / totalVoters) * 100;
+                                    return `${userPct.toFixed(1)}% 👤`;
+                                  })()}
+                                </div>
+                              )}
                             </div>
                           </span>
                         )}
@@ -1235,14 +1467,36 @@ export default function Eurovision2024() {
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
                                 {points} points
                               </div>
-                              <div className="text-xs text-gray-400">
-                                {(() => {
-                                  const denom = (results?.totalVotes || 0) * 12;
-                                  if (!denom) return '0%';
-                                  const pct = (points / denom) * 100;
-                                  return `${pct.toFixed(2)}%`;
-                                })()}
-                              </div>
+                              {preferences.showWeightPercentage && (
+
+                                <div className="text-xs text-gray-400">
+
+                                  {(() => {
+
+                                    const denom = (results?.totalVotes || 0) * 12;
+
+                                    if (!denom) return <>0% <strong>Σ</strong></>;
+
+                                    const pct = (points / denom) * 100;
+
+                                     return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+
+                                  })()}
+
+                                </div>
+
+                              )}
+                              {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const voteCount = results.countryVoteCounts[country] || 0;
+                                    const totalVoters = results.totalVotes || 0;
+                                    if (!totalVoters) return '0% 👤';
+                                    const userPct = (voteCount / totalVoters) * 100;
+                                    return `${userPct.toFixed(1)}% 👤`;
+                                  })()}
+                                </div>
+                              )}
                             </div>
                           </span>
                         )}
@@ -1288,6 +1542,52 @@ export default function Eurovision2024() {
         </div>
       )}
 
+      {/* Clear All Votes Confirmation Modal */}
+      {showClearConfirmation && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+          onClick={() => {
+            setShowClearConfirmation(false);
+            setPendingClearAction(null);
+          }}
+        >
+          <div 
+            className="bg-[#1a2332] rounded-lg p-6 max-w-md w-full mx-4 relative border-2 border-red-600"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4 text-white">⚠️ Uyarı</h3>
+            <p className="text-gray-300 mb-6">
+              Veri merkezindeki tüm oyları silmek istediğinizden emin misiniz?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowClearConfirmation(false);
+                  setPendingClearAction(null);
+                  setClearCountdown(7);
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors"
+              >
+                Hayır
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingClearAction) {
+                    pendingClearAction();
+                  }
+                }}
+                disabled={clearCountdown > 0}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px]"
+              >
+                {clearCountdown > 0 ? `Evet (${clearCountdown})` : 'Evet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+
+
