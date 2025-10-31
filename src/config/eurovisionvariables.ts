@@ -69,8 +69,16 @@ export const VOTE_CONFIG = {
 // Eurovision yılları için bakım modu ayarları
 export const UNDER_CONSTRUCTION = {
   '202000': true,  // true: bakım modunda, false: aktif
-  '202001': false,  // true: bakım modunda, false: aktif
-  '202002': true,  // true: bakım modunda, false: aktif
+  '202001': (() => {
+    const targetDate = new Date('2025-11-01T19:00:00+03:00').getTime();
+    const now = new Date().getTime();
+    return now < targetDate ? false : true;
+  })(),  // Dynamic: false before 01.11.2025 19:00, true after
+  '202002': (() => {
+    const targetDate = new Date('2025-10-31T19:00:00+03:00').getTime();
+    const now = new Date().getTime();
+    return now < targetDate ? true : false;
+  })(),  // Dynamic: true before 31.10.2025 19:00, false after
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif

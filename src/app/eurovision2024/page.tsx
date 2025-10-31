@@ -1123,9 +1123,9 @@ export default function Eurovision2024() {
                                               {(() => {
                                                 const voteCount = results.countryVoteCounts[country] || 0;
                                                 const totalVoters = results.totalVotes || 0;
-                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1265,9 +1265,9 @@ export default function Eurovision2024() {
                                               {(() => {
                                                 const voteCount = results.countryVoteCounts[country] || 0;
                                                 const totalVoters = results.totalVotes || 0;
-                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1392,9 +1392,17 @@ export default function Eurovision2024() {
                                   {(() => {
                                     const voteCount = results.countryVoteCounts[country] || 0;
                                     const totalVoters = results.totalVotes || 0;
-                                    if (!totalVoters) return '0% 👤';
+                                    if (!totalVoters) return (
+                                      <>
+                                        <span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span>
+                                      </>
+                                    );
                                     const userPct = (voteCount / totalVoters) * 100;
-                                    return `${userPct.toFixed(1)}% 👤`;
+                                    return (
+                                      <>
+                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                      </>
+                                    );
                                   })()}
                                 </div>
                               )}

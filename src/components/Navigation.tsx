@@ -142,7 +142,7 @@ export default function Navigation() {
                         className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                       />
                       <span className="text-gray-300 text-sm group-hover:text-white transition-colors">
-                        <strong>Σ</strong> göster (Max Puan yüzdesi)
+                        <strong>Σ</strong> göster (Potansiyel Max Puan)
                       </span>
                     </label>
 
