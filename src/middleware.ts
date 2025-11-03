@@ -78,43 +78,50 @@ export function middleware(request: NextRequest) {
   if (yearMatch) {
     const year = yearMatch[1];
     
-    // Semi-final sayfalarını kontrol et
-    const isSemiFinalA = path.includes('/semi-final-a');
-    const isSemiFinalB = path.includes('/semi-final-b');
-    
-    // Eurovision 2020 özel durumu - year code mapping
-    if (year === '2020') {
-      if (isSemiFinalA) {
-        // Semi-Final A için 202001 year code'unu kontrol et
-        if (UNDER_CONSTRUCTION['202001']) {
-          return NextResponse.rewrite(
-            new URL(`/eurovision2020/semi-final-a/under-construction`, request.url)
-          );
-        }
-      } else if (isSemiFinalB) {
-        // Semi-Final B için 202002 year code'unu kontrol et
-        if (UNDER_CONSTRUCTION['202002']) {
-          return NextResponse.rewrite(
-            new URL(`/eurovision2020/semi-final-b/under-construction`, request.url)
-          );
+    // Reveal sayfalarını kontrol et - reveal sayfaları bakım modundan etkilenmez
+    const isRevealPage = path.includes('-reveal');
+    if (isRevealPage) {
+      // Reveal sayfaları için bakım modu kontrolü yapma
+      console.log(`[Middleware] Skipping UNDER_CONSTRUCTION check for reveal page: ${path}`);
+    } else {
+      // Semi-final sayfalarını kontrol et
+      const isSemiFinalA = path.includes('/semi-final-a');
+      const isSemiFinalB = path.includes('/semi-final-b');
+      
+      // Eurovision 2020 özel durumu - year code mapping
+      if (year === '2020') {
+        if (isSemiFinalA) {
+          // Semi-Final A için 202001 year code'unu kontrol et
+          if (UNDER_CONSTRUCTION['202001']) {
+            return NextResponse.rewrite(
+              new URL(`/eurovision2020/semi-final-a/under-construction`, request.url)
+            );
+          }
+        } else if (isSemiFinalB) {
+          // Semi-Final B için 202002 year code'unu kontrol et
+          if (UNDER_CONSTRUCTION['202002']) {
+            return NextResponse.rewrite(
+              new URL(`/eurovision2020/semi-final-b/under-construction`, request.url)
+            );
+          }
+        } else {
+          // Ana Eurovision 2020 sayfası için 202000 year code'unu kontrol et
+          if (UNDER_CONSTRUCTION['202000']) {
+            return NextResponse.rewrite(
+              new URL(`/eurovision2020/under-construction`, request.url)
+            );
+          }
         }
       } else {
-        // Ana Eurovision 2020 sayfası için 202000 year code'unu kontrol et
-        if (UNDER_CONSTRUCTION['202000']) {
+        // Diğer yıllar için normal bakım modu kontrolü
+        const isSemiFinalPage = isSemiFinalA || isSemiFinalB;
+        
+        // Eğer bu yıl bakım modundaysa VE semi-final sayfası değilse, bakım sayfasına yönlendir
+        if (UNDER_CONSTRUCTION[year as keyof typeof UNDER_CONSTRUCTION] && !isSemiFinalPage) {
           return NextResponse.rewrite(
-            new URL(`/eurovision2020/under-construction`, request.url)
+            new URL(`/eurovision${year}/under-construction`, request.url)
           );
         }
-      }
-    } else {
-      // Diğer yıllar için normal bakım modu kontrolü
-      const isSemiFinalPage = isSemiFinalA || isSemiFinalB;
-      
-      // Eğer bu yıl bakım modundaysa VE semi-final sayfası değilse, bakım sayfasına yönlendir
-      if (UNDER_CONSTRUCTION[year as keyof typeof UNDER_CONSTRUCTION] && !isSemiFinalPage) {
-        return NextResponse.rewrite(
-          new URL(`/eurovision${year}/under-construction`, request.url)
-        );
       }
     }
     

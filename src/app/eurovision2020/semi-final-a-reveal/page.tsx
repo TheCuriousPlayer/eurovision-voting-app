@@ -33,7 +33,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
   const [resetCountdown, setResetCountdown] = useState(7);
   const [videoCountdown, setVideoCountdown] = useState(0);
   const videoCountdownIntervalRef = useRef<number | null>(null);
-  const [videoResolution, setVideoResolution] = useState<'144p' | '240p' | '360p' | '480p' | '720p' | '1080p'>('360p');
+  const [videoResolution, setVideoResolution] = useState<'144p' | '240p' | '360p' | '480p' | '720p' | '1080p'>('480p');
   const [isSorted, setIsSorted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   
@@ -54,6 +54,15 @@ export default function Eurovision2020SemiFinalARevealPage() {
         const res = await fetch('/api/votes/2020/semi-final-a/public');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json() as Results;
+        
+        // Apply penalty adjustments for voting irregularities: -192 points and -16 vote count
+        if (data.countryPoints && data.countryPoints['Spain'] !== undefined) {
+          data.countryPoints['Spain'] = Math.max(0, (data.countryPoints['Spain'] || 0) - 192);
+        }
+        if (data.countryVoteCounts && data.countryVoteCounts['Spain'] !== undefined) {
+          data.countryVoteCounts['Spain'] = Math.max(0, (data.countryVoteCounts['Spain'] || 0) - 16);
+        }
+        
         setResults(data);
 
         // Get all countries in alphabetical order

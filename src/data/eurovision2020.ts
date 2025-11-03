@@ -22,26 +22,26 @@
 };
 
 export const eurovision2020DataGroupB: { [key: string]: { code: string; performer: string; song: string; youtubeId?: string; times?: { start: number; end: number } } } = {
-  'Albania': { code: 'AL', performer: 'Arilena Ara', song: 'Fall From The Sky', youtubeId: 'vXpCWFIY6YE', times: { start: 0, end: 0 } },
-  'Armenia': { code: 'AM', performer: 'Athena Manoukian', song: 'Chains on You', youtubeId: 'XpQHGMM8c5U', times: { start: 0, end: 0 } },
-  'Austria': { code: 'AT', performer: 'Vincent Bueno', song: 'Alive', youtubeId: 'cOuiTJlBC50', times: { start: 0, end: 0 } },
-  'Bulgaria': { code: 'BG', performer: 'Victoria', song: 'Tears Getting Sober', youtubeId: 'V_hgYnwZR8I', times: { start: 0, end: 0 } },
-  'Czechia': { code: 'CZ', performer: 'Benny Cristo', song: 'Kemama', youtubeId: 'wROqCHLnbko', times: { start: 0, end: 0 } },
-  'Denmark': { code: 'DK', performer: 'Ben & Tan', song: 'Yes', youtubeId: 'XQ5tMhQIp1E', times: { start: 0, end: 0 } },
-  'Estonia': { code: 'EE', performer: 'Uku Suviste', song: 'What Love Is', youtubeId: '3EIQ6U039ms', times: { start: 0, end: 0 } },
-  'Finland': { code: 'FI', performer: 'Aksel', song: 'Looking Back', youtubeId: 'EgONBKFQpxE', times: { start: 0, end: 0 } },
-  'Georgia': { code: 'GE', performer: 'Tornike Kipiani', song: 'Take Me as I Am', youtubeId: 'LjNK4Xywjc4', times: { start: 0, end: 0 } },
-  'Greece': { code: 'GR', performer: 'Stefania', song: 'Superg!rl', youtubeId: 'dJxCINWp_j0', times: { start: 0, end: 0 } },
-  'Iceland': { code: 'IS', performer: 'Daði og Gagnamagnið', song: 'Think About Things', youtubeId: '1HU7ocv3S2o', times: { start: 0, end: 0 } },
-  'Italy': { code: 'IT', performer: 'Diodato', song: 'Fai Rumore', youtubeId: 'TA57rugucwk', times: { start: 0, end: 0 } },
-  'Latvia': { code: 'LV', performer: 'Samanta Tīna', song: 'Still Breathing', youtubeId: 'ELr6U2fOrnE', times: { start: 0, end: 0 } },
-  'Moldova': { code: 'MD', performer: 'Natalia Gordienko', song: 'Prison', youtubeId: 'RnD1ApDo5_k', times: { start: 0, end: 0 } },
-  'Poland': { code: 'PL', performer: 'Alicja', song: 'Empires', youtubeId: 's_Y7mMka4SQ', times: { start: 0, end: 0 } },
-  'Portugal': { code: 'PT', performer: 'Elisa', song: 'Medo de Sentir', youtubeId: 'eIZ48w4epng', times: { start: 0, end: 0 } },
-  'San Marino': { code: 'SM', performer: 'Senhit', song: 'Freaky!', youtubeId: 'c6ZNo_hVA6E', times: { start: 0, end: 0 } },
-  'Serbia': { code: 'RS', performer: 'Hurricane', song: 'Hasta la Vista', youtubeId: '7fqZevYLUMs', times: { start: 0, end: 0 } },
-  'Switzerland': { code: 'CH', performer: 'Gjon\'s Tears', song: 'Répondez-moi', youtubeId: 'O9GAfFHZE-E', times: { start: 0, end: 0 } },
-  'United Kingdom': { code: 'GB', performer: 'James Newman', song: 'My Last Breath', youtubeId: '6iS-lV909T4' }
+  'Albania': { code: 'AL', performer: 'Arilena Ara', song: 'Fall From The Sky', youtubeId: 'vXpCWFIY6YE', times: { start: 91, end: 104 } },
+  'Armenia': { code: 'AM', performer: 'Athena Manoukian', song: 'Chains on You', youtubeId: 'XpQHGMM8c5U', times: { start: 164, end: 179 } },
+  'Austria': { code: 'AT', performer: 'Vincent Bueno', song: 'Alive', youtubeId: 'cOuiTJlBC50', times: { start: 128, end: 146 } },
+  'Bulgaria': { code: 'BG', performer: 'Victoria', song: 'Tears Getting Sober', youtubeId: 'V_hgYnwZR8I', times: { start: 161, end: 177 } },
+  'Czechia': { code: 'CZ', performer: 'Benny Cristo', song: 'Kemama', youtubeId: 'wROqCHLnbko', times: { start: 155, end: 170 } },
+  'Denmark': { code: 'DK', performer: 'Ben & Tan', song: 'Yes', youtubeId: 'XQ5tMhQIp1E', times: { start: 156, end: 176 } },
+  'Estonia': { code: 'EE', performer: 'Uku Suviste', song: 'What Love Is', youtubeId: '3EIQ6U039ms', times: { start: 128, end: 146 } },
+  'Finland': { code: 'FI', performer: 'Aksel', song: 'Looking Back', youtubeId: 'EgONBKFQpxE', times: { start: 148, end: 163 } },
+  'Georgia': { code: 'GE', performer: 'Tornike Kipiani', song: 'Take Me as I Am', youtubeId: 'LjNK4Xywjc4', times: { start: 120, end: 142 } },
+  'Greece': { code: 'GR', performer: 'Stefania', song: 'Superg!rl', youtubeId: 'dJxCINWp_j0', times: { start: 121, end: 139 } },
+  'Iceland': { code: 'IS', performer: 'Daði og Gagnamagnið', song: 'Think About Things', youtubeId: '1HU7ocv3S2o', times: { start: 164, end: 180 } },
+  'Italy': { code: 'IT', performer: 'Diodato', song: 'Fai Rumore', youtubeId: 'TA57rugucwk', times: { start: 180, end: 199 } },
+  'Latvia': { code: 'LV', performer: 'Samanta Tīna', song: 'Still Breathing', youtubeId: 'ELr6U2fOrnE', times: { start: 29, end: 47 } },
+  'Moldova': { code: 'MD', performer: 'Natalia Gordienko', song: 'Prison', youtubeId: 'RnD1ApDo5_k', times: { start: 170, end: 185 } },
+  'Poland': { code: 'PL', performer: 'Alicja', song: 'Empires', youtubeId: 's_Y7mMka4SQ', times: { start: 121, end: 141 } },
+  'Portugal': { code: 'PT', performer: 'Elisa', song: 'Medo de Sentir', youtubeId: 'eIZ48w4epng', times: { start: 107, end: 122 } },
+  'San Marino': { code: 'SM', performer: 'Senhit', song: 'Freaky!', youtubeId: 'c6ZNo_hVA6E', times: { start: 164, end: 180 } },
+  'Serbia': { code: 'RS', performer: 'Hurricane', song: 'Hasta la Vista', youtubeId: '7fqZevYLUMs', times: { start: 139, end: 158 } },
+  'Switzerland': { code: 'CH', performer: 'Gjon\'s Tears', song: 'Répondez-moi', youtubeId: 'O9GAfFHZE-E', times: { start: 115, end: 135 } },
+  'United Kingdom': { code: 'GB', performer: 'James Newman', song: 'My Last Breath', youtubeId: '6iS-lV909T4', times: { start: 146, end: 164 } }
 };
 
 export const eurovision2020DataGroupFinal: { [key: string]: { code: string; performer: string; song: string; youtubeId?: string; times?: { start: number; end: number } } } = {

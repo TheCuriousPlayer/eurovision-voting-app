@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
-import { eurovision2020DataGroupA, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
+import { eurovision2020DataGroupB, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
 type Results = {
@@ -13,7 +13,7 @@ type Results = {
   countryVoteCounts?: { [country: string]: number };
 };
 
-export default function Eurovision2020SemiFinalARevealPage() {
+export default function Eurovision2020SemiFinalBRevealPage() {
   // React hooks (always declared in the same order)
   const { data: session, status } = useSession();
   const { preferences } = useDisplayPreferences();
@@ -33,7 +33,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
   const [resetCountdown, setResetCountdown] = useState(7);
   const [videoCountdown, setVideoCountdown] = useState(0);
   const videoCountdownIntervalRef = useRef<number | null>(null);
-  const [videoResolution, setVideoResolution] = useState<'144p' | '240p' | '360p' | '480p' | '720p' | '1080p'>('360p');
+  const [videoResolution, setVideoResolution] = useState<'144p' | '240p' | '360p' | '480p' | '720p' | '1080p'>('480p');
   const [isSorted, setIsSorted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   
@@ -51,13 +51,13 @@ export default function Eurovision2020SemiFinalARevealPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/votes/2020/semi-final-a/public');
+        const res = await fetch('/api/votes/2020/semi-final-b/public');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json() as Results;
         setResults(data);
 
         // Get all countries in alphabetical order
-        const allCountries = Object.keys(eurovision2020DataGroupA).sort();
+        const allCountries = Object.keys(eurovision2020DataGroupB).sort();
         setOrderedCountries(allCountries);
         setVisibleCount(0); // initial state: none visible
       } catch (err) {
@@ -75,11 +75,11 @@ export default function Eurovision2020SemiFinalARevealPage() {
 
     const country = revealedCountries[revealedCountries.length - 1];
     if (!country) return;
-    const ytId = eurovision2020DataGroupA[country]?.youtubeId;
+    const ytId = eurovision2020DataGroupB[country]?.youtubeId;
     if (!ytId) return; // no video available
 
     // Determine start/end for this country (fallback to 0..5)
-    const times = eurovision2020DataGroupA[country]?.times ?? { start: 0, end: 5 };
+    const times = eurovision2020DataGroupB[country]?.times ?? { start: 0, end: 5 };
 
     setSelectedVideoRange(times);
     setSelectedVideoId(ytId);
@@ -207,10 +207,10 @@ export default function Eurovision2020SemiFinalARevealPage() {
         setRevealingCountry(finalCountry);
 
         // Show YouTube clip immediately when settled on final country
-        const ytId = eurovision2020DataGroupA[finalCountry]?.youtubeId;
+        const ytId = eurovision2020DataGroupB[finalCountry]?.youtubeId;
         if (ytId) {
           // Determine start/end for this country (fallback to 0..5)
-          const times = eurovision2020DataGroupA[finalCountry]?.times ?? { start: 0, end: 5 };
+          const times = eurovision2020DataGroupB[finalCountry]?.times ?? { start: 0, end: 5 };
           
           // Clear the current video first to ensure iframe unmounts
           setSelectedVideoId('');
@@ -286,10 +286,10 @@ export default function Eurovision2020SemiFinalARevealPage() {
 
   // Function to play video for a revealed country
   function playCountryVideo(country: string) {
-    const ytId = eurovision2020DataGroupA[country]?.youtubeId;
-    console.log('Attempting to play video for', eurovision2020DataGroupA[country]?.youtubeId);
+    const ytId = eurovision2020DataGroupB[country]?.youtubeId;
+    console.log('Attempting to play video for', eurovision2020DataGroupB[country]?.youtubeId);
     if (ytId) {
-      const times = eurovision2020DataGroupA[country]?.times ?? { start: 0, end: 5 };
+      const times = eurovision2020DataGroupB[country]?.times ?? { start: 0, end: 5 };
       
       // Clear the current video first to ensure iframe unmounts
       setSelectedVideoId('');
@@ -377,7 +377,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
   
   
   // Derived lists used when the user activates the "Sırala" view
-  const allCountriesAlpha = Object.keys(eurovision2020DataGroupA).sort();
+  const allCountriesAlpha = Object.keys(eurovision2020DataGroupB).sort();
   const pointsEntries = Object.entries(results?.countryPoints || {}).map(([c, p]) => ({ country: c, points: p })).sort((a, b) => b.points - a.points);
   const topN = pointsEntries.slice(0, Math.min(10, pointsEntries.length)).map(x => x.country);
   const topSet = new Set(topN);
@@ -639,7 +639,7 @@ export default function Eurovision2020SemiFinalARevealPage() {
         <div className="flex w-full max-w-6xl mx-auto p-4 h-full relative">
           {/* Left sidebar with title and controls */}
           <aside className="w-full md:w-72 mr-6 flex-shrink-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">Eurovision 2020 Yarı Final A</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">Eurovision 2020 Yarı Final B</h1>
 
             {error && <div className="text-red-400 mb-3">Error: {error}</div>}
 
@@ -856,8 +856,8 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     <div className="mb-2 px-2 py-1 bg-[#22313a] rounded text-lg text-center font-semibold text-gray-200">Alfabetik Sıralama</div>
                   )}
                   {firstColumnCountries.map((country) => {
-                    const code = eurovision2020DataGroupA[country]?.code || 'XX';
-                    const songInfo = eurovision2020DataGroupA[country];
+                    const code = eurovision2020DataGroupB[country]?.code || 'XX';
+                    const songInfo = eurovision2020DataGroupB[country];
                     const isRevealed = revealedCountries.includes(country);
                     const isCurrentlyRevealing = revealingCountry === country;
                     const lastRevealedCountry = revealedCountries[revealedCountries.length - 1];
@@ -974,8 +974,8 @@ export default function Eurovision2020SemiFinalARevealPage() {
                     <div className="mb-2 px-2 py-1 bg-[#22313a] rounded text-lg text-center font-semibold text-gray-200">Puan Sıralaması</div>
                   )}
                   {secondColumnCountries.map((country) => {
-                    const code = eurovision2020DataGroupA[country]?.code || 'XX';
-                    const songInfo = eurovision2020DataGroupA[country];
+                    const code = eurovision2020DataGroupB[country]?.code || 'XX';
+                    const songInfo = eurovision2020DataGroupB[country];
                     const isRevealed = revealedCountries.includes(country);
                     const isCurrentlyRevealing = revealingCountry === country;
                     const lastRevealedCountry = revealedCountries[revealedCountries.length - 1];
