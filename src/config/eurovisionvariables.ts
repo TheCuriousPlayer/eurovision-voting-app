@@ -85,7 +85,11 @@ export const UNDER_CONSTRUCTION = {
     const now = new Date().getTime();
     return now < targetDate ? true : false;
   })(),  // Dynamic: true before 31.10.2025 19:00, false after
-  '202003': false,
+  '202003': (() => {
+    const targetDate = new Date('2025-11-15T19:00:00+03:00').getTime();
+    const now = new Date().getTime();
+    return now < targetDate ? true : false;
+  })(),  // Dynamic: true before 15.11.2025 19:00, false after
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif
