@@ -7,12 +7,16 @@ import { eurovision2020DataFinal, eurovision2020VideoData } from '@/data/eurovis
 
 // YouTube IFrame API type definitions
 interface YouTubePlayer {
-  loadVideoById(options: { videoId: string; startSeconds?: number; endSeconds?: number }): void;
+  loadVideoById(videoIdOrOptions: string | { videoId: string; startSeconds?: number; endSeconds?: number }): void;
+  cuePlaylist(playlist: string[] | { playlist: string[]; index?: number }): void;
+  loadPlaylist(playlist: string[] | { playlist: string[]; index?: number }): void;
+  playVideoAt(index: number): void;
+  getPlaylistIndex(): number;
   destroy(): void;
 }
 
 interface YouTubePlayerOptions {
-  videoId: string;
+  videoId?: string;
   playerVars?: {
     autoplay?: number;
     controls?: number;
@@ -20,9 +24,12 @@ interface YouTubePlayerOptions {
     modestbranding?: number;
     start?: number;
     end?: number;
+    listType?: string;
+    list?: string;
   };
   events?: {
     onStateChange?: (event: { data: number }) => void;
+    onReady?: () => void;
   };
 }
 
@@ -35,8 +42,16 @@ export default function Eurovision2020FinalPlayer() {
   const entry = eurovision2020DataFinal[selectedCountry];
   const videoData = eurovision2020VideoData[selectedCountry];
   const videoId = isStageMode ? (videoData?.onStage || '') : (videoData?.studio || '');
-  const start = 0;
-  const end = undefined;
+
+  // Create playlist of all video IDs based on current mode
+  const playlist = useMemo(() => {
+    return countries
+      .map(country => {
+        const data = eurovision2020VideoData[country];
+        return isStageMode ? data?.onStage : data?.studio;
+      })
+      .filter(id => id && id.trim() !== ''); // Filter out empty/missing videos
+  }, [countries, isStageMode]);
 
   // YouTube IFrame API integration
   const playerRef = useRef<HTMLDivElement>(null);
@@ -72,41 +87,73 @@ export default function Eurovision2020FinalPlayer() {
     }
   }, [selectedCountry, isStageMode, videoId, countries]);
 
-  // Create or update player when ready or selectedCountry changes
+  // Create or update player when ready or mode changes
   useEffect(() => {
-    if (!playerReady || !playerRef.current || !videoId) return;
+    if (!playerReady || !playerRef.current || playlist.length === 0) return;
+    
+    const currentIndex = countries.findIndex(c => {
+      const data = eurovision2020VideoData[c];
+      const vid = isStageMode ? data?.onStage : data?.studio;
+      return vid === videoId && vid && vid.trim() !== '';
+    });
+
     if (ytPlayer.current) {
-      ytPlayer.current.loadVideoById({ videoId, startSeconds: start, endSeconds: end });
+      // Load playlist with current video index using the array format
+      ytPlayer.current.loadPlaylist({
+        playlist: playlist,
+        index: currentIndex >= 0 ? currentIndex : 0
+      });
       return;
     }
+
     const win = window as unknown as Window & { YT: { Player: new (element: HTMLElement, config: YouTubePlayerOptions) => YouTubePlayer } };
     ytPlayer.current = new win.YT.Player(playerRef.current, {
-      videoId,
+      videoId: playlist[0],
       playerVars: {
         autoplay: 1,
         controls: 1,
         rel: 0,
         modestbranding: 1,
-        start,
-        end,
       },
       events: {
+        onReady: () => {
+          // Load the playlist once player is ready
+          if (ytPlayer.current) {
+            ytPlayer.current.loadPlaylist({
+              playlist: playlist,
+              index: currentIndex >= 0 ? currentIndex : 0
+            });
+          }
+        },
         onStateChange: (event: { data: number }) => {
-          // 0 = ended
-          if (event.data === 0) {
-            const idx = countries.indexOf(selectedCountry);
-            const nextIdx = (idx + 1) % countries.length;
-            setSelectedCountry(countries[nextIdx]);
+          // 1 = playing
+          if (event.data === 1) {
+            // Update selected country based on current playlist index
+            try {
+              const playlistIndex = ytPlayer.current?.getPlaylistIndex() ?? 0;
+              const videoIdAtIndex = playlist[playlistIndex];
+              const country = countries.find(c => {
+                const data = eurovision2020VideoData[c];
+                const vid = isStageMode ? data?.onStage : data?.studio;
+                return vid === videoIdAtIndex;
+              });
+              if (country && country !== selectedCountry) {
+                setSelectedCountry(country);
+              }
+            } catch {
+              // Ignore errors from getPlaylistIndex
+            }
           }
         },
       },
     });
+
     // Clean up on unmount
     return () => {
       if (ytPlayer.current && ytPlayer.current.destroy) ytPlayer.current.destroy();
       ytPlayer.current = null;
     };
-  }, [playerReady, selectedCountry, videoId, start, end, countries]);
+  }, [playerReady, playlist, isStageMode, countries, videoId, selectedCountry]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
@@ -122,6 +169,21 @@ export default function Eurovision2020FinalPlayer() {
           {/* Video Player */}
           <div className="lg:col-span-2">
             <div className="bg-[#2c3e50] rounded-lg p-3 border border-[#334]">
+              {entry && (
+                <div className="mb-3 flex items-center gap-3 text-gray-200">
+                  <Image 
+                    src={`/flags/${selectedCountry.replace('&', 'and')}_${entry.code}.png`}
+                    alt={`${selectedCountry} flag`}
+                    width={40}
+                    height={27}
+                    className="object-cover rounded"
+                  />
+                  <div>
+                    <div className="text-lg font-semibold">{selectedCountry} | <span className="text-sm text-gray-300">{entry.performer} — {entry.song}</span></div>
+                  </div>
+                </div>
+              )}
+
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 {videoId ? (
                   <div ref={playerRef} className="absolute inset-0 w-full h-full rounded bg-black" />
@@ -137,20 +199,6 @@ export default function Eurovision2020FinalPlayer() {
 
               {entry && (
                 <>
-                  <div className="mt-4 flex items-center justify-between text-gray-200">
-                    <div className="flex items-center gap-3">
-                      <Image 
-                        src={`/flags/${selectedCountry.replace('&', 'and')}_${entry.code}.png`}
-                        alt={`${selectedCountry} flag`}
-                        width={40}
-                        height={27}
-                        className="object-cover rounded"
-                      />
-                      <div>
-                        <div className="text-lg font-semibold">{selectedCountry}</div>
-                        <div className="text-sm text-gray-300">{entry.performer} — {entry.song}</div>
-                      </div>
-                    </div>                  
                   {/* Navigation Buttons */}
                   <div className="mt-4 flex items-center justify-center gap-3 sm:gap-4 px-2">
                     <button
@@ -175,7 +223,6 @@ export default function Eurovision2020FinalPlayer() {
                       <span className="text-sm sm:text-base">Next</span>
                       <span className="text-xl sm:text-2xl">→</span>
                     </button>
-                  </div>
                   </div>
                 </>
               )}
