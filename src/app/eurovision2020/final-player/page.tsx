@@ -87,25 +87,20 @@ export default function Eurovision2020FinalPlayer() {
     }
   }, [selectedCountry, isStageMode, videoId, countries]);
 
-  // Create or update player when ready or mode changes
+  // Create player on mount and reload playlist only when mode changes
   useEffect(() => {
     if (!playerReady || !playerRef.current || playlist.length === 0) return;
-    
-    const currentIndex = countries.findIndex(c => {
-      const data = eurovision2020VideoData[c];
-      const vid = isStageMode ? data?.onStage : data?.studio;
-      return vid === videoId && vid && vid.trim() !== '';
-    });
 
     if (ytPlayer.current) {
-      // Load playlist with current video index using the array format
+      // Player already exists, just reload playlist with new mode
       ytPlayer.current.loadPlaylist({
         playlist: playlist,
-        index: currentIndex >= 0 ? currentIndex : 0
+        index: 0
       });
       return;
     }
 
+    // Create new player
     const win = window as unknown as Window & { YT: { Player: new (element: HTMLElement, config: YouTubePlayerOptions) => YouTubePlayer } };
     ytPlayer.current = new win.YT.Player(playerRef.current, {
       videoId: playlist[0],
@@ -121,7 +116,7 @@ export default function Eurovision2020FinalPlayer() {
           if (ytPlayer.current) {
             ytPlayer.current.loadPlaylist({
               playlist: playlist,
-              index: currentIndex >= 0 ? currentIndex : 0
+              index: 0
             });
           }
         },
@@ -153,7 +148,29 @@ export default function Eurovision2020FinalPlayer() {
       if (ytPlayer.current && ytPlayer.current.destroy) ytPlayer.current.destroy();
       ytPlayer.current = null;
     };
-  }, [playerReady, playlist, isStageMode, countries, videoId, selectedCountry]);
+    // Only re-run when playlist changes (mode toggle), not when selectedCountry changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerReady, playlist, isStageMode, countries]);
+
+  // Handle manual country selection (from sidebar or Previous/Next buttons)
+  useEffect(() => {
+    if (!ytPlayer.current) return;
+    
+    try {
+      const currentPlaylistIndex = ytPlayer.current.getPlaylistIndex();
+      const targetIndex = playlist.findIndex(vid => vid === videoId);
+      
+      // Only jump if we need to change videos and the target exists in playlist
+      if (targetIndex >= 0 && currentPlaylistIndex !== targetIndex) {
+        ytPlayer.current.loadPlaylist({
+          playlist: playlist,
+          index: targetIndex
+        });
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, [selectedCountry, videoId, playlist]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
@@ -253,15 +270,22 @@ export default function Eurovision2020FinalPlayer() {
               {countries.map((c) => {
                 const info = eurovision2020DataFinal[c];
                 const active = c === selectedCountry;
+                const isGeorgiaStage = c === 'Georgia' && isStageMode;
+                
                 return (
                   <button
                     key={c}
-                    onClick={() => setSelectedCountry(c)}
-                    className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                      active ? 'bg-[#34495e] text-white' : 'bg-[#2a3846] hover:bg-[#2f4050] text-gray-200'
+                    onClick={() => !isGeorgiaStage && setSelectedCountry(c)}
+                    disabled={isGeorgiaStage}
+                    className={`w-full text-left px-3 py-2 rounded transition-colors relative overflow-hidden ${
+                      isGeorgiaStage 
+                        ? 'bg-[#2a3846] text-gray-400 cursor-not-allowed' 
+                        : active 
+                          ? 'bg-[#34495e] text-white' 
+                          : 'bg-[#2a3846] hover:bg-[#2f4050] text-gray-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className={`flex items-center justify-between ${isGeorgiaStage ? 'opacity-30' : ''}`}>
                       <div className="flex items-center gap-2">
                         <Image 
                           src={`/flags/${c.replace('&', 'and')}_${info.code}.png`}
@@ -271,11 +295,16 @@ export default function Eurovision2020FinalPlayer() {
                           className="object-cover rounded"
                         />
                         <div>
-                          <div className="font-medium">{c}</div>
+                          <div className="font-medium">
+                            {c}
+                            {isGeorgiaStage && (
+                              <span className="ml-2 text-xs font-normal text-white">🎭 Sahne/Canlı Performansı Yok</span>
+                            )}
+                          </div>
                           <div className="text-xs text-gray-300">{info.performer} — {info.song}</div>
                         </div>
                       </div>
-                      {active && (
+                      {active && !isGeorgiaStage && (
                         <span className="text-xs px-2 py-1 rounded bg-green-700 text-white">Playing</span>
                       )}
                     </div>
