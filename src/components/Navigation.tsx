@@ -40,7 +40,7 @@ export default function Navigation() {
       label: 'Yarı Final B Gurubu',
     },
     {
-      href: '/eurovision2020',
+      href: '/eurovision2020/final',
       label: 'Final',
     },
   ];

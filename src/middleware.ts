@@ -87,6 +87,14 @@ export function middleware(request: NextRequest) {
       // Semi-final sayfalarını kontrol et
       const isSemiFinalA = path.includes('/semi-final-a');
       const isSemiFinalB = path.includes('/semi-final-b');
+      const isFinal = path.includes('/final');
+      const isFinalPlayer = path.includes('/final-player');
+      
+      // Exclude final-player from under-construction check
+      if (isFinalPlayer) {
+        console.log(`[Middleware] Skipping UNDER_CONSTRUCTION check for final-player: ${path}`);
+        return NextResponse.next();
+      }
       
       // Eurovision 2020 özel durumu - year code mapping
       if (year === '2020') {
@@ -102,6 +110,13 @@ export function middleware(request: NextRequest) {
           if (UNDER_CONSTRUCTION['202002']) {
             return NextResponse.rewrite(
               new URL(`/eurovision2020/semi-final-b/under-construction`, request.url)
+            );
+          }
+        } else if (isFinal) {
+          // Final için 202003 year code'unu kontrol et
+          if (UNDER_CONSTRUCTION['202003']) {
+            return NextResponse.rewrite(
+              new URL(`/eurovision2020/final/under-construction`, request.url)
             );
           }
         } else {

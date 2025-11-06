@@ -1135,11 +1135,6 @@ export default function Eurovision2020SemiFinalA() {
                                           </div>
                                         )}
                                       </div>
-                                      {session && selectedCountries.includes(country) && (
-                                        <span className="text-xs text-gray-400 whitespace-nowrap">
-                                          (#{selectedCountries.indexOf(country) + 1})
-                                        </span>
-                                      )}
                                     </div>
                                     {showResults && (
                                       <span className={`font-bold ml-2 whitespace-nowrap ${
@@ -1273,11 +1268,6 @@ export default function Eurovision2020SemiFinalA() {
                                           </div>
                                         )}
                                       </div>
-                                      {session && selectedCountries.includes(country) && (
-                                        <span className="text-xs text-gray-400 whitespace-nowrap">
-                                          (#{selectedCountries.indexOf(country) + 1})
-                                        </span>
-                                      )}
                                     </div>
                                     {showResults && (
                                       <span className={`font-bold ml-2 whitespace-nowrap ${

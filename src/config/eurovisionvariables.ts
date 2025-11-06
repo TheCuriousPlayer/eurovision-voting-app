@@ -34,6 +34,12 @@ export const VOTE_CONFIG = {
     Mode: 'hide', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
+  '202003': { 
+    Status: false, 
+    ShowCountDown: VOTE_DATES['2020'], 
+    Mode: 'hide', // 'visible' | 'hide'
+    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+  },
   '2022': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2022'], 
@@ -79,6 +85,7 @@ export const UNDER_CONSTRUCTION = {
     const now = new Date().getTime();
     return now < targetDate ? true : false;
   })(),  // Dynamic: true before 31.10.2025 19:00, false after
+  '202003': false,
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif

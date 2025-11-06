@@ -12,9 +12,10 @@ class DatabaseStorage {
   async initializeCompetitions() {
     try {
       // Competitions are already created manually in Supabase:
-      // - 202000: Eurovision 2020 Final
+        // - 202000: Eurovision 2020 Final (old/main)
       // - 202001: Eurovision 2020A (Semi-Final A)  
       // - 202002: Eurovision 2020B (Semi-Final B)
+        // - 202003: Eurovision 2020 Final (new final with 20 countries)
       console.log('Competitions already exist in database');
       return;
     } catch (error) {
