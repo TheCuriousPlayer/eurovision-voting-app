@@ -84,7 +84,7 @@ export const eurovision2020VideoData: { [key: string]: { onStage: string; studio
 'Germany': { onStage: 'vRfdlBLLGJQ', studio: 'hAobDQ9GbT4' },
 'Greece': { onStage: '3Hn630chXBs', studio: 'dJxCINWp_j0' },
 'Iceland': { onStage: '1HU7ocv3S2o', studio: 'VFZNvj-HfBU' },
-'Italy': { onStage: 'TA57rugucwk', studio: 'A410y4a0oWU' },
+'Italy': { onStage: 'A410y4a0oWU', studio: 'TA57rugucwk' },
 'Lithuania': { onStage: '1EAUxuuu1w8', studio: 'FxPm-Wz8qpY' },
 'Malta': { onStage: 'qh-T9wM51FQ', studio: 'CFCn_8oViRw' },
 'Netherlands': { onStage: '2XuAo-RcoGA', studio: 'sMcxWB90TTY' },
