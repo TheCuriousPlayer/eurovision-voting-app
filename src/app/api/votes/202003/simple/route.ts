@@ -2,6 +2,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +57,36 @@ export async function GET() {
     console.log('- Cumulative result found:', !!cumulativeResult);
     console.log('- User vote found:', !!userVoteData);
     console.log('- Session email:', session?.user?.email);
+
+    // Check vote configuration to determine if results should be hidden
+    const voteConfig = VOTE_CONFIG['202003'];
+    const isGM = voteConfig?.GMs?.split(',').map(email => email.trim()).includes(session.user.email) || false;
+    const shouldHideResults = voteConfig?.Mode === 'hide' && !isGM;
+
+    console.log('Vote config check:');
+    console.log('- Mode:', voteConfig?.Mode);
+    console.log('- Is GM:', isGM);
+    console.log('- Should hide results:', shouldHideResults);
+
+    // If results should be hidden, return empty data
+    if (shouldHideResults) {
+      const hiddenResponsePayload = {
+        countryPoints: {},
+        countryVoteCounts: {},
+        totalVotes: 0,
+        userVote: userVoteData || null,
+        authPending: false,
+        sessionEmail: session?.user?.email || null,
+        resultsHidden: true
+      };
+
+      console.log('Results hidden due to mode: hide');
+
+      return NextResponse.json(hiddenResponsePayload, {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+      });
+    }
 
     const responsePayload = {
       countryPoints: cumulativeResult?.results || {},
