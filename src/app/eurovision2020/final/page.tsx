@@ -537,12 +537,18 @@ export default function Eurovision2020Final() {
           
           if (shouldShowResults && voteConfig.mode === 'hide' && !voteConfig.isGM) {
             // Don't show results if mode is hide (unless user is GM)
+            // Also clear the localStorage to prevent backdoor access
             setShowResults(false);
-            console.log('[eurovision2020final] Results hidden due to configuration mode: hide');
+            localStorage.removeItem('eurovision2020_final_showResults');
+            console.log('[eurovision2020final] Results hidden due to configuration mode: hide, localStorage cleared');
           } else {
             setShowResults(shouldShowResults);
             console.log(`[eurovision2020final] Setting showResults to: ${shouldShowResults}`);
           }
+        } else if (voteConfig.mode === 'hide' && !voteConfig.isGM) {
+          // If no saved preference exists but mode is hide, ensure results are hidden
+          setShowResults(false);
+          console.log('[eurovision2020final] No saved preference, mode is hide, results hidden by default');
         }
         
         // Only set selectedCountries if user is authenticated and has votes
@@ -752,10 +758,10 @@ export default function Eurovision2020Final() {
         // Debug button visibility decision
         const isGM = voteConfig.isGM === true;
         const isNotHideMode = voteConfig.mode !== 'hide';
-        const isShowingResults = showResults === true;
         
-        // Button should ONLY be shown if ANY of these conditions are true
-        const shouldShowButton = isGM || isNotHideMode || isShowingResults;
+        // Button should ONLY be shown if user is GM OR mode is not 'hide'
+        // Remove the 'isShowingResults' backdoor - don't show button just because results are showing
+        const shouldShowButton = isGM || isNotHideMode;
         
         console.log(`[Button Visibility] Auth status: ${status}`);
         console.log(`[Button Visibility] Mode:'${voteConfig.mode}', isGM:${voteConfig.isGM}, showResults:${showResults}`);
@@ -941,10 +947,10 @@ export default function Eurovision2020Final() {
                     // Debug button visibility decision
                     const isGM = voteConfig.isGM === true;
                     const isNotHideMode = voteConfig.mode !== 'hide';
-                    const isShowingResults = showResults === true;
                     
-                    // Button should ONLY be shown if ANY of these conditions are true
-                    const shouldShowButton = isGM || isNotHideMode || isShowingResults;
+                    // Button should ONLY be shown if user is GM OR mode is not 'hide'
+                    // Remove the 'isShowingResults' backdoor - don't show button just because results are showing
+                    const shouldShowButton = isGM || isNotHideMode;
                     
                     // Only render if we should show the button
                     if (!shouldShowButton) {

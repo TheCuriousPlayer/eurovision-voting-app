@@ -9,6 +9,18 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
+    // Require authentication to access results
+    if (!session?.user?.email) {
+      return NextResponse.json({ 
+        countryPoints: {}, 
+        totalVotes: 0,
+        userVote: null,
+        authPending: false,
+        sessionEmail: null,
+        error: 'Authentication required'
+      }, { status: 401 });
+    }
+    
     // Get the 2020 Final competition by year
     const competition = await prisma.competition.findFirst({
       where: { year: 202003 }
