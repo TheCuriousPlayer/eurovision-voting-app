@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // Use Eurovision 2020 Final competition code
-const EUROVISION_YEAR = 202000;
+const EUROVISION_YEAR = 2020;
 
 export async function POST(request: Request) {
   try {

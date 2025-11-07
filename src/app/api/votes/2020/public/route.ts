@@ -18,8 +18,8 @@ export async function GET() {
     }
 
     const userEmail = session.user.email.toLowerCase();
-    const gmList = VOTE_CONFIG?.['202000']?.GMs
-      ? VOTE_CONFIG['202000'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    const gmList = VOTE_CONFIG?.['2020']?.GMs
+      ? VOTE_CONFIG['2020'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
       : [];
     
     if (!gmList.includes(userEmail)) {

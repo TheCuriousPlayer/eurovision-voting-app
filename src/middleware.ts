@@ -120,8 +120,8 @@ export function middleware(request: NextRequest) {
             );
           }
         } else {
-          // Ana Eurovision 2020 sayfası için 202000 year code'unu kontrol et
-          if (UNDER_CONSTRUCTION['202000']) {
+          // Ana Eurovision 2020 sayfası için 2020 year code'unu kontrol et
+          if (UNDER_CONSTRUCTION['2020']) {
             return NextResponse.rewrite(
               new URL(`/eurovision2020/under-construction`, request.url)
             );

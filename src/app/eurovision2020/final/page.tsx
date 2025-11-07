@@ -37,10 +37,17 @@ export default function Eurovision2020Final() {
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
   const [clearCountdown, setClearCountdown] = useState(7);
+  const [showResultsOverlay, setShowResultsOverlay] = useState(true); // Show overlay by default
 
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
+
+  // Check if user has voted (has any selected countries)
+  const hasVoted = selectedCountries.some(country => country !== '');
+
+  // Determine if overlay should be shown
+  const shouldShowOverlay = showResultsOverlay && !hasVoted;
 
 
   const openYouTubeModal = (country: string) => {
@@ -784,7 +791,15 @@ export default function Eurovision2020Final() {
   const sortedCountries: [string, number][] = showResults 
     ? allCountries
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
-        .sort(([, pointsA], [, pointsB]) => pointsB - pointsA || 0)
+        .sort(([countryA, pointsA], [countryB, pointsB]) => {
+          // First, sort by points (descending)
+          if (pointsB !== pointsA) return pointsB - pointsA;
+          
+          // If points are equal, sort by vote count (descending)
+          const voteCountA = results?.countryVoteCounts?.[countryA] || 0;
+          const voteCountB = results?.countryVoteCounts?.[countryB] || 0;
+          return voteCountB - voteCountA;
+        })
     : allCountries
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
@@ -796,7 +811,7 @@ export default function Eurovision2020Final() {
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2020<br/>Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+          Eurovision 2020 Yarı Final Sonuçları<br/><a href="https://www.youtube.com/watch?v=wewAqbPRHv8" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
         </h1>
         
         {session ? (
@@ -955,7 +970,41 @@ export default function Eurovision2020Final() {
               {/* Sonuçlar Section - Split into 2 columns */}
               <div className="flex-1">
                 {/* Display Preferences */}
-                <div className="bg-[#2c3e50] rounded-lg p-6">
+                <div className="bg-[#2c3e50] rounded-lg p-6 relative">
+                  {/* Overlay for watching semi-final results */}
+                  {shouldShowOverlay && (
+                    <div className="absolute inset-0 bg-black bg-opacity-90 rounded-lg flex items-center justify-center z-10 p-6">
+                      <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-2xl p-8 max-w-md w-full border border-purple-500/30 shadow-2xl shadow-purple-900/30">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent mb-4 text-center">
+                          Sırbozan / Spoiler Koruması
+                        </h3>
+                        <p className="text-slate-200 mb-6 text-center leading-relaxed">
+                          Oy vermeden önce yarı final sonuçlarını izlemenizi öneririz.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                          <button
+                            onClick={() => {
+                              window.open('https://www.youtube.com/watch?v=wewAqbPRHv8', '_blank');
+                            }}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-indigo-700 to-violet-700 hover:from-indigo-800 hover:to-violet-800 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 hover:shadow-xl hover:shadow-indigo-900/20 hover:scale-[1.01]"
+                          >
+                            <svg className="w-5 h-5" fill="red" viewBox="0 0 24 24">
+                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                              <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            Yarı final sonuçlarını izlemek istiyorum
+                          </button>
+                          <button
+                            onClick={() => setShowResultsOverlay(false)}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-emerald-900 to-teal-800 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/20 hover:scale-[1.01]"
+                          >
+                            Sonuçları izledim. Oy vermek istiyorum.
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
                       `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
@@ -963,7 +1012,7 @@ export default function Eurovision2020Final() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+                          | Final Sonuçları için <a href="https://www.youtube.com/@BugraSisman/videos" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalını takip edin.
                         </span>
                       </>
                     )}
@@ -1266,7 +1315,41 @@ export default function Eurovision2020Final() {
 
             {/* Results section for unauthenticated users - no drag and drop */}
             <div className="flex-1">
-              <div className="bg-[#2c3e50] rounded-lg p-6">
+              <div className="bg-[#2c3e50] rounded-lg p-6 relative">
+                  {/* Overlay for watching semi-final results */}
+                  {shouldShowOverlay && (
+                    <div className="absolute inset-0 bg-black bg-opacity-90 rounded-lg flex items-center justify-center z-10 p-6">
+                      <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-2xl p-8 max-w-md w-full border border-purple-500/30 shadow-2xl shadow-purple-900/30">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent mb-4 text-center">
+                          Sırbozan / Spoiler Koruması
+                        </h3>
+                        <p className="text-slate-200 mb-6 text-center leading-relaxed">
+                          Oy vermeden önce yarı final sonuçlarını izlemenizi öneririz.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                          <button
+                            onClick={() => {
+                              window.open('https://www.youtube.com/watch?v=wewAqbPRHv8', '_blank');
+                            }}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-indigo-700 to-violet-700 hover:from-indigo-800 hover:to-violet-800 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 hover:shadow-xl hover:shadow-indigo-900/20 hover:scale-[1.01]"
+                          >
+                            <svg className="w-5 h-5" fill="red" viewBox="0 0 24 24">
+                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                              <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            Yarı final sonuçlarını izlemek istiyorum
+                          </button>
+                          <button
+                            onClick={() => setShowResultsOverlay(false)}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-emerald-900 to-teal-800 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/20 hover:scale-[1.01]"
+                          >
+                            Sonuçları izledim. Oy vermek istiyorum.
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
                       `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
@@ -1274,7 +1357,7 @@ export default function Eurovision2020Final() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+                          | Final Sonuçları için <a href="https://www.youtube.com/@BugraSisman/videos" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalını takip edin.
                         </span>
                       </>
                     )}

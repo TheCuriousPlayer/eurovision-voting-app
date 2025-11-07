@@ -67,7 +67,7 @@ export default function Eurovision2020() {
         console.log(`[eurovision2020] User email: ${session?.user?.email || 'Not signed in'}`);
         
         // Add a timestamp to prevent caching issues
-        const response = await fetch(`/api/config/vote-config?year=202000&t=${Date.now()}`);
+        const response = await fetch(`/api/config/vote-config?year=2020&t=${Date.now()}`);
         if (response.ok) {
           const data = await response.json();
           console.log(`[eurovision2020] Config API response:`, data);
@@ -162,7 +162,7 @@ export default function Eurovision2020() {
         if (!parsed || !Array.isArray(parsed.votes)) return;
 
         console.log('Found pending votes in localStorage, attempting resend');
-        const resp = await fetch('/api/votes/202000', {
+        const resp = await fetch('/api/votes/2020', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ votes: parsed.votes }),
@@ -200,7 +200,7 @@ export default function Eurovision2020() {
         if (!raw) return;
         // Attempt a best-effort send
         if (navigator && 'sendBeacon' in navigator) {
-          const url = '/api/votes/202000';
+          const url = '/api/votes/2020';
           const blob = new Blob([raw], { type: 'application/json' });
           // best-effort, ignore errors
           navigator.sendBeacon(url, blob);
@@ -314,7 +314,7 @@ export default function Eurovision2020() {
     // Try to send to server (don't block UI). On success clear pending state/localStorage.
     try {
       console.log('Sending votes to API (preserving slot positions):', selectedCountries);
-      const response = await fetch('/api/votes/202000', {
+      const response = await fetch('/api/votes/2020', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ export default function Eurovision2020() {
   const fetchFreshResults = async () => {
     try {
       console.log('Fetching fresh results from simple endpoint...');
-      const endpoint = '/api/votes/202000/simple';
+      const endpoint = '/api/votes/2020/simple';
       const cacheBustUrl = `${endpoint}?t=${Date.now()}`;
       console.log('Using simple endpoint:', cacheBustUrl);
       
@@ -446,7 +446,7 @@ export default function Eurovision2020() {
       }
       
       // Use simple endpoint that returns hardcoded working data
-      const endpoint = '/api/votes/202000/simple';
+      const endpoint = '/api/votes/2020/simple';
       // Add cache-busting timestamp to force fresh data
       // If we expect auth but don't have userVote yet, add waitForAuth param
       const needsAuth = status === 'authenticated' && session?.user?.email;
@@ -784,7 +784,15 @@ export default function Eurovision2020() {
   const sortedCountries: [string, number][] = showResults 
     ? allCountries
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
-        .sort(([, pointsA], [, pointsB]) => pointsB - pointsA || 0)
+        .sort(([countryA, pointsA], [countryB, pointsB]) => {
+          // First, sort by points (descending)
+          if (pointsB !== pointsA) return pointsB - pointsA;
+          
+          // If points are equal, sort by vote count (descending)
+          const voteCountA = results?.countryVoteCounts?.[countryA] || 0;
+          const voteCountB = results?.countryVoteCounts?.[countryB] || 0;
+          return voteCountB - voteCountA;
+        })
     : allCountries
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
@@ -793,6 +801,14 @@ export default function Eurovision2020() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      {/* 404 Error Message - Temporary Full Screen Overlay */}
+      <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+        <div className="text-center text-white">
+          <h2 className="text-9xl font-bold mb-4">404</h2>
+          <p className="text-3xl">This page could not be found.</p>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-8">
@@ -963,7 +979,7 @@ export default function Eurovision2020() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman/videos" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
                         </span>
                       </>
                     )}
@@ -1274,7 +1290,7 @@ export default function Eurovision2020() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman/videos" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
                         </span>
                       </>
                     )}

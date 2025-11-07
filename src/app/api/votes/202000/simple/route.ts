@@ -11,11 +11,11 @@ export async function GET() {
     
     // Get the 2020 Final competition by year
     const competition = await prisma.competition.findFirst({
-      where: { year: 202000 }
+      where: { year: 2020 }
     });
 
     if (!competition) {
-      console.error('202000 competition not found in database');
+      console.error('2020 competition not found in database');
       return NextResponse.json({ 
         countryPoints: {}, 
         totalVotes: 0,
@@ -39,7 +39,7 @@ export async function GET() {
       }) : null
     ]);
 
-    console.log('Database query results for 202000:');
+    console.log('Database query results for 2020:');
     console.log('- Competition found:', !!competition);
     console.log('- Cumulative result found:', !!cumulativeResult);
     console.log('- User vote found:', !!userVoteData);
@@ -54,7 +54,7 @@ export async function GET() {
       sessionEmail: session?.user?.email || null,
     };
 
-    console.log('Final API response for 202000:', {
+    console.log('Final API response for 2020:', {
       ...responsePayload,
       countryPointsCount: Object.keys(responsePayload.countryPoints).length,
       countryVoteCountsCount: Object.keys(responsePayload.countryVoteCounts || {}).length
@@ -66,7 +66,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in simple API for 202000:', error);
+    console.error('Error in simple API for 2020:', error);
     
     return NextResponse.json({
       countryPoints: {},

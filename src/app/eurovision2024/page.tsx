@@ -817,7 +817,15 @@ export default function Eurovision2024() {
   const sortedCountries: [string, number][] = showResults 
     ? allCountries
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
-        .sort(([, pointsA], [, pointsB]) => pointsB - pointsA || 0)
+        .sort(([countryA, pointsA], [countryB, pointsB]) => {
+          // First, sort by points (descending)
+          if (pointsB !== pointsA) return pointsB - pointsA;
+          
+          // If points are equal, sort by vote count (descending)
+          const voteCountA = results?.countryVoteCounts?.[countryA] || 0;
+          const voteCountB = results?.countryVoteCounts?.[countryB] || 0;
+          return voteCountB - voteCountA;
+        })
     : allCountries
         .map(country => [country, results.countryPoints[country] || 0] as [string, number])
         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
