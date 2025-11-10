@@ -72,6 +72,9 @@ export const VOTE_CONFIG = {
   }
 };
 
+// Jüri üyeleri - Sayfa erişimi için yetkilendirme
+export const Juri2020final = ['ozgunciziltepe@gmail.com', 'bugrasisman@googlemail.com'];
+
 // Eurovision yılları için bakım modu ayarları
 // Dinamik Örnek:
 //   '202001': (() => {
