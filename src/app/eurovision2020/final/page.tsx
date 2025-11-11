@@ -470,6 +470,25 @@ export default function Eurovision2020Final() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
+        // Extract only the first number (total points) for each country
+        if (data.countryPoints) {
+          const parsedPoints: { [country: string]: number } = {};
+          Object.entries(data.countryPoints).forEach(([country, value]) => {
+            if (typeof value === 'string' && value.includes(',')) {
+              // Format: "2090,648,430,312,..." - take first number only
+              const total = parseInt(value.split(',')[0]);
+              parsedPoints[country] = total;
+            } else if (typeof value === 'number') {
+              parsedPoints[country] = value;
+            } else {
+              parsedPoints[country] = 0;
+            }
+          });
+          data.countryPoints = parsedPoints;
+        }
+        
         console.log('Fetched data:', data);
         console.log('Total votes in response:', data.totalVotes);
         console.log('User session email:', session?.user?.email);
