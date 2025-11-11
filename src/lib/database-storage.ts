@@ -162,8 +162,24 @@ class DatabaseStorage {
           }
         }
         
+        // Parse cached results - extract total points from detailed string format
+        const cachedResults = cached.results as Record<string, unknown>;
+        const countryPoints: { [country: string]: number } = {};
+        
+        Object.entries(cachedResults).forEach(([country, value]) => {
+          if (typeof value === 'string') {
+            // Format is "total,12pts,10pts,8pts,7pts,6pts,5pts,4pts,3pts,2pts,1pts"
+            // Extract the first value (total)
+            const total = parseInt(value.split(',')[0]);
+            countryPoints[country] = isNaN(total) ? 0 : total;
+          } else if (typeof value === 'number') {
+            // Backward compatibility: if it's already a number, use it directly
+            countryPoints[country] = value;
+          }
+        });
+        
         return {
-          countryPoints: cached.results as { [country: string]: number },
+          countryPoints: countryPoints,
           totalVotes: cached.totalVotes,
           countryVoteCounts: (cached.voteCounts as { [country: string]: number }) || {}
         };
@@ -191,13 +207,42 @@ class DatabaseStorage {
         return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
       }
 
-      // Calculate cumulative points and vote counts
-      const countryPoints: { [country: string]: number } = {};
+      // Calculate cumulative points and vote counts with detailed breakdown
+      const countryPointsDetailed: { [country: string]: string } = {};
       const countryVoteCounts: { [country: string]: number } = {};
+      
+      // Initialize point breakdown for each country
+      const pointBreakdown: { 
+        [country: string]: { 
+          total: number;
+          points12: number;
+          points10: number;
+          points8: number;
+          points7: number;
+          points6: number;
+          points5: number;
+          points4: number;
+          points3: number;
+          points2: number;
+          points1: number;
+        } 
+      } = {};
       
       // Initialize all countries to 0
       competition.countries.forEach(country => {
-        countryPoints[country] = 0;
+        pointBreakdown[country] = {
+          total: 0,
+          points12: 0,
+          points10: 0,
+          points8: 0,
+          points7: 0,
+          points6: 0,
+          points5: 0,
+          points4: 0,
+          points3: 0,
+          points2: 0,
+          points1: 0
+        };
         countryVoteCounts[country] = 0;
       });
 
@@ -207,8 +252,23 @@ class DatabaseStorage {
         // Add points (if any) to country totals
         const points = (vote.points as { [country: string]: number }) || {};
         Object.entries(points).forEach(([country, pointsValue]) => {
-          if (countryPoints[country] !== undefined) {
-            countryPoints[country] += pointsValue;
+          if (pointBreakdown[country]) {
+            // Add to total
+            pointBreakdown[country].total += pointsValue;
+            
+            // Track specific point values
+            switch(pointsValue) {
+              case 12: pointBreakdown[country].points12 += pointsValue; break;
+              case 10: pointBreakdown[country].points10 += pointsValue; break;
+              case 8: pointBreakdown[country].points8 += pointsValue; break;
+              case 7: pointBreakdown[country].points7 += pointsValue; break;
+              case 6: pointBreakdown[country].points6 += pointsValue; break;
+              case 5: pointBreakdown[country].points5 += pointsValue; break;
+              case 4: pointBreakdown[country].points4 += pointsValue; break;
+              case 3: pointBreakdown[country].points3 += pointsValue; break;
+              case 2: pointBreakdown[country].points2 += pointsValue; break;
+              case 1: pointBreakdown[country].points1 += pointsValue; break;
+            }
           }
         });
 
@@ -227,26 +287,37 @@ class DatabaseStorage {
         }
       });
 
+      // Format results as "total,12pts,10pts,8pts,7pts,6pts,5pts,4pts,3pts,2pts,1pts"
+      Object.entries(pointBreakdown).forEach(([country, breakdown]) => {
+        countryPointsDetailed[country] = `${breakdown.total},${breakdown.points12},${breakdown.points10},${breakdown.points8},${breakdown.points7},${breakdown.points6},${breakdown.points5},${breakdown.points4},${breakdown.points3},${breakdown.points2},${breakdown.points1}`;
+      });
+
       console.log(`Calculated results for ${yearCode}: ${totalVotes} total votes`);
-      console.log('Point totals:', countryPoints);
+      console.log('Point totals (detailed):', countryPointsDetailed);
       console.log('Vote counts:', countryVoteCounts);
 
       // Cache the results
       await prisma.cumulativeResult.upsert({
         where: { competitionId: competition.id },
         update: {
-          results: countryPoints,
+          results: countryPointsDetailed,
           voteCounts: countryVoteCounts,
           totalVotes: totalVotes,
           lastUpdated: new Date()
         },
         create: {
           competitionId: competition.id,
-          results: countryPoints,
+          results: countryPointsDetailed,
           voteCounts: countryVoteCounts,
           totalVotes: totalVotes,
           lastUpdated: new Date()
         }
+      });
+
+      // For backward compatibility, also return simple countryPoints object
+      const countryPoints: { [country: string]: number } = {};
+      Object.entries(pointBreakdown).forEach(([country, breakdown]) => {
+        countryPoints[country] = breakdown.total;
       });
 
       return { countryPoints, totalVotes, countryVoteCounts };
