@@ -97,23 +97,7 @@ export async function GET() {
       sessionEmail: session?.user?.email || null,
     };
 
-    // Parse countryPoints if they are in detailed string format
-    if (cumulativeResult?.results) {
-      const parsedPoints: { [country: string]: number } = {};
-      Object.entries(cumulativeResult.results as Record<string, unknown>).forEach(([country, value]) => {
-        if (typeof value === 'string') {
-          // Format is "total,12pts,10pts,8pts,7pts,6pts,5pts,4pts,3pts,2pts,1pts"
-          // Extract the first value (total)
-          const total = parseInt(value.split(',')[0]);
-          parsedPoints[country] = isNaN(total) ? 0 : total;
-        } else if (typeof value === 'number') {
-          // Backward compatibility: if it's already a number, use it directly
-          parsedPoints[country] = value;
-        }
-      });
-      responsePayload.countryPoints = parsedPoints;
-    }
-
+    // Keep the raw results for breakdown data - don't parse to simple numbers
     console.log('Final API response for 202003:', {
       ...responsePayload,
       countryPointsCount: Object.keys(responsePayload.countryPoints).length,

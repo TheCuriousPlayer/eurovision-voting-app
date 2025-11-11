@@ -38,6 +38,12 @@ export default function Eurovision2020FinalReveal() {
   const [showJury, setShowJury] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const [totalVotes, setTotalVotes] = useState(0);
+  const [onePointDistributionIndex, setOnePointDistributionIndex] = useState(-1);
+  const [currentPointType, setCurrentPointType] = useState(1); // Track which point type we're distributing
+  const [allPointsByType, setAllPointsByType] = useState<{ [pointType: number]: string[] }>({});
+  const [animationSpeed, setAnimationSpeed] = useState(500); // Animation duration in milliseconds
+  const [distributionOrder, setDistributionOrder] = useState<'asc' | 'desc'>('asc'); // 'asc' = lowest to highest (default), 'desc' = highest to lowest
+  const [isDistributionComplete, setIsDistributionComplete] = useState(false); // Track if all distributions are complete
 
   // Access control helpers (derived from session)
   const userEmail = session?.user?.email ?? '';
@@ -125,6 +131,41 @@ export default function Eurovision2020FinalReveal() {
         if (data.countryVoteCounts) {
           setPublicVoteCounts(data.countryVoteCounts);
         }
+
+        // Extract countries that received points for each point type
+        const pointsByType: { [pointType: number]: string[] } = {
+          1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 10: [], 12: []
+        };
+        
+        parsedResults.forEach((result) => {
+          // For each point type, add the country to the array that many times
+          const breakdown = result.breakdown;
+          for (let i = 0; i < breakdown.points1; i++) pointsByType[1].push(result.country);
+          for (let i = 0; i < breakdown.points2; i++) pointsByType[2].push(result.country);
+          for (let i = 0; i < breakdown.points3; i++) pointsByType[3].push(result.country);
+          for (let i = 0; i < breakdown.points4; i++) pointsByType[4].push(result.country);
+          for (let i = 0; i < breakdown.points5; i++) pointsByType[5].push(result.country);
+          for (let i = 0; i < breakdown.points6; i++) pointsByType[6].push(result.country);
+          for (let i = 0; i < breakdown.points7; i++) pointsByType[7].push(result.country);
+          for (let i = 0; i < breakdown.points8; i++) pointsByType[8].push(result.country);
+          for (let i = 0; i < breakdown.points10; i++) pointsByType[10].push(result.country);
+          for (let i = 0; i < breakdown.points12; i++) pointsByType[12].push(result.country);
+        });
+        
+        console.log('Points by type:', pointsByType);
+        setAllPointsByType(pointsByType);
+        
+        // Keep backward compatibility
+        // Keep backward compatibility
+        const onePointCountries: string[] = [];
+        parsedResults.forEach((result) => {
+          const onePointCount = result.breakdown.points1;
+          console.log(`${result.country}: ${onePointCount} x 1-point votes`);
+          for (let i = 0; i < onePointCount; i++) {
+            onePointCountries.push(result.country);
+          }
+        });
+        console.log('Total 1-point votes to distribute:', onePointCountries.length, onePointCountries);
       }
     } catch (error) {
       console.error('Error fetching results:', error);
@@ -195,7 +236,6 @@ export default function Eurovision2020FinalReveal() {
           setIsRevealing(false);
           
           // After reveal completes, sort by points (descending) with public vote count tiebreaker
-          // After reveal completes, sort by points (descending) with public vote count tiebreaker
           setTimeout(() => {
             const sortedResults = [...juryResults].sort((a, b) => {
               if (b.points !== a.points) {
@@ -215,10 +255,137 @@ export default function Eurovision2020FinalReveal() {
     }, 550);
   };
 
-  const previousCountry = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+  const distributeOnePoints = () => {
+    // Check if already distributing
+    if (isRevealing) {
+      return;
     }
+
+    // For points 1-8, we combine them all into one distribution
+    const isGroupedPoints = currentPointType >= 1 && currentPointType <= 8;
+    
+    // Calculate total points for each country from the breakdown
+    const pointsByCountry: { [country: string]: number } = {};
+    
+    if (isGroupedPoints) {
+      // For grouped points (1-8), sum up the breakdown values directly
+      results.forEach(result => {
+        const total = 
+          result.breakdown.points1 +
+          result.breakdown.points2 +
+          result.breakdown.points3 +
+          result.breakdown.points4 +
+          result.breakdown.points5 +
+          result.breakdown.points6 +
+          result.breakdown.points7 +
+          result.breakdown.points8;
+        if (total > 0) {
+          pointsByCountry[result.country] = total;
+        }
+      });
+    } else {
+      // For single point types (10, 12), use the specific breakdown value
+      results.forEach(result => {
+        let points = 0;
+        if (currentPointType === 10) {
+          points = result.breakdown.points10;
+        } else if (currentPointType === 12) {
+          points = result.breakdown.points12;
+        }
+        if (points > 0) {
+          pointsByCountry[result.country] = points;
+        }
+      });
+    }
+    
+    if (Object.keys(pointsByCountry).length === 0) {
+      console.log(`No countries with ${isGroupedPoints ? '1-8' : currentPointType} points to distribute`);
+      return;
+    }
+
+    // Get current rankings (last to first or first to last based on distributionOrder)
+    const rankedCountries = [...juryResults]
+      .sort((a, b) => {
+        if (a.points !== b.points) {
+          return distributionOrder === 'asc' 
+            ? a.points - b.points  // Lower points first (ascending)
+            : b.points - a.points; // Higher points first (descending)
+        }
+        const aPublicVotes = publicVoteCounts[a.country] || 0;
+        const bPublicVotes = publicVoteCounts[b.country] || 0;
+        return distributionOrder === 'asc'
+          ? aPublicVotes - bPublicVotes  // Lower public vote count first
+          : bPublicVotes - aPublicVotes; // Higher public vote count first
+      })
+      .filter(r => pointsByCountry[r.country] > 0)
+      .map(r => r.country);
+
+    console.log(`Distribution order for ${isGroupedPoints ? '1-8' : currentPointType}-point votes (${distributionOrder === 'asc' ? 'last to first' : 'first to last'}):`, rankedCountries);
+    console.log(`Starting ${isGroupedPoints ? '1-8' : currentPointType} point distribution`);
+    
+    // Reset progress to 0
+    setOnePointDistributionIndex(0);
+    setIsRevealing(true);
+
+    // Distribute all points for each country one by one
+    let currentCountryIndex = 0;
+    const interval = setInterval(() => {
+      if (currentCountryIndex >= rankedCountries.length) {
+        console.log(`${isGroupedPoints ? '1-8' : currentPointType}-point distribution complete`);
+        clearInterval(interval);
+        setIsRevealing(false);
+        setOnePointDistributionIndex(rankedCountries.length); // Set to max for completed state
+        
+        // Move to next point type
+        // Points 1-8 are grouped, then 10, then 12
+        if (currentPointType >= 1 && currentPointType <= 8) {
+          setCurrentPointType(10);
+        } else if (currentPointType === 10) {
+          setCurrentPointType(12);
+        } else if (currentPointType === 12) {
+          // 12-point distribution complete - mark as finished
+          setIsDistributionComplete(true);
+        }
+        return;
+      }
+
+      const countryToUpdate = rankedCountries[currentCountryIndex];
+      const pointsToAdd = pointsByCountry[countryToUpdate];
+      
+      console.log(`Adding ${pointsToAdd} points to ${countryToUpdate} (${currentCountryIndex + 1}/${rankedCountries.length})`);
+      
+      setJuryResults((currentResults) => {
+        const updatedResults = currentResults.map((result) => {
+          if (result.country === countryToUpdate) {
+            return {
+              ...result,
+              points: result.points + pointsToAdd,
+              breakdown: {
+                ...result.breakdown,
+                total: result.breakdown.total + pointsToAdd,
+              }
+            };
+          }
+          return result;
+        });
+
+        // Auto-sort after each country's points are added
+        const sortedResults = [...updatedResults].sort((a, b) => {
+          if (b.points !== a.points) {
+            return b.points - a.points; // Higher points first
+          }
+          // Use public vote counts (202003) as tiebreaker
+          const aPublicVotes = publicVoteCounts[a.country] || 0;
+          const bPublicVotes = publicVoteCounts[b.country] || 0;
+          return bPublicVotes - aPublicVotes; // Higher public vote count wins tie
+        });
+
+        return sortedResults;
+      });
+
+      currentCountryIndex++;
+      setOnePointDistributionIndex(currentCountryIndex);
+    }, animationSpeed + 500); // Animation duration + 500ms buffer
   };
 
   if (loading) {
@@ -267,42 +434,126 @@ export default function Eurovision2020FinalReveal() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-white mb-8">
-          Eurovision 2020 Final - Sonuç Açıklaması
-        </h1>
+      <div className="container mx-auto px-4 flex gap-8">
+        {/* Left Side - Controls */}
+        <div className="w-80 flex-shrink-0">
+          <h1 className="text-3xl font-bold text-white mb-6">
+            Eurovision 2020 Final - Sonuç Açıklaması
+          </h1>
 
-        <div className="text-center mb-6 text-white">
-          <p className="text-xl">
-            {showJury ? 'Jüri Puanları' : `Toplam Oy Sayısı: ${totalVotes}`}
-          </p>
-        </div>
+          <div className="mb-6 text-white">
+            <p className="text-lg">
+              {`Toplam Oy Sayısı: ${totalVotes}`}
+            </p>
+          </div>
 
-        {/* Control Buttons */}
-        <div className="flex justify-center gap-4 mb-8">
-          {currentIndex >= 0 && (
+          {/* Control Buttons */}
+          <div className="flex flex-col gap-4 mb-8">
+            {!isDistributionComplete && (
+              <button
+                onClick={currentIndex >= 0 ? distributeOnePoints : startReveal}
+                disabled={isRevealing}
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition"
+              >
+                {currentIndex >= 0 
+                  ? currentPointType >= 1 && currentPointType <= 8
+                    ? 'Alınan 1-8 Puanları dağıt'
+                    : `Alınan ${currentPointType} Puanları dağıt`
+                  : 'Başlat'}
+              </button>
+            )}
+          </div>
+
+          {/* Distribution Order Toggle */}
+          <div className="mb-6">
+            <label className="block text-white text-sm font-bold mb-2">
+              Dağıtım Sırası
+            </label>
             <button
-              onClick={previousCountry}
-              disabled={currentIndex <= 0 || isRevealing}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition"
+              onClick={() => setDistributionOrder(distributionOrder === 'asc' ? 'desc' : 'asc')}
+              disabled={isRevealing}
+              className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg border border-gray-600 transition font-medium"
             >
-              ← Önceki
+              {distributionOrder === 'asc' ? '📈 En Düşükten En Yükseğe' : '📉 En Yüksekten En Düşüğe'}
             </button>
-          )}
-          <button
-            onClick={startReveal}
-            disabled={isRevealing}
-            className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition"
-          >
-            {currentIndex >= 0 ? 'Alınan 1 Puanları dağıt' : 'Başlat'}
-          </button>
+            <p className="text-gray-400 text-xs mt-1">
+              {distributionOrder === 'asc' ? 'Son sıradan birinciye' : 'Birinciden son sıraya'}
+            </p>
+          </div>
+
+          {/* Animation Speed Control */}
+          <div className="mb-8">
+            <label className="block text-white text-sm font-bold mb-2">
+              Animasyon Süresi (ms)
+            </label>
+            <input
+              type="number"
+              min="500"
+              max="3000"
+              step="100"
+              value={animationSpeed}
+              onChange={(e) => setAnimationSpeed(Number(e.target.value))}
+              className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-purple-500"
+              disabled={isRevealing}
+            />
+            <p className="text-gray-400 text-xs mt-1">
+              Sıralama animasyon süresi (1000-2000ms önerilir)
+              <br />
+              Açıklama aralığı: {animationSpeed + 500}ms
+            </p>
+          </div>
+
+          {/* Progress */}
+          <div className="text-white">
+            <p className="text-lg mb-2">
+              {currentIndex >= 0 && onePointDistributionIndex >= 0
+                ? (() => {
+                    // Calculate total countries for current point type(s)
+                    const isGroupedPoints = currentPointType >= 1 && currentPointType <= 8;
+                    const pointTypesToCheck = isGroupedPoints ? [1, 2, 3, 4, 5, 6, 7, 8] : [currentPointType];
+                    const countriesWithPoints = new Set<string>();
+                    pointTypesToCheck.forEach(pt => {
+                      allPointsByType[pt]?.forEach(country => countriesWithPoints.add(country));
+                    });
+                    return `${onePointDistributionIndex} / ${countriesWithPoints.size}`;
+                  })()
+                : currentIndex >= 0 
+                ? `${currentIndex + 1} / ${(showJury ? juryResults : results).length}` 
+                : 'Başlamak için "Başlat" butonuna tıklayın'}
+            </p>
+            {currentIndex >= 0 && (
+              <div className="w-full bg-gray-700 rounded-full h-4">
+                <div 
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 h-4 rounded-full transition-all duration-500"
+                  style={{ 
+                    width: onePointDistributionIndex >= 0
+                      ? (() => {
+                          const isGroupedPoints = currentPointType >= 1 && currentPointType <= 8;
+                          const pointTypesToCheck = isGroupedPoints ? [1, 2, 3, 4, 5, 6, 7, 8] : [currentPointType];
+                          const countriesWithPoints = new Set<string>();
+                          pointTypesToCheck.forEach(pt => {
+                            allPointsByType[pt]?.forEach(country => countriesWithPoints.add(country));
+                          });
+                          return `${(onePointDistributionIndex / countriesWithPoints.size) * 100}%`;
+                        })()
+                      : `${((currentIndex + 1) / (showJury ? juryResults : results).length) * 100}%`
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 21 Country Cards in a single grid parent (enables smooth cross-column layout animations) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto">
+        {/* Right Side - Country Cards */}
+        <div className="flex-1">
+          {/* 21 Country Cards in a single column */}
+          <div className="grid grid-cols-1 gap-2 max-w-4xl mx-auto">
           {(showJury ? juryResults : results).map((result, index) => {
             const position = index + 1;
             const isRevealed = showJury ? currentIndex >= index : false;
+            const isTopTen = position <= 10;
+            // Only show winner styling after jury reveal is complete (not during initial reveal)
+            const isWinner = position === 1 && currentIndex >= juryResults.length - 1;
 
             return (
               <motion.div
@@ -311,54 +562,60 @@ export default function Eurovision2020FinalReveal() {
                 initial={{ opacity: 0.3 }}
                 animate={{ 
                   opacity: isRevealed ? 1 : 0.3,
-                  scale: isRevealed ? 1 : 0.95
+                  scale: isRevealed ? (isWinner ? 1.05 : 1) : 0.95
                 }}
                 transition={{ 
-                  layout: { duration: 1.5, ease: "easeInOut" },
+                  layout: { duration: animationSpeed / 1000, ease: "easeInOut" },
                   opacity: { duration: 0.5 },
                   scale: { duration: 0.5 }
                 }}
-                className={`relative rounded-lg p-4 border-2 ${
+                className={`relative rounded-lg ${isTopTen ? 'p-2' : 'p-1'} ${isWinner ? 'p-3 border-4' : 'border-2'} ${
                   isRevealed 
-                    ? 'bg-gradient-to-br from-purple-900 to-pink-900 border-yellow-400' 
+                    ? isWinner
+                      ? 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 border-yellow-300 shadow-2xl shadow-yellow-500/50'
+                      : 'bg-gradient-to-br from-purple-900 to-pink-900 border-yellow-400'
                     : 'bg-[#2c3e50] border-gray-600'
                 }`}
-              >
+              >                
                 {/* Position Badge */}
-                <div className={`absolute -top-3 -left-3 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl ${
+                <div className={`absolute -top-3 -left-7 z-20 ${isWinner ? 'w-12 h-12 text-2xl' : isTopTen ? 'w-10 h-10 text-lg' : 'w-8 h-8 text-sm'} rounded-full flex items-center justify-center font-bold ${
                   isRevealed 
-                    ? 'bg-yellow-400 text-black' 
+                    ? isWinner
+                      ? 'bg-gradient-to-br from-red-800 to-black text-black border-1 border-black-300 shadow-lg'
+                      : 'bg-yellow-400 text-black'
                     : 'bg-gray-600 text-gray-400'
                 }`}>
-                  #{position}
+                  {isWinner && isRevealed ? '👑' : `#${position}`}
                 </div>
 
-                <div className="flex items-center gap-4 mb-3">
+                <div className={`flex items-center ${isWinner ? 'gap-6 mb-3' : 'gap-4 mb-2'} relative z-10`}>
                   {/* Flag */}
                   <div className="flex-shrink-0">
                     <Image 
                       src={`/flags/${result.country}_${eurovision2020Songs[result.country]?.code}.png`}
                       alt={result.country}
-                      width={48}
-                      height={32}
-                      className={`rounded ${!isRevealed ? 'opacity-30' : ''}`}
+                      width={isWinner ? 60 : 40}
+                      height={isWinner ? 40 : 27}
+                      className={`rounded ${!isRevealed ? 'opacity-30' : isWinner ? '' : ''}`}
                     />
                   </div>
 
                   {/* Country Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className={`text-xl font-bold ${isRevealed ? 'text-white' : 'text-gray-500'}`}>
-                      {result.country}
-                    </h3>
+                    <div className="flex items-baseline gap-2">
+                      <h3 className={`${isWinner ? 'text-2xl' : isTopTen ? 'text-lg' : 'text-md'} font-bold ${isRevealed ? isWinner ? 'text-black' : 'text-white' : 'text-gray-500'}`}>
+                        {result.country}
+                      </h3>
+                      {eurovision2020Songs[result.country] && (
+                        <p className={`${isWinner ? 'text-base' : isTopTen ? 'text-[14px]' : 'text-[13px]'} truncate ${isRevealed ? isWinner ? 'text-gray-900' : 'text-gray-200' : 'text-gray-600'}`}>
+                          | {eurovision2020Songs[result.country].performer}
+                        </p>
+                      )}
+                    </div>
                     {eurovision2020Songs[result.country] && (
-                      <>
-                        <p className={`text-sm truncate ${isRevealed ? 'text-gray-200' : 'text-gray-600'}`}>
-                          {eurovision2020Songs[result.country].performer}
-                        </p>
-                        <p className={`text-xs italic truncate ${isRevealed ? 'text-gray-300' : 'text-gray-700'}`}>
-                          &quot;{eurovision2020Songs[result.country].song}&quot;
-                        </p>
-                      </>
+                      <p className={`${isWinner ? 'text-base' : isTopTen ? 'text-[14px]' : 'text-[13px]'} italic truncate ${isRevealed ? isWinner ? 'text-gray-800' : 'text-gray-300' : 'text-gray-700'}`}>
+                        &quot;{eurovision2020Songs[result.country].song}&quot;
+                      </p>
                     )}
                   </div>
 
@@ -367,12 +624,12 @@ export default function Eurovision2020FinalReveal() {
                     <AnimatePresence mode="wait">
                       {isRevealed ? (
                         <motion.div
-                          key="revealed"
+                          key={`revealed-${result.points}`}
                           initial={{ scale: 0, rotate: -180 }}
                           animate={{ scale: 1, rotate: 0 }}
                           exit={{ scale: 0, rotate: 180 }}
                           transition={{ type: "spring", stiffness: 200 }}
-                          className="text-4xl font-bold text-yellow-400"
+                          className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold ${isWinner ? 'text-black' : 'text-yellow-400'}`}
                         >
                           {result.points}
                         </motion.div>
@@ -381,35 +638,42 @@ export default function Eurovision2020FinalReveal() {
                           key="hidden"
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="text-4xl font-bold text-gray-600"
+                          className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold text-gray-600`}
                         >
                           ?
                         </motion.div>
                       )}
                     </AnimatePresence>
-                    <div className={`text-sm ${isRevealed ? 'text-white' : 'text-gray-600'}`}>
+                    <div className={`${isWinner ? 'text-sm' : isTopTen ? 'text-[12px]' : 'text-[12px]'} ${isRevealed ? isWinner ? 'text-black font-semibold' : 'text-white' : 'text-gray-600'}`}>
                       points
                     </div>
                   </div>
                 </div>
+
+                {/* Light Rays for Winner */}
+                {isWinner && isRevealed && (
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    <motion.div
+                      className="absolute inset-0 w-full h-full"
+                      animate={{
+                        x: ['-100%', '100%']
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      style={{
+                        background: 'linear-gradient(110deg, transparent 0%, rgba(255, 255, 55, 0.3) 40%, rgba(255, 255, 55, 0.6) 50%, rgba(255, 255, 55, 0.3) 60%, transparent 100%)',
+                        width: '100%'
+                      }}
+                    />
+                  </div>
+                )}
               </motion.div>
             );
           })}
         </div>
-
-        {/* Progress */}
-        <div className="mt-8 text-center text-white max-w-2xl mx-auto">
-          <p className="text-xl mb-2">
-            {currentIndex >= 0 ? `${currentIndex + 1} / ${(showJury ? juryResults : results).length}` : 'Başlamak için "Başlat" butonuna tıklayın'}
-          </p>
-          {currentIndex >= 0 && (
-            <div className="w-full bg-gray-700 rounded-full h-4">
-              <div 
-                className="bg-gradient-to-r from-purple-600 to-pink-600 h-4 rounded-full transition-all duration-500"
-                style={{ width: `${((currentIndex + 1) / (showJury ? juryResults : results).length) * 100}%` }}
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
