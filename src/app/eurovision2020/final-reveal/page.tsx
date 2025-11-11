@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { eurovision2020DataFinal } from '@/data/eurovision2020';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 const eurovision2020Songs = eurovision2020DataFinal;
@@ -28,6 +28,125 @@ interface CountryResult {
   };
 }
 
+interface PresetTheme {
+  revealedBg: string;
+  winnerBg: string;
+  hiddenBg: string;
+  badgeRevealedWinner: string;
+  badgeRevealedNormal: string;
+  badgeHidden: string;
+  pointsRevealedWinner: string;
+  pointsRevealedNormal: string;
+  pointsHidden: string;
+  titleRevealedWinner: string;
+  titleRevealedNormal: string;
+  titleHidden: string;
+  performerRevealedWinner: string;
+  performerRevealedNormal: string;
+  performerHidden: string;
+  songRevealedWinner: string;
+  songRevealedNormal: string;
+}
+
+// Preset color themes for cards (includes winner and normal revealed/hidden styles)
+const PRESETS: { [key: string]: PresetTheme } = {
+  'royal purple': {
+    revealedBg: 'bg-gradient-to-br from-purple-900 to-pink-900 border-amber-700',
+    winnerBg: 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 border-yellow-300 shadow-2xl shadow-yellow-500/50',
+    hiddenBg: 'bg-[#2c3e50] border-gray-600',
+    badgeRevealedWinner: 'bg-gradient-to-br from-red-800 to-black text-black border-1 border-black-300 shadow-lg',
+    badgeRevealedNormal: 'bg-purple-500 text-black',
+    badgeHidden: 'bg-gray-600 text-gray-400',
+    pointsRevealedWinner: 'text-black',
+    pointsRevealedNormal: 'text-yellow-400',
+    pointsHidden: 'text-gray-600',
+    titleRevealedWinner: 'text-black',
+    titleRevealedNormal: 'text-white',
+    titleHidden: 'text-gray-500',
+    performerRevealedWinner: 'text-gray-900',
+    performerRevealedNormal: 'text-gray-200',
+    performerHidden: 'text-gray-600',
+    songRevealedWinner: 'text-gray-800',
+    songRevealedNormal: 'text-gray-300',
+  },
+  'emerald green': {
+    revealedBg: 'bg-gradient-to-br from-emerald-900 to-emerald-700 border-emerald-600',
+    winnerBg: 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 border-yellow-300 shadow-2xl shadow-yellow-500/50',
+    hiddenBg: 'bg-[#0f172a] border-gray-600',
+    badgeRevealedWinner: 'bg-gradient-to-br from-red-800 to-black text-black shadow-lg',
+    badgeRevealedNormal: 'bg-emerald-600 text-black',
+    badgeHidden: 'bg-gray-600 text-gray-400',
+    pointsRevealedWinner: 'text-black',
+    pointsRevealedNormal: 'text-emerald-300',
+    pointsHidden: 'text-gray-600',
+    titleRevealedWinner: 'text-black',
+    titleRevealedNormal: 'text-white',
+    titleHidden: 'text-gray-500',
+    performerRevealedWinner: 'text-gray-900',
+    performerRevealedNormal: 'text-gray-200',
+    performerHidden: 'text-gray-600',
+    songRevealedWinner: 'text-gray-800',
+    songRevealedNormal: 'text-gray-300',
+  },
+  'midnight blue': {
+    revealedBg: 'bg-gradient-to-br from-slate-900 to-indigo-900 border-sky-800',
+    winnerBg: 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 border-yellow-300 shadow-2xl shadow-yellow-500/50',
+    hiddenBg: 'bg-[#0b1220] border-gray-600',
+    badgeRevealedWinner: 'bg-gradient-to-br from-red-800 to-black text-black shadow-lg',
+    badgeRevealedNormal: 'bg-sky-600 text-black',
+    badgeHidden: 'bg-gray-600 text-gray-400',
+    pointsRevealedWinner: 'text-black',
+    pointsRevealedNormal: 'text-sky-300',
+    pointsHidden: 'text-gray-600',
+    titleRevealedWinner: 'text-black',
+    titleRevealedNormal: 'text-white',
+    titleHidden: 'text-gray-500',
+    performerRevealedWinner: 'text-gray-900',
+    performerRevealedNormal: 'text-gray-200',
+    performerHidden: 'text-gray-600',
+    songRevealedWinner: 'text-gray-800',
+    songRevealedNormal: 'text-gray-300',
+  },
+  'sunset orange': {
+    revealedBg: 'bg-gradient-to-br from-orange-900 to-rose-600 border-amber-700',
+    winnerBg: 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 border-yellow-300 shadow-2xl shadow-yellow-500/50',
+    hiddenBg: 'bg-[#2b1b12] border-gray-600',
+    badgeRevealedWinner: 'bg-gradient-to-br from-red-800 to-black text-black shadow-lg',
+    badgeRevealedNormal: 'bg-orange-700 text-black',
+    badgeHidden: 'bg-gray-600 text-gray-400',
+    pointsRevealedWinner: 'text-black',
+    pointsRevealedNormal: 'text-orange-300',
+    pointsHidden: 'text-gray-600',
+    titleRevealedWinner: 'text-black',
+    titleRevealedNormal: 'text-white',
+    titleHidden: 'text-gray-500',
+    performerRevealedWinner: 'text-gray-900',
+    performerRevealedNormal: 'text-gray-200',
+    performerHidden: 'text-gray-600',
+    songRevealedWinner: 'text-gray-800',
+    songRevealedNormal: 'text-gray-300',
+  },
+  'rose gold': {
+    revealedBg: 'bg-gradient-to-br from-pink-900 to-rose-500 border-pink-500',
+    winnerBg: 'bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-200 border-amber-100 shadow-2xl shadow-amber-300/50',
+    hiddenBg: 'bg-[#2b2430] border-gray-600',
+    badgeRevealedWinner: 'bg-gradient-to-br from-red-700 to-black text-black shadow-lg',
+    badgeRevealedNormal: 'bg-pink-500 text-black',
+    badgeHidden: 'bg-gray-600 text-gray-400',
+    pointsRevealedWinner: 'text-black',
+    pointsRevealedNormal: 'text-pink-300',
+    pointsHidden: 'text-gray-600',
+    titleRevealedWinner: 'text-black',
+    titleRevealedNormal: 'text-white',
+    titleHidden: 'text-gray-500',
+    performerRevealedWinner: 'text-gray-900',
+    performerRevealedNormal: 'text-gray-200',
+    performerHidden: 'text-gray-600',
+    songRevealedWinner: 'text-gray-800',
+    songRevealedNormal: 'text-gray-300',
+  }
+};
+
 export default function Eurovision2020FinalReveal() {
   const { data: session, status } = useSession();
   const [results, setResults] = useState<CountryResult[]>([]);
@@ -41,9 +160,10 @@ export default function Eurovision2020FinalReveal() {
   const [onePointDistributionIndex, setOnePointDistributionIndex] = useState(-1);
   const [currentPointType, setCurrentPointType] = useState(1); // Track which point type we're distributing
   const [allPointsByType, setAllPointsByType] = useState<{ [pointType: number]: string[] }>({});
-  const [animationSpeed, setAnimationSpeed] = useState(500); // Animation duration in milliseconds
+  const [animationSpeed, setAnimationSpeed] = useState(700); // Animation duration in milliseconds
   const [distributionOrder, setDistributionOrder] = useState<'asc' | 'desc'>('asc'); // 'asc' = lowest to highest (default), 'desc' = highest to lowest
   const [isDistributionComplete, setIsDistributionComplete] = useState(false); // Track if all distributions are complete
+  const [selectedPreset, setSelectedPreset] = useState<string>('royal purple');
 
   // Access control helpers (derived from session)
   const userEmail = session?.user?.email ?? '';
@@ -60,6 +180,7 @@ export default function Eurovision2020FinalReveal() {
       setLoading(false);
     }
   }, [status, isGM]);
+
 
   const fetchResults = async () => {
     try {
@@ -433,12 +554,12 @@ export default function Eurovision2020FinalReveal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
-      <div className="container mx-auto px-4 flex gap-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-15">
+      <div className="container mx-auto px-1 flex gap-15">
         {/* Left Side - Controls */}
         <div className="w-80 flex-shrink-0">
           <h1 className="text-3xl font-bold text-white mb-6">
-            Eurovision 2020 Final - Sonuç Açıklaması
+            Eurovision 2020 Final
           </h1>
 
           <div className="mb-6 text-white">
@@ -474,7 +595,7 @@ export default function Eurovision2020FinalReveal() {
               disabled={isRevealing}
               className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg border border-gray-600 transition font-medium"
             >
-              {distributionOrder === 'asc' ? '📈 En Düşükten En Yükseğe' : '📉 En Yüksekten En Düşüğe'}
+              {distributionOrder === 'asc' ? '📈 Düşükten Yükseğe' : '📉 Yüksekten Düşüğe'}
             </button>
             <p className="text-gray-400 text-xs mt-1">
               {distributionOrder === 'asc' ? 'Son sıradan birinciye' : 'Birinciden son sıraya'}
@@ -497,10 +618,26 @@ export default function Eurovision2020FinalReveal() {
               disabled={isRevealing}
             />
             <p className="text-gray-400 text-xs mt-1">
-              Sıralama animasyon süresi (1000-2000ms önerilir)
+              Sıralama animasyon süresi (500-1000ms önerilir)
               <br />
               Açıklama aralığı: {animationSpeed + 500}ms
             </p>
+          </div>
+
+          {/* Card Theme Preset */}
+          <div className="mb-6">
+            <label className="block text-white text-sm font-bold mb-2">Card Theme</label>
+            <select
+              value={selectedPreset}
+              onChange={(e) => setSelectedPreset(e.target.value)}
+              disabled={isRevealing}
+              className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg border border-gray-600 transition font-medium"
+            >
+              {Object.keys(PRESETS).map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+            <p className="text-gray-400 text-xs mt-1">Select a visual preset for the cards (winner + normal styles).</p>
           </div>
 
           {/* Progress */}
@@ -544,136 +681,150 @@ export default function Eurovision2020FinalReveal() {
           </div>
         </div>
 
-        {/* Right Side - Country Cards */}
+        {/* Right Side - Country Cards (two-column layout: 1-10 left, 11-21 right) */}
         <div className="flex-1">
-          {/* 21 Country Cards in a single column */}
-          <div className="grid grid-cols-1 gap-2 max-w-4xl mx-auto">
-          {(showJury ? juryResults : results).map((result, index) => {
-            const position = index + 1;
-            const isRevealed = showJury ? currentIndex >= index : false;
-            const isTopTen = position <= 10;
-            // Only show winner styling after jury reveal is complete (not during initial reveal)
-            const isWinner = position === 1 && currentIndex >= juryResults.length - 1;
+          <div className="max-w-10xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20">
+            {(() => {
+              const displayed = showJury ? juryResults : results;
+              const left = displayed.slice(0, 10);
+              const right = displayed.slice(10);
 
-            return (
-              <motion.div
-                key={result.country}
-                layout
-                initial={{ opacity: 0.3 }}
-                animate={{ 
-                  opacity: isRevealed ? 1 : 0.3,
-                  scale: isRevealed ? (isWinner ? 1.05 : 1) : 0.95
-                }}
-                transition={{ 
-                  layout: { duration: animationSpeed / 1000, ease: "easeInOut" },
-                  opacity: { duration: 0.5 },
-                  scale: { duration: 0.5 }
-                }}
-                className={`relative rounded-lg ${isTopTen ? 'p-2' : 'p-1'} ${isWinner ? 'p-3 border-4' : 'border-2'} ${
-                  isRevealed 
-                    ? isWinner
-                      ? 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 border-yellow-300 shadow-2xl shadow-yellow-500/50'
-                      : 'bg-gradient-to-br from-purple-900 to-pink-900 border-yellow-400'
-                    : 'bg-[#2c3e50] border-gray-600'
-                }`}
-              >                
-                {/* Position Badge */}
-                <div className={`absolute -top-3 -left-7 z-20 ${isWinner ? 'w-12 h-12 text-2xl' : isTopTen ? 'w-10 h-10 text-lg' : 'w-8 h-8 text-sm'} rounded-full flex items-center justify-center font-bold ${
-                  isRevealed 
-                    ? isWinner
-                      ? 'bg-gradient-to-br from-red-800 to-black text-black border-1 border-black-300 shadow-lg'
-                      : 'bg-yellow-400 text-black'
-                    : 'bg-gray-600 text-gray-400'
-                }`}>
-                  {isWinner && isRevealed ? '👑' : `#${position}`}
-                </div>
+              const renderCard = (result: CountryResult, globalIndex: number) => {
+                const position = globalIndex + 1;
+                const isRevealed = showJury ? currentIndex >= globalIndex : false;
+                const isTopTen = position <= 10;
+                const isWinner = position === 1 && currentIndex >= juryResults.length - 1;
 
-                <div className={`flex items-center ${isWinner ? 'gap-6 mb-3' : 'gap-4 mb-2'} relative z-10`}>
-                  {/* Flag */}
-                  <div className="flex-shrink-0">
-                    <Image 
-                      src={`/flags/${result.country}_${eurovision2020Songs[result.country]?.code}.png`}
-                      alt={result.country}
-                      width={isWinner ? 60 : 40}
-                      height={isWinner ? 40 : 27}
-                      className={`rounded ${!isRevealed ? 'opacity-30' : isWinner ? '' : ''}`}
-                    />
-                  </div>
+                const presetObj = PRESETS[selectedPreset] || PRESETS['royal purple'];
+                const paddingClass = isWinner ? 'p-3 border-4' : isTopTen ? 'p-2 border-2' : 'p-1.5 border-2';
+                const bgClass = isRevealed ? (isWinner ? presetObj.winnerBg : presetObj.revealedBg) : presetObj.hiddenBg;
+                const badgeSizeClass = isWinner ? 'w-12 h-12 text-2xl' : isTopTen ? 'w-10 h-10 text-lg' : 'w-8 h-8 text-sm';
+                const badgeColorClass = isRevealed ? (isWinner ? presetObj.badgeRevealedWinner : presetObj.badgeRevealedNormal) : presetObj.badgeHidden;
+                const titleColorClass = isRevealed ? (isWinner ? presetObj.titleRevealedWinner : presetObj.titleRevealedNormal) : presetObj.titleHidden;
+                const performerColorClass = isRevealed ? (isWinner ? presetObj.performerRevealedWinner : presetObj.performerRevealedNormal) : presetObj.performerHidden;
+                const songColorClass = isRevealed ? (isWinner ? presetObj.songRevealedWinner : presetObj.songRevealedNormal) : presetObj.performerHidden;
+                const pointsColorClass = isRevealed ? (isWinner ? presetObj.pointsRevealedWinner : presetObj.pointsRevealedNormal) : presetObj.pointsHidden;
 
-                  {/* Country Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <h3 className={`${isWinner ? 'text-2xl' : isTopTen ? 'text-lg' : 'text-md'} font-bold ${isRevealed ? isWinner ? 'text-black' : 'text-white' : 'text-gray-500'}`}>
-                        {result.country}
-                      </h3>
-                      {eurovision2020Songs[result.country] && (
-                        <p className={`${isWinner ? 'text-base' : isTopTen ? 'text-[14px]' : 'text-[13px]'} truncate ${isRevealed ? isWinner ? 'text-gray-900' : 'text-gray-200' : 'text-gray-600'}`}>
-                          | {eurovision2020Songs[result.country].performer}
-                        </p>
-                      )}
+                return (
+                  <motion.div
+                    key={result.country}
+                    layoutId={`card-${result.country}`}
+                    layout
+                    initial={{ opacity: 0.3 }}
+                    animate={{ 
+                      opacity: isRevealed ? 1 : 0.3,
+                      scale: isRevealed ? (isWinner ? 1.05 : 1) : 0.95
+                    }}
+                    transition={{ 
+                      layout: { duration: animationSpeed / 1000, ease: "easeInOut" },
+                      opacity: { duration: 1.5 },
+                      scale: { duration: 7.0 }
+                    }}
+                    className={`relative rounded-lg ${paddingClass} ${bgClass}`}
+                  >
+                    <div className={`absolute -top-3 -left-7 z-20 ${badgeSizeClass} rounded-full flex items-center justify-center font-bold ${badgeColorClass}`}>
+                      {isWinner && isRevealed ? '👑' : `#${position}`}
                     </div>
-                    {eurovision2020Songs[result.country] && (
-                      <p className={`${isWinner ? 'text-base' : isTopTen ? 'text-[14px]' : 'text-[13px]'} italic truncate ${isRevealed ? isWinner ? 'text-gray-800' : 'text-gray-300' : 'text-gray-700'}`}>
-                        &quot;{eurovision2020Songs[result.country].song}&quot;
-                      </p>
+
+                    <div className={`flex items-center ${isWinner ? 'gap-6 mb-3' : 'gap-4 mb-2'} relative z-10`}>
+                      <div className="flex-shrink-0">
+                        <Image 
+                          src={`/flags/${result.country}_${eurovision2020Songs[result.country]?.code}.png`}
+                          alt={result.country}
+                          width={isWinner ? 60 : 40}
+                          height={isWinner ? 40 : 27}
+                          className={`rounded ${!isRevealed ? 'opacity-30' : isWinner ? '' : ''}`}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2">
+                          <h3 className={`${isWinner ? 'text-2xl' : isTopTen ? 'text-lg' : 'text-md'} font-bold ${titleColorClass}`}>
+                            {result.country}
+                          </h3>
+                          {eurovision2020Songs[result.country] && (
+                            <p className={`${isWinner ? 'text-base' : isTopTen ? 'text-[14px]' : 'text-[13px]'} truncate ${performerColorClass}`}>
+                              | {eurovision2020Songs[result.country].performer}
+                            </p>
+                          )}
+                        </div>
+                        {eurovision2020Songs[result.country] && (
+                          <p className={`${isWinner ? 'text-base' : isTopTen ? 'text-[14px]' : 'text-[13px]'} italic truncate ${songColorClass}`}>
+                            &quot;{eurovision2020Songs[result.country].song}&quot;
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="text-right">
+                        <AnimatePresence mode="popLayout">
+                          {isRevealed ? (
+                            <motion.div
+                              key={`revealed-${result.points}`}
+                              initial={{ scale: 0.1, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0, rotate: 180 }}
+                              transition={{ type: "spring", stiffness: 300}}
+                              className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold ${pointsColorClass}`}
+                            >
+                              {result.points}
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="hidden"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold text-gray-600`}
+                            >
+                              ?
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        {isDistributionComplete && isRevealed ? (
+                          <div className={`${isWinner ? 'text-sm' : isTopTen ? 'text-[12px]' : 'text-[12px]'} ${isWinner ? presetObj.titleRevealedWinner + ' font-semibold' : presetObj.titleRevealedNormal}`}>
+                            {(() => {
+                              const voteCount = publicVoteCounts[result.country] || 0;
+                              const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(1) : '0.0';
+                              return (
+                                <>
+                                  <span>{percentage}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        ) : (
+                          <div className={`${isWinner ? 'text-sm' : isTopTen ? 'text-[12px]' : 'text-[12px]'} ${isRevealed ? (isWinner ? presetObj.titleRevealedWinner + ' font-semibold' : presetObj.titleRevealedNormal) : 'text-gray-600'}`}>
+                            points
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {isWinner && isRevealed && (
+                      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                        <motion.div
+                          className="absolute inset-0 w-full h-full"
+                          animate={{ x: ['-100%', '100%'] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                          style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255, 255, 55, 0.3) 40%, rgba(255, 255, 55, 0.6) 50%, rgba(255, 255, 55, 0.3) 60%, transparent 100%)', width: '100%' }}
+                        />
+                      </div>
                     )}
-                  </div>
+                  </motion.div>
+                );
+              };
 
-                  {/* Points */}
-                  <div className="text-right">
-                    <AnimatePresence mode="wait">
-                      {isRevealed ? (
-                        <motion.div
-                          key={`revealed-${result.points}`}
-                          initial={{ scale: 0, rotate: -180 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          exit={{ scale: 0, rotate: 180 }}
-                          transition={{ type: "spring", stiffness: 200 }}
-                          className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold ${isWinner ? 'text-black' : 'text-yellow-400'}`}
-                        >
-                          {result.points}
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="hidden"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold text-gray-600`}
-                        >
-                          ?
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <div className={`${isWinner ? 'text-sm' : isTopTen ? 'text-[12px]' : 'text-[12px]'} ${isRevealed ? isWinner ? 'text-black font-semibold' : 'text-white' : 'text-gray-600'}`}>
-                      points
-                    </div>
+              return (
+                <LayoutGroup>
+                  <div className="space-y-2">
+                    {left.map((r, i) => renderCard(r, i))}
                   </div>
-                </div>
-
-                {/* Light Rays for Winner */}
-                {isWinner && isRevealed && (
-                  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                    <motion.div
-                      className="absolute inset-0 w-full h-full"
-                      animate={{
-                        x: ['-100%', '100%']
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "linear"
-                      }}
-                      style={{
-                        background: 'linear-gradient(110deg, transparent 0%, rgba(255, 255, 55, 0.3) 40%, rgba(255, 255, 55, 0.6) 50%, rgba(255, 255, 55, 0.3) 60%, transparent 100%)',
-                        width: '100%'
-                      }}
-                    />
+                  <div className="space-y-2">
+                    {right.map((r, i) => renderCard(r, i + left.length))}
                   </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
+                </LayoutGroup>
+              );
+            })()}
+          </div>
         </div>
       </div>
     </div>
