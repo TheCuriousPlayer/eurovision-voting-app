@@ -73,7 +73,7 @@ export const VOTE_CONFIG = {
 };
 
 // Jüri üyeleri - Sayfa erişimi için yetkilendirme
-export const Juri2020final = ['ozgunciziltepe@gmail.com', 'bugrasisman@googlemail.com'];
+export const Juri2020final = ['ozgunciziltepe@gmail.com', 'bugrasisman@googlemail.com', 'ceyhunsaklar@gmail.com', 'info@mertalp.net', 'ulassbayrakk@gmail.com'];
 
 // Eurovision yılları için bakım modu ayarları
 // Dinamik Örnek:
