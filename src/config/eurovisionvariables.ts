@@ -19,13 +19,13 @@ export const VOTE_CONFIG = {
   '202001': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
-    Mode: 'visible', // 'visible' | 'hide'
+    Mode: 'hide', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '202002': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
-    Mode: 'visible', // 'visible' | 'hide'
+    Mode: 'hide', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '202003': { 
