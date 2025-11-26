@@ -1031,7 +1031,7 @@ export default function Eurovision2020Final() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    Sürükle-bırak veya artı düğmesiyle oy verin. <br /> Sıralamayı sürükle-bırak ile değiştirebilirsiniz. <br /> Oylarınız otomatik olarak kaydedilir. <br /> İstediğiniz zaman oylarınızı değiştirebilirsiniz.
+                    2020 yılına oy vermek için <a href="https://eurotr.vercel.app/eurovision2020" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Eurovision 2020</a> linkine gidin.
                   </div>
                   {(() => {
                     // Debug button visibility decision
