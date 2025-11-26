@@ -28,9 +28,17 @@ const DisplayPreferencesContext = createContext<DisplayPreferencesContextType | 
 export function DisplayPreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<DisplayPreferences>(DEFAULT_PREFERENCES);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Mark as mounted to prevent hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Load preferences from cookie on mount
   useEffect(() => {
+    if (!isMounted) return;
+    
     const savedPrefs = Cookies.get(COOKIE_NAME);
     if (savedPrefs) {
       try {
@@ -45,7 +53,7 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
       }
     }
     setIsLoaded(true);
-  }, []);
+  }, [isMounted]);
 
   // Save preferences to cookie whenever they change
   useEffect(() => {

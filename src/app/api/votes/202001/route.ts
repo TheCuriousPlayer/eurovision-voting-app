@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,6 +17,19 @@ export async function POST(request: Request) {
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // SERVER-SIDE ENFORCEMENT: Block all vote modifications when voting is closed
+    const config = VOTE_CONFIG['202001'];
+    const userEmail = session.user.email || '';
+    
+    // Reject writes if Status is false (closed)
+    if (!config.Status) {
+      console.log(`[202001 POST] Voting closed - rejecting vote from ${userEmail}`);
+      return NextResponse.json({ 
+        error: 'Voting is closed for Semi-Final A',
+        votingClosed: true 
+      }, { status: 403 });
     }
 
     const { votes } = await request.json();

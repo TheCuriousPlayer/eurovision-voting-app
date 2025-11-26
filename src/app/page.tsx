@@ -48,6 +48,28 @@ export default function Home() {
               if (year === 2020) {
                 return (
                   <div key={year} className="contents">
+                    {/* Eurovision 2020 Overview */}
+                    <div className="group">
+                      <Link 
+                        href="/eurovision2020"
+                        className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#249e57] to-[#11816b] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      >
+                        <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                          <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                            <div className="w-20 h-20 border-4 border-white rounded-full" />
+                          </div>
+                        </div>
+                        
+                        <h2 className="text-2xl font-bold text-white mb-2">
+                          Eurovision 2020
+                        </h2>
+                        
+                        <div className="text-gray-300 text-sm">
+                          <span>Aktif</span>
+                        </div>
+                      </Link>
+                    </div>
+
                     {/* Grand Final */}
                     <div className="group">
                       <Link 
@@ -195,6 +217,28 @@ export default function Home() {
             if (year === 2020) {
               return (
                 <div key={year} className="contents">
+                  {/* Eurovision 2020 Overview */}
+                  <div className="group">
+                    <Link 
+                      href="/eurovision2020"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#249e57] to-[#11816b] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      
+                      <h2 className="text-2xl font-bold text-white mb-2">
+                        Eurovision 2020
+                      </h2>
+                      
+                      <div className="text-gray-300 text-sm">
+                        <span>Aktif</span>
+                      </div>
+                    </Link>
+                  </div>
+
                   {/* Grand Final */}
                   <div className="group">
                     <Link 

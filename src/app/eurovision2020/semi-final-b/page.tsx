@@ -30,6 +30,7 @@ export default function Eurovision2020SemiFinalB() {
     isGM: false 
   });
   const [autoRefreshTimer, setAutoRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
@@ -43,6 +44,8 @@ export default function Eurovision2020SemiFinalB() {
   // const [timeRemaining, setTimeRemaining] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+  // VOTING CLOSED: Derive from server config (Status false = closed, unless user is GM)
+  const votingClosed = !voteConfig.status;
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
 
@@ -175,18 +178,29 @@ export default function Eurovision2020SemiFinalB() {
     
     // Cleanup timer on unmount
     return () => {
-      if (autoRefreshTimer) {
-        clearTimeout(autoRefreshTimer);
+      if (autoRefreshTimerRef.current) {
+        clearTimeout(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
       }
+      // Silence potential unused-state lint
+      void autoRefreshTimer;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults, loading]);
 
   // On mount, try to resend any pending votes from localStorage
   useEffect(() => {
-    const pendingKey = 'eurovision2020_pending_votes';
+    const pendingKey = 'eurovision2020_semi_final_b_pending_votes';
 
     async function tryResendPending() {
+      // BLOCK: Do not resend pending votes if voting is closed
+      if (votingClosed) {
+        console.log('🔒 Voting closed - skipping pending vote resend');
+        window.localStorage.removeItem(pendingKey);
+        setPendingSave(false);
+        return;
+      }
+
       try {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
@@ -227,6 +241,12 @@ export default function Eurovision2020SemiFinalB() {
 
     // On unload, try to send pending using sendBeacon as a last-effort
     function onBeforeUnload() {
+      // BLOCK: Do not send pending votes via sendBeacon if voting is closed
+      if (votingClosed) {
+        console.log('🔒 Voting closed - skipping sendBeacon');
+        return;
+      }
+
       try {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
@@ -247,7 +267,7 @@ export default function Eurovision2020SemiFinalB() {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, []);
+  }, [votingClosed]);
 
   // Close info tooltip when clicking outside
   useEffect(() => {
@@ -268,6 +288,12 @@ export default function Eurovision2020SemiFinalB() {
 
   const updateResults = async () => {
     if (!results) return;
+
+    // BLOCK: Do not send any votes to server when voting is closed
+    if (votingClosed) {
+      console.log('🔒 Voting closed - updateResults blocked (no server write)');
+      return;
+    }
 
     console.log('Updating results with selectedCountries:', selectedCountries);
 
@@ -392,6 +418,25 @@ export default function Eurovision2020SemiFinalB() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
+        // Extract only the first number (total points) for each country
+        if (data.countryPoints) {
+          const parsedPoints: { [country: string]: number } = {};
+          Object.entries(data.countryPoints).forEach(([country, value]) => {
+            if (typeof value === 'string' && value.includes(',')) {
+              // Format: "2090,648,430,312,..." - take first number only
+              const total = parseInt(value.split(',')[0]);
+              parsedPoints[country] = total;
+            } else if (typeof value === 'number') {
+              parsedPoints[country] = value;
+            } else {
+              parsedPoints[country] = 0;
+            }
+          });
+          data.countryPoints = parsedPoints;
+        }
+        
         setResults(data);
         console.log('Fresh results updated from server with totalVotes:', data.totalVotes);
       }
@@ -400,17 +445,20 @@ export default function Eurovision2020SemiFinalB() {
     }
   };
   const startAutoRefresh = () => {
-    // Clear existing timer
-    if (autoRefreshTimer) {
-      clearTimeout(autoRefreshTimer);
+    // Clear existing timer (use ref so we always clear the most recent timer)
+    if (autoRefreshTimerRef.current) {
+      clearTimeout(autoRefreshTimerRef.current);
+      autoRefreshTimerRef.current = null;
     }
-    
+
     // Start new 60-second timer
     const newTimer = setTimeout(() => {
       fetchFreshResults();
       startAutoRefresh(); // Restart the timer
     }, 60000); // 60 seconds
-    
+
+    // store both in ref and state (state kept for backwards compat / debugging)
+    autoRefreshTimerRef.current = newTimer;
     setAutoRefreshTimer(newTimer);
     console.log('Auto-refresh timer started (60 seconds)');
   };
@@ -423,6 +471,12 @@ export default function Eurovision2020SemiFinalB() {
   };
 
   const handleDragEnd = (result: DropResult) => {
+    // If voting is closed, ignore drag attempts
+    if (votingClosed) {
+      console.log('Voting closed - drag ignored');
+      return;
+    }
+
     if (!result.destination) return;
 
     const sourceId = result.source.droppableId;
@@ -494,6 +548,25 @@ export default function Eurovision2020SemiFinalB() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
+        // Extract only the first number (total points) for each country
+        if (data.countryPoints) {
+          const parsedPoints: { [country: string]: number } = {};
+          Object.entries(data.countryPoints).forEach(([country, value]) => {
+            if (typeof value === 'string' && value.includes(',')) {
+              // Format: "2090,648,430,312,..." - take first number only
+              const total = parseInt(value.split(',')[0]);
+              parsedPoints[country] = total;
+            } else if (typeof value === 'number') {
+              parsedPoints[country] = value;
+            } else {
+              parsedPoints[country] = 0;
+            }
+          });
+          data.countryPoints = parsedPoints;
+        }
+        
         console.log('Fetched data:', data);
         console.log('Total votes in response:', data.totalVotes);
         console.log('User session email:', session?.user?.email);
@@ -631,11 +704,14 @@ export default function Eurovision2020SemiFinalB() {
       startAutoRefresh();
     } else {
       // Stop auto-refresh when hiding results
-      if (autoRefreshTimer) {
-        clearTimeout(autoRefreshTimer);
-        setAutoRefreshTimer(null);
-        console.log('Auto-refresh timer stopped');
+      if (autoRefreshTimerRef.current) {
+        clearTimeout(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
       }
+      if (autoRefreshTimer) {
+        setAutoRefreshTimer(null);
+      }
+      console.log('Auto-refresh timer stopped');
     }
   };
 
@@ -646,6 +722,10 @@ export default function Eurovision2020SemiFinalB() {
 
   // Helper function to add a country to the first empty slot (uses closure)
   const addCountryToFirstEmptySlot = (country: string) => {
+    if (votingClosed) {
+      console.log('Voting closed - add ignored');
+      return;
+    }
     const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
     if (firstEmptyIndex !== -1) {
       const updatedCountries = [...selectedCountries];
@@ -665,6 +745,10 @@ export default function Eurovision2020SemiFinalB() {
 
   // Helper function to handle country removal with confirmation
   const handleRemoveCountry = (index: number) => {
+    if (votingClosed) {
+      console.log('Voting closed - remove ignored');
+      return;
+    }
     if (wouldClearAllVotes(index)) {
       // Show confirmation dialog
       setPendingClearAction(() => () => {
@@ -884,9 +968,26 @@ export default function Eurovision2020SemiFinalB() {
         <h1 className="text-l font-bold text-center text-white mb-8">
           10 Ülke Finale Yükseliyor
         </h1>
+
+        {/* READ-ONLY BANNER when voting is closed */}
+        {votingClosed && (
+          <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg p-4 mb-6 border-2 border-gray-500 shadow-lg">
+            <div className="text-center">
+              <h2 className="text-lg md:text-xl font-bold text-white mb-2">
+                🔒 Oylama Kapandı / Voting Closed
+              </h2>
+              <p className="text-gray-300 text-sm">
+                Bu yarı final için oylama dönemi sona ermiştir. Oylar artık değiştirilemez ve yeni oy eklenemez. 2020 yılına oy vermek için <a href="https://eurotr.vercel.app/eurovision2020" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Eurovision 2020</a> linkine gidin.
+              </p>
+              <p className="text-gray-400 text-xs mt-2">
+                The voting period for this semi-final has ended. Votes can no longer be modified or added. To vote for the year 2020, visit the <a href="https://eurotr.vercel.app/eurovision2020" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Eurovision 2020</a> link.
+              </p>
+            </div>
+          </div>
+        )}
         
         {session ? (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext onDragEnd={votingClosed ? () => {} : handleDragEnd}>
             <div className="flex flex-wrap gap-8">
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
@@ -954,6 +1055,7 @@ export default function Eurovision2020SemiFinalB() {
                                     key={`${selectedCountries[index]}-${index}`} 
                                     draggableId={`slot-${index}-${selectedCountries[index]}`} 
                                     index={index}
+                                    isDragDisabled={votingClosed}
                                   >
                                     {(provided, snapshot) => (
                                       <div
@@ -986,7 +1088,7 @@ export default function Eurovision2020SemiFinalB() {
                                 <span className={`font-bold ${selectedCountries[index] ? 'text-white' : 'text-gray-500'}`}>
                                   {[12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index]} points
                                 </span>
-                                {selectedCountries[index] && (
+                                {selectedCountries[index] && !votingClosed && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1006,7 +1108,7 @@ export default function Eurovision2020SemiFinalB() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    Sürükle-bırak veya artı düğmesiyle oy verin. <br /> Sıralamayı sürükle-bırak ile değiştirebilirsiniz. <br /> Oylarınız otomatik olarak kaydedilir. <br /> İstediğiniz zaman oylarınızı değiştirebilirsiniz.
+                    2020 yılına oy vermek için <a href="https://eurotr.vercel.app/eurovision2020" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Eurovision 2020</a> linkine gidin.
                   </div>
                   {(() => {
                     // Debug button visibility decision
@@ -1048,7 +1150,7 @@ export default function Eurovision2020SemiFinalB() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
+                          | Sonuçlar <a href="https://www.youtube.com/watch?v=wewAqbPRHv8" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında.
                         </span>
                       </>
                     )}
@@ -1064,7 +1166,7 @@ export default function Eurovision2020SemiFinalB() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(0, Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index}>
+                              <Draggable key={country} draggableId={country} index={index} isDragDisabled={votingClosed}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -1077,7 +1179,7 @@ export default function Eurovision2020SemiFinalB() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                      {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                         <div className="group inline-block">
                                           <button
                                             className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
@@ -1197,7 +1299,7 @@ export default function Eurovision2020SemiFinalB() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)}>
+                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)} isDragDisabled={votingClosed}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -1210,7 +1312,7 @@ export default function Eurovision2020SemiFinalB() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                      {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                         <div className="group inline-block">
                                           <button
                                             className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
@@ -1341,7 +1443,7 @@ export default function Eurovision2020SemiFinalB() {
                       <>
                         <span>Ülkeler (Alfabetik) </span>
                         <span className="text-sm font-normal">
-                          | Sonuçlar <a href="https://www.youtube.com/@BugraSisman" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
+                          | Sonuçlar <a href="https://www.youtube.com/watch?v=wewAqbPRHv8" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında.
                         </span>
                       </>
                     )}
@@ -1357,7 +1459,7 @@ export default function Eurovision2020SemiFinalB() {
                             } p-1 rounded`}
                           >
                             <div className="flex items-center gap-2">
-                              {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                              {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                 <button
                                   className="bg-[#34895e] text-white px-2 py-1 rounded"
                                   onClick={() => addCountryToFirstEmptySlot(country)}
@@ -1444,7 +1546,7 @@ export default function Eurovision2020SemiFinalB() {
                             } p-1 rounded`}
                           >
                             <div className="flex items-center gap-2">
-                              {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                              {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                 <button
                                   className="bg-[#34895e] text-white px-2 py-1 rounded"
                                   onClick={() => addCountryToFirstEmptySlot(country)}

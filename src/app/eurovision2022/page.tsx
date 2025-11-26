@@ -27,6 +27,9 @@ export default function Eurovision2022() {
     isGM: false 
   });
   const [autoRefreshTimer, setAutoRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  // Use a ref to hold the live timer so cleanup on unmount always sees the current timer
+  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  void autoRefreshTimer;
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
@@ -140,11 +143,12 @@ export default function Eurovision2022() {
     if (showResults && !loading) {
       startAutoRefresh();
     }
-    
-    // Cleanup timer on unmount
+
+    // Cleanup timer on unmount (always refer to ref.current so we clear the latest timer)
     return () => {
-      if (autoRefreshTimer) {
-        clearTimeout(autoRefreshTimer);
+      if (autoRefreshTimerRef.current) {
+        clearTimeout(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -360,6 +364,25 @@ export default function Eurovision2022() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
+        // Extract only the first number (total points) for each country
+        if (data.countryPoints) {
+          const parsedPoints: { [country: string]: number } = {};
+          Object.entries(data.countryPoints).forEach(([country, value]) => {
+            if (typeof value === 'string' && value.includes(',')) {
+              // Format: "2090,648,430,312,..." - take first number only
+              const total = parseInt(value.split(',')[0]);
+              parsedPoints[country] = total;
+            } else if (typeof value === 'number') {
+              parsedPoints[country] = value;
+            } else {
+              parsedPoints[country] = 0;
+            }
+          });
+          data.countryPoints = parsedPoints;
+        }
+        
         setResults(data);
         console.log('Fresh results updated from server with totalVotes:', data.totalVotes);
       }
@@ -369,17 +392,19 @@ export default function Eurovision2022() {
   };
 
   const startAutoRefresh = () => {
-    // Clear existing timer
-    if (autoRefreshTimer) {
-      clearTimeout(autoRefreshTimer);
+    // Clear existing timer (use ref so we always clear the most recent timer)
+    if (autoRefreshTimerRef.current) {
+      clearTimeout(autoRefreshTimerRef.current);
+      autoRefreshTimerRef.current = null;
     }
-    
+
     // Start new 60-second timer
     const newTimer = setTimeout(() => {
       fetchFreshResults();
       startAutoRefresh(); // Restart the timer
     }, 60000); // 60 seconds
-    
+
+    autoRefreshTimerRef.current = newTimer;
     setAutoRefreshTimer(newTimer);
     console.log('Auto-refresh timer started (60 seconds)');
   };
@@ -463,6 +488,25 @@ export default function Eurovision2022() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
+        // Extract only the first number (total points) for each country
+        if (data.countryPoints) {
+          const parsedPoints: { [country: string]: number } = {};
+          Object.entries(data.countryPoints).forEach(([country, value]) => {
+            if (typeof value === 'string' && value.includes(',')) {
+              // Format: "2090,648,430,312,..." - take first number only
+              const total = parseInt(value.split(',')[0]);
+              parsedPoints[country] = total;
+            } else if (typeof value === 'number') {
+              parsedPoints[country] = value;
+            } else {
+              parsedPoints[country] = 0;
+            }
+          });
+          data.countryPoints = parsedPoints;
+        }
+        
         console.log('Fetched data:', data);
         console.log('Total votes in response:', data.totalVotes);
         console.log('User session email:', session?.user?.email);
@@ -601,11 +645,12 @@ export default function Eurovision2022() {
       startAutoRefresh();
     } else {
       // Stop auto-refresh when hiding results
-      if (autoRefreshTimer) {
-        clearTimeout(autoRefreshTimer);
-        setAutoRefreshTimer(null);
-        console.log('Auto-refresh timer stopped');
+      if (autoRefreshTimerRef.current) {
+        clearTimeout(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
       }
+      setAutoRefreshTimer(null);
+      console.log('Auto-refresh timer stopped');
     }
   };
 

@@ -27,6 +27,7 @@ export default function Eurovision2020Final() {
     isGM: false 
   });
   const [autoRefreshTimer, setAutoRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('');
@@ -37,17 +38,15 @@ export default function Eurovision2020Final() {
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
   const [clearCountdown, setClearCountdown] = useState(7);
-  const [showResultsOverlay, setShowResultsOverlay] = useState(true); // Show overlay by default
+  
 
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
 
-  // Check if user has voted (has any selected countries)
-  const hasVoted = selectedCountries.some(country => country !== '');
+  
 
-  // Determine if overlay should be shown
-  const shouldShowOverlay = showResultsOverlay && !hasVoted;
+  
 
 
   const openYouTubeModal = (country: string) => {
@@ -150,9 +149,12 @@ export default function Eurovision2020Final() {
     
     // Cleanup timer on unmount
     return () => {
-      if (autoRefreshTimer) {
-        clearTimeout(autoRefreshTimer);
+      if (autoRefreshTimerRef.current) {
+        clearTimeout(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
       }
+      // Silence potential unused-state lint
+      void autoRefreshTimer;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults, loading]);
@@ -395,17 +397,20 @@ export default function Eurovision2020Final() {
   };
 
   const startAutoRefresh = () => {
-    // Clear existing timer
-    if (autoRefreshTimer) {
-      clearTimeout(autoRefreshTimer);
+    // Clear existing timer (use ref as source-of-truth)
+    if (autoRefreshTimerRef.current) {
+      clearTimeout(autoRefreshTimerRef.current);
+      autoRefreshTimerRef.current = null;
     }
-    
+
     // Start new 60-second timer
     const newTimer = setTimeout(() => {
       fetchFreshResults();
       startAutoRefresh(); // Restart the timer
     }, 60000); // 60 seconds
-    
+
+    // Keep both ref and state in sync (state is kept for debug/visibility only)
+    autoRefreshTimerRef.current = newTimer;
     setAutoRefreshTimer(newTimer);
     console.log('Auto-refresh timer started (60 seconds)');
   };
@@ -652,11 +657,14 @@ export default function Eurovision2020Final() {
       startAutoRefresh();
     } else {
       // Stop auto-refresh when hiding results
-      if (autoRefreshTimer) {
-        clearTimeout(autoRefreshTimer);
-        setAutoRefreshTimer(null);
-        console.log('Auto-refresh timer stopped');
+      if (autoRefreshTimerRef.current) {
+        clearTimeout(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
       }
+      if (autoRefreshTimer) {
+        setAutoRefreshTimer(null);
+      }
+      console.log('Auto-refresh timer stopped');
     }
   };
 
@@ -855,8 +863,23 @@ export default function Eurovision2020Final() {
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2020 Yarı Final Sonuçları<br/><a href="https://www.youtube.com/watch?v=wewAqbPRHv8" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+          Eurovision 2020 Grand Final
         </h1>
+
+        {/* Voting Closed Notice */}
+        <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg p-4 mb-6 border-2 border-gray-500 shadow-lg">
+          <div className="text-center">
+            <h2 className="text-lg md:text-xl font-bold text-white mb-2">
+              🔒 Oylama Kapandı / Voting Closed
+            </h2>
+            <p className="text-gray-300 text-sm">
+              Grand final için oylama dönemi sona ermiştir. Oylar artık değiştirilemez ve yeni oy eklenemez. 2020 yılına oy vermek için <a href="/eurovision2020" className="underline text-blue-300 hover:text-blue-500">Eurovision 2020</a> linkine gidin.
+            </p>
+            <p className="text-gray-400 text-xs mt-2">
+              The voting period for grand final has ended. Votes can no longer be modified or added. To vote for the year 2020, visit the <a href="/eurovision2020" className="underline text-blue-300 hover:text-blue-500">Eurovision 2020</a> link.
+            </p>
+          </div>
+        </div>
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>
@@ -1015,39 +1038,7 @@ export default function Eurovision2020Final() {
               <div className="flex-1">
                 {/* Display Preferences */}
                 <div className="bg-[#2c3e50] rounded-lg p-6 relative">
-                  {/* Overlay for watching semi-final results */}
-                  {shouldShowOverlay && (
-                    <div className="absolute inset-0 bg-black bg-opacity-90 rounded-lg flex items-center justify-center z-10 p-6">
-                      <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-2xl p-8 max-w-md w-full border border-purple-500/30 shadow-2xl shadow-purple-900/30">
-                        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent mb-4 text-center">
-                          Sırbozan / Spoiler Koruması
-                        </h3>
-                        <p className="text-slate-200 mb-6 text-center leading-relaxed">
-                          Oy vermeden önce yarı final sonuçlarını izlemenizi öneririz.
-                        </p>
-                        <div className="flex flex-col gap-3">
-                          <button
-                            onClick={() => {
-                              window.open('https://www.youtube.com/watch?v=wewAqbPRHv8', '_blank');
-                            }}
-                            className="w-full px-6 py-3 bg-gradient-to-r from-indigo-700 to-violet-700 hover:from-indigo-800 hover:to-violet-800 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 hover:shadow-xl hover:shadow-indigo-900/20 hover:scale-[1.01]"
-                          >
-                            <svg className="w-5 h-5" fill="red" viewBox="0 0 24 24">
-                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                              <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                            </svg>
-                            Yarı final sonuçlarını izlemek istiyorum
-                          </button>
-                          <button
-                            onClick={() => setShowResultsOverlay(false)}
-                            className="w-full px-6 py-3 bg-gradient-to-r from-emerald-900 to-teal-800 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/20 hover:scale-[1.01]"
-                          >
-                            Sonuçları izledim. Oy vermek istiyorum.
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* spoiler overlay removed */}
                   
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
@@ -1360,39 +1351,7 @@ export default function Eurovision2020Final() {
             {/* Results section for unauthenticated users - no drag and drop */}
             <div className="flex-1">
               <div className="bg-[#2c3e50] rounded-lg p-6 relative">
-                  {/* Overlay for watching semi-final results */}
-                  {shouldShowOverlay && (
-                    <div className="absolute inset-0 bg-black bg-opacity-90 rounded-lg flex items-center justify-center z-10 p-6">
-                      <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-2xl p-8 max-w-md w-full border border-purple-500/30 shadow-2xl shadow-purple-900/30">
-                        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent mb-4 text-center">
-                          Sırbozan / Spoiler Koruması
-                        </h3>
-                        <p className="text-slate-200 mb-6 text-center leading-relaxed">
-                          Oy vermeden önce yarı final sonuçlarını izlemenizi öneririz.
-                        </p>
-                        <div className="flex flex-col gap-3">
-                          <button
-                            onClick={() => {
-                              window.open('https://www.youtube.com/watch?v=wewAqbPRHv8', '_blank');
-                            }}
-                            className="w-full px-6 py-3 bg-gradient-to-r from-indigo-700 to-violet-700 hover:from-indigo-800 hover:to-violet-800 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 hover:shadow-xl hover:shadow-indigo-900/20 hover:scale-[1.01]"
-                          >
-                            <svg className="w-5 h-5" fill="red" viewBox="0 0 24 24">
-                              <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                              <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                            </svg>
-                            Yarı final sonuçlarını izlemek istiyorum
-                          </button>
-                          <button
-                            onClick={() => setShowResultsOverlay(false)}
-                            className="w-full px-6 py-3 bg-gradient-to-r from-emerald-900 to-teal-800 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/20 hover:scale-[1.01]"
-                          >
-                            Sonuçları izledim. Oy vermek istiyorum.
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* spoiler overlay removed */}
                   
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (

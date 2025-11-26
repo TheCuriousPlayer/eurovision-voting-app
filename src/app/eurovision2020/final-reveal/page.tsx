@@ -157,6 +157,7 @@ export default function Eurovision2020FinalReveal() {
   const [showJury, setShowJury] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const [totalVotes, setTotalVotes] = useState(0);
+  const [juryTotalVotes, setJuryTotalVotes] = useState(0);
   const [onePointDistributionIndex, setOnePointDistributionIndex] = useState(-1);
   const [currentPointType, setCurrentPointType] = useState(1); // Track which point type we're distributing
   const [allPointsByType, setAllPointsByType] = useState<{ [pointType: number]: string[] }>({});
@@ -164,6 +165,17 @@ export default function Eurovision2020FinalReveal() {
   const [distributionOrder, setDistributionOrder] = useState<'asc' | 'desc'>('asc'); // 'asc' = lowest to highest (default), 'desc' = highest to lowest
   const [isDistributionComplete, setIsDistributionComplete] = useState(false); // Track if all distributions are complete
   const [selectedPreset, setSelectedPreset] = useState<string>('royal purple');
+  const [isDistributing, setIsDistributing] = useState(false);
+  const [distributedSet, setDistributedSet] = useState<Set<string>>(new Set());
+
+  // Calculate jury multiplier: UV / (2 * JV)
+  // Where JV = jury totalVotes (202004) and UV = user totalVotes (202003)
+  // This multiplier is used to scale jury points during distribution
+  // so that jury votes are weighted at ~50% of user votes
+  // Calculate jury multiplier: UV / (4 * JV) for ~25% weight
+  const JURI_MULTIPLIER = juryTotalVotes > 0 && totalVotes > 0 
+    ? Math.floor(totalVotes / (4 * juryTotalVotes))
+    : 1;
 
   // Access control helpers (derived from session)
   const userEmail = session?.user?.email ?? '';
@@ -171,6 +183,34 @@ export default function Eurovision2020FinalReveal() {
     ? VOTE_CONFIG['202003'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
     : [];
   const isGM = userEmail ? gmList.includes(userEmail.toLowerCase()) : false;
+
+  // Log multiplier calculation when both values are available
+  useEffect(() => {
+    if (juryTotalVotes > 0 && totalVotes > 0) {
+      console.log('Jury Multiplier Calculation:');
+      console.log(`  JV (Jury Total Votes): ${juryTotalVotes}`);
+      console.log(`  UV (User Total Votes): ${totalVotes}`);
+      console.log(`  Multiplier.Floor = ${totalVotes} / (4 * ${juryTotalVotes}) = ${JURI_MULTIPLIER}`);
+      console.log(`  Use this multiplier to scale jury points during distribution`);
+    }
+  }, [juryTotalVotes, totalVotes, JURI_MULTIPLIER]);
+
+  // Apply multiplier to jury results after both totalVotes are loaded
+  useEffect(() => {
+    if (juryTotalVotes > 0 && totalVotes > 0 && juryResults.length > 0) {
+      setJuryResults(prevResults => 
+        prevResults.map(result => ({
+          ...result,
+          points: result.breakdown.total * JURI_MULTIPLIER,
+          breakdown: {
+            ...result.breakdown,
+            total: result.breakdown.total * JURI_MULTIPLIER
+          }
+        }))
+      );
+      console.log('Applied JURI_MULTIPLIER to all jury results');
+    }
+  }, [JURI_MULTIPLIER, juryResults.length, juryTotalVotes, totalVotes]);
 
   useEffect(() => {
     if (status === 'authenticated' && isGM) {
@@ -306,6 +346,9 @@ export default function Eurovision2020FinalReveal() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Store jury total votes for multiplier calculation
+        setJuryTotalVotes(data.totalVotes || 0);
         
         // Parse jury results
         const parsedJuryResults: CountryResult[] = [];
@@ -444,9 +487,11 @@ export default function Eurovision2020FinalReveal() {
     console.log(`Distribution order for ${isGroupedPoints ? '1-8' : currentPointType}-point votes (${distributionOrder === 'asc' ? 'last to first' : 'first to last'}):`, rankedCountries);
     console.log(`Starting ${isGroupedPoints ? '1-8' : currentPointType} point distribution`);
     
-    // Reset progress to 0
-    setOnePointDistributionIndex(0);
-    setIsRevealing(true);
+  // Reset progress to 0
+  setOnePointDistributionIndex(0);
+  setIsRevealing(true);
+  setIsDistributing(true);
+  setDistributedSet(new Set());
 
     // Distribute all points for each country one by one
     let currentCountryIndex = 0;
@@ -456,6 +501,7 @@ export default function Eurovision2020FinalReveal() {
         clearInterval(interval);
         setIsRevealing(false);
         setOnePointDistributionIndex(rankedCountries.length); // Set to max for completed state
+        setIsDistributing(false);
         
         // Move to next point type
         // Points 1-8 are grouped, then 10, then 12
@@ -502,6 +548,13 @@ export default function Eurovision2020FinalReveal() {
         });
 
         return sortedResults;
+      });
+
+      // Mark this country as distributed so it recovers its original color
+      setDistributedSet((prev) => {
+        const s = new Set(prev);
+        s.add(countryToUpdate);
+        return s;
       });
 
       currentCountryIndex++;
@@ -705,6 +758,19 @@ export default function Eurovision2020FinalReveal() {
                 const songColorClass = isRevealed ? (isWinner ? presetObj.songRevealedWinner : presetObj.songRevealedNormal) : presetObj.performerHidden;
                 const pointsColorClass = isRevealed ? (isWinner ? presetObj.pointsRevealedWinner : presetObj.pointsRevealedNormal) : presetObj.pointsHidden;
 
+                // During distribution, non-distributed cards should show a white border for emphasis;
+                // distributed cards recover their original preset colors.
+                let finalBgClass = bgClass;
+                if (isDistributing) {
+                  try {
+                    if (!distributedSet.has(result.country)) {
+                      finalBgClass = bgClass.replace(/border-[^\s]+/g, 'border-white');
+                    }
+                  } catch {
+                    finalBgClass = bgClass;
+                  }
+                }
+
                 return (
                   <motion.div
                     key={result.country}
@@ -720,7 +786,7 @@ export default function Eurovision2020FinalReveal() {
                       opacity: { duration: 1.5 },
                       scale: { duration: 7.0 }
                     }}
-                    className={`relative rounded-lg ${paddingClass} ${bgClass}`}
+                    className={`relative rounded-lg ${paddingClass} ${finalBgClass}`}
                   >
                     <div className={`absolute -top-3 -left-7 z-20 ${badgeSizeClass} rounded-full flex items-center justify-center font-bold ${badgeColorClass}`}>
                       {isWinner && isRevealed ? '👑' : `#${position}`}

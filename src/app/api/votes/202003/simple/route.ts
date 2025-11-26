@@ -8,19 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    // Allow unauthenticated access for public/simple endpoint
     const session = await getServerSession(authOptions);
-    
-    // Require authentication to access results
-    if (!session?.user?.email) {
-      return NextResponse.json({ 
-        countryPoints: {}, 
-        totalVotes: 0,
-        userVote: null,
-        authPending: false,
-        sessionEmail: null,
-        error: 'Authentication required'
-      }, { status: 401 });
-    }
     
     // Get the 2020 Final competition by year
     const competition = await prisma.competition.findFirst({
@@ -60,7 +49,8 @@ export async function GET() {
 
     // Check vote configuration to determine if results should be hidden
     const voteConfig = VOTE_CONFIG['202003'];
-    const isGM = voteConfig?.GMs?.split(',').map(email => email.trim()).includes(session.user.email) || false;
+    const sessionEmail = session?.user?.email || null;
+    const isGM = sessionEmail ? voteConfig?.GMs?.split(',').map(email => email.trim()).includes(sessionEmail) : false;
     const shouldHideResults = voteConfig?.Mode === 'hide' && !isGM;
 
     console.log('Vote config check:');
@@ -76,7 +66,7 @@ export async function GET() {
         totalVotes: 0,
         userVote: userVoteData || null,
         authPending: false,
-        sessionEmail: session?.user?.email || null,
+        sessionEmail: sessionEmail,
         resultsHidden: true
       };
 
@@ -94,7 +84,7 @@ export async function GET() {
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,
       authPending: false,
-      sessionEmail: session?.user?.email || null,
+      sessionEmail: sessionEmail,
     };
 
     // Keep the raw results for breakdown data - don't parse to simple numbers

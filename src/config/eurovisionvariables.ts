@@ -19,13 +19,13 @@ export const VOTE_CONFIG = {
   '202001': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
-    Mode: 'hide', // 'visible' | 'hide'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '202002': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
-    Mode: 'hide', // 'visible' | 'hide'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '202003': { 
@@ -37,7 +37,7 @@ export const VOTE_CONFIG = {
   '2020': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
-    Mode: 'hide', // 'visible' | 'hide'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '2022': { 
@@ -84,8 +84,8 @@ export const Juri2020final = ['ozgunciziltepe@gmail.com', 'bugrasisman@googlemai
 //   })(),  // Dynamic: false before 01.11.2025 19:00, true after
 export const UNDER_CONSTRUCTION = {
   '2020': true,  // true: bakım modunda, false: aktif
-  '202001': true,  // true: bakım modunda, false: aktif
-  '202002': true,  // true: bakım modunda, false: aktif
+  '202001': false,  // true: bakım modunda, false: aktif
+  '202002': false,  // true: bakım modunda, false: aktif
   '202003': false,   // true: bakım modunda, false: aktif
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
