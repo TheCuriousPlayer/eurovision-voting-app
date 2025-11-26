@@ -83,7 +83,7 @@ export const Juri2020final = ['ozgunciziltepe@gmail.com', 'bugrasisman@googlemai
 //     return now < targetDate ? false : true;
 //   })(),  // Dynamic: false before 01.11.2025 19:00, true after
 export const UNDER_CONSTRUCTION = {
-  '2020': true,  // true: bakım modunda, false: aktif
+  '2020': false,  // true: bakım modunda, false: aktif
   '202001': false,  // true: bakım modunda, false: aktif
   '202002': false,  // true: bakım modunda, false: aktif
   '202003': false,   // true: bakım modunda, false: aktif

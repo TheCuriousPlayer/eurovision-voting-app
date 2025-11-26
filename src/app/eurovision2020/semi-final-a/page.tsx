@@ -1520,14 +1520,35 @@ export default function Eurovision2020SemiFinalA() {
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
                                 {points} points
                               </div>
-                              <div className="text-xs text-gray-400">
-                                {(() => {
-                                  const denom = (results?.totalVotes || 0) * 12;
-                                  if (!denom) return '0%';
-                                  const pct = (points / denom) * 100;
-                                  return `${pct.toFixed(2)}%`;
-                                })()}
-                              </div>
+                              {preferences.showWeightPercentage && (
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const denom = (results?.totalVotes || 0) * 12;
+                                    if (!denom) return <>0% <strong>Σ</strong></>;
+                                    const pct = (points / denom) * 100;
+                                    return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+                                  })()}
+                                </div>
+                              )}
+                              {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const voteCount = results.countryVoteCounts[country] || 0;
+                                    const totalVoters = results.totalVotes || 0;
+                                    if (!totalVoters) return (
+                                      <>
+                                        <span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span>
+                                      </>
+                                    );
+                                    const userPct = (voteCount / totalVoters) * 100;
+                                    return (
+                                      <>
+                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              )}
                             </div>
                           </span>
                         )}
@@ -1606,14 +1627,35 @@ export default function Eurovision2020SemiFinalA() {
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
                                 {points} points
                               </div>
-                              <div className="text-xs text-gray-400">
-                                {(() => {
-                                  const denom = (results?.totalVotes || 0) * 12;
-                                  if (!denom) return '0%';
-                                  const pct = (points / denom) * 100;
-                                  return `${pct.toFixed(2)}%`;
-                                })()}
-                              </div>
+                              {preferences.showWeightPercentage && (
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const denom = (results?.totalVotes || 0) * 12;
+                                    if (!denom) return <>0% <strong>Σ</strong></>;
+                                    const pct = (points / denom) * 100;
+                                    return <>{pct.toFixed(2)}% <strong>Σ</strong></>;
+                                  })()}
+                                </div>
+                              )}
+                              {preferences.showVoterPercentage && results?.countryVoteCounts && results.countryVoteCounts[country] !== undefined && (
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const voteCount = results.countryVoteCounts[country] || 0;
+                                    const totalVoters = results.totalVotes || 0;
+                                    if (!totalVoters) return (
+                                      <>
+                                        <span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span>
+                                      </>
+                                    );
+                                    const userPct = (voteCount / totalVoters) * 100;
+                                    return (
+                                      <>
+                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              )}
                             </div>
                           </span>
                         )}

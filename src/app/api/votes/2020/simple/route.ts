@@ -2,11 +2,13 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    // Allow unauthenticated access for public/simple endpoint
     const session = await getServerSession(authOptions);
     
     // Get the 2020 competition
@@ -45,17 +47,50 @@ export async function GET() {
     console.log('- User vote found:', !!userVoteData);
     console.log('- Session email:', session?.user?.email);
 
+    // Check vote configuration to determine if results should be hidden
+    const voteConfig = VOTE_CONFIG['2020'];
+    const sessionEmail = session?.user?.email || null;
+    const isGM = sessionEmail ? voteConfig?.GMs?.split(',').map(email => email.trim()).includes(sessionEmail) : false;
+    const shouldHideResults = voteConfig?.Mode === 'hide' && !isGM;
+
+    console.log('Vote config check:');
+    console.log('- Mode:', voteConfig?.Mode);
+    console.log('- Is GM:', isGM);
+    console.log('- Should hide results:', shouldHideResults);
+
+    // If results should be hidden, return empty data
+    if (shouldHideResults) {
+      const hiddenResponsePayload = {
+        countryPoints: {},
+        countryVoteCounts: {},
+        totalVotes: 0,
+        userVote: userVoteData || null,
+        authPending: false,
+        sessionEmail: sessionEmail,
+        resultsHidden: true
+      };
+
+      console.log('Results hidden due to mode: hide');
+
+      return NextResponse.json(hiddenResponsePayload, {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+      });
+    }
+
     const responsePayload = {
       countryPoints: cumulativeResult?.results || {},
+      countryVoteCounts: cumulativeResult?.voteCounts || {},
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,
       authPending: false,
-      sessionEmail: session?.user?.email || null,
+      sessionEmail: sessionEmail,
     };
 
     console.log('Final API response:', {
       ...responsePayload,
-      countryPointsCount: Object.keys(responsePayload.countryPoints).length
+      countryPointsCount: Object.keys(responsePayload.countryPoints).length,
+      countryVoteCountsCount: Object.keys(responsePayload.countryVoteCounts || {}).length
     });
 
     return NextResponse.json(responsePayload, {

@@ -41,6 +41,8 @@ export default function Eurovision2020Final() {
   
 
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+  // VOTING CLOSED: Derive from server config (Status false = closed, unless user is GM)
+  const votingClosed = !voteConfig.status;
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
 
@@ -164,6 +166,10 @@ export default function Eurovision2020Final() {
     const pendingKey = 'eurovision2020_final_pending_votes';
 
     async function tryResendPending() {
+      if (votingClosed) {
+        console.log('🔒 Voting closed - skipping pending vote resend');
+        return;
+      }
       try {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
@@ -204,6 +210,10 @@ export default function Eurovision2020Final() {
 
     // On unload, try to send pending using sendBeacon as a last-effort
     function onBeforeUnload() {
+      if (votingClosed) {
+        console.log('🔒 Voting closed - skipping sendBeacon');
+        return;
+      }
       try {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
@@ -224,7 +234,7 @@ export default function Eurovision2020Final() {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, []);
+  }, [votingClosed]);
 
   // Close info tooltip when clicking outside
   useEffect(() => {
@@ -245,6 +255,11 @@ export default function Eurovision2020Final() {
 
   const updateResults = async () => {
     if (!results) return;
+
+    if (votingClosed) {
+      console.log('🔒 Voting closed - updateResults blocked (no server write)');
+      return;
+    }
 
     console.log('Updating results with selectedCountries:', selectedCountries);
 
@@ -424,6 +439,11 @@ export default function Eurovision2020Final() {
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
+
+    if (votingClosed) {
+      console.log('Voting closed - drag ignored');
+      return;
+    }
 
     const sourceId = result.source.droppableId;
     const destinationId = result.destination.droppableId;
@@ -675,6 +695,10 @@ export default function Eurovision2020Final() {
 
   // Helper function to add a country to the first empty slot (uses closure)
   const addCountryToFirstEmptySlot = (country: string) => {
+    if (votingClosed) {
+      console.log('Voting closed - add ignored');
+      return;
+    }
     const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
     if (firstEmptyIndex !== -1) {
       const updatedCountries = [...selectedCountries];
@@ -694,6 +718,10 @@ export default function Eurovision2020Final() {
 
   // Helper function to handle country removal with confirmation
   const handleRemoveCountry = (index: number) => {
+    if (votingClosed) {
+      console.log('Voting closed - remove ignored');
+      return;
+    }
     if (wouldClearAllVotes(index)) {
       // Show confirmation dialog
       setPendingClearAction(() => () => {
@@ -882,7 +910,7 @@ export default function Eurovision2020Final() {
         </div>
         
         {session ? (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext onDragEnd={votingClosed ? () => {} : handleDragEnd}>
             <div className="flex flex-wrap gap-8">
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
@@ -950,6 +978,7 @@ export default function Eurovision2020Final() {
                                     key={`${selectedCountries[index]}-${index}`} 
                                     draggableId={`slot-${index}-${selectedCountries[index]}`} 
                                     index={index}
+                                    isDragDisabled={votingClosed}
                                   >
                                     {(provided, snapshot) => (
                                       <div
@@ -982,7 +1011,7 @@ export default function Eurovision2020Final() {
                                 <span className={`font-bold ${selectedCountries[index] ? 'text-white' : 'text-gray-500'}`}>
                                   {[12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index]} points
                                 </span>
-                                {selectedCountries[index] && (
+                                {selectedCountries[index] && !votingClosed && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1063,7 +1092,7 @@ export default function Eurovision2020Final() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(0, Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index}>
+                              <Draggable key={country} draggableId={country} index={index} isDragDisabled={votingClosed}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -1076,7 +1105,7 @@ export default function Eurovision2020Final() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                      {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                         <div className="group inline-block">
                                           <button
                                             className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
@@ -1205,7 +1234,7 @@ export default function Eurovision2020Final() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)}>
+                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)} isDragDisabled={votingClosed}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -1218,7 +1247,7 @@ export default function Eurovision2020Final() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                      {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                         <div className="group inline-block">
                                           <button
                                             className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"

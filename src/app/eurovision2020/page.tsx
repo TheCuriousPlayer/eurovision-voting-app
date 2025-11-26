@@ -845,18 +845,18 @@ export default function Eurovision2020() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
-      {/* 404 Error Message - Temporary Full Screen Overlay */}
+      {/* 404 Error Message - Temporary Full Screen Overlay
       <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
         <div className="text-center text-white">
           <h2 className="text-9xl font-bold mb-4">404</h2>
           <p className="text-3xl">This page could not be found.</p>
         </div>
-      </div>
+      </div> */}
 
       <div className="container mx-auto px-4">
         
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2020 Final
+          Eurovision 2020
         </h1>
         
         {session ? (
