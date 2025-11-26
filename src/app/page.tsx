@@ -89,7 +89,7 @@ export default function Home() {
                           Grand Final
                         </h3>
                         <h3 className="text-sm font-semibold text-white">
-                          Oylama Devam ediyor
+                          Oylama Tamamlandı
                         </h3>
                         
                       </Link>
