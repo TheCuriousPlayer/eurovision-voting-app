@@ -74,7 +74,7 @@ export default function Home() {
                     <div className="group">
                       <Link 
                         href="/eurovision2020/final"
-                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#3498db] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                       >
                         <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                           <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -99,7 +99,7 @@ export default function Home() {
                     <div className="group">
                       <Link 
                         href="/eurovision2020/semi-final-b"
-                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                       >
                         <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                           <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -125,7 +125,7 @@ export default function Home() {
                     <div className="group">
                       <Link 
                         href="/eurovision2020/semi-final-a"
-                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                       >
                         <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                           <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -243,7 +243,7 @@ export default function Home() {
                   <div className="group">
                     <Link 
                       href="/eurovision2020/final"
-                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#3498db] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                     >
                       <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                         <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -268,7 +268,7 @@ export default function Home() {
                   <div className="group">
                     <Link 
                       href="/eurovision2020/semi-final-b"
-                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                     >
                       <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                         <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -294,7 +294,7 @@ export default function Home() {
                   <div className="group">
                     <Link 
                       href="/eurovision2020/semi-final-a"
-                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#2980b9] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                     >
                       <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                         <div className="transform rotate-45 translate-x-8 -translate-y-8">
