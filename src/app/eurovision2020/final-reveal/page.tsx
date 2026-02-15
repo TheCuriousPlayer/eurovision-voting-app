@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { eurovision2020DataFinal } from '@/data/eurovision2020';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
+import { formatNumber } from '@/utils/formatNumber';
 
 const eurovision2020Songs = eurovision2020DataFinal;
 
@@ -832,7 +833,7 @@ export default function Eurovision2020FinalReveal() {
                               transition={{ type: "spring", stiffness: 300}}
                               className={`${isWinner ? 'text-5xl' : 'text-3xl'} font-bold ${pointsColorClass}`}
                             >
-                              {result.points}
+                              {formatNumber(result.points)}
                             </motion.div>
                           ) : (
                             <motion.div
@@ -852,7 +853,7 @@ export default function Eurovision2020FinalReveal() {
                               const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(1) : '0.0';
                               return (
                                 <>
-                                  <span>{percentage}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                  <span>{percentage}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span>
                                 </>
                               );
                             })()}

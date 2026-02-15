@@ -4,6 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
+import { formatNumber } from '@/utils/formatNumber';
+import AnimatedCounter from '@/components/AnimatedCounter';
 
 interface VoteMapData {
   countryCounts: { [country: string]: number };
@@ -97,6 +99,21 @@ export default function HaritaPage() {
   const [showLegacyTooltip, setShowLegacyTooltip] = useState(false);
   const [activeTab, setActiveTab] = useState<'personal' | 'global'>('personal');
   const [tooltipContent, setTooltipContent] = useState('');
+  const [position, setPosition] = useState({ coordinates: [70, 28] as [number, number], zoom: 1 });
+
+  function handleZoomIn() {
+    if (position.zoom >= 8) return;
+    setPosition((pos) => ({ ...pos, zoom: pos.zoom * 1.2 }));
+  }
+
+  function handleZoomOut() {
+    if (position.zoom <= 1) return;
+    setPosition((pos) => ({ ...pos, zoom: pos.zoom / 1.2 }));
+  }
+
+  function handleMoveEnd(position: { coordinates: [number, number]; zoom: number }) {
+    setPosition(position);
+  }
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -202,13 +219,13 @@ export default function HaritaPage() {
         <p className="text-gray-300 text-center mb-8">
           {activeTab === 'personal' ? (
             <>
-              Toplam <span className="text-yellow-400 font-bold">{voteData?.totalVotes || 0}</span> oy verdim
+              Toplam <span className="text-yellow-400 font-bold"><AnimatedCounter value={voteData?.totalVotes || 0} /></span> oy verdim
               {voteData?.competitions && ` (${voteData.competitions.length} yarışma)`}
             </>
           ) : (
             <>
-              <span className="text-green-400 font-bold">{globalVoteData?.totalUsers || 0}</span> kullanıcı toplam{' '}
-              <span className="text-green-400 font-bold">{globalVoteData?.totalVotes || 0}</span> oy verdi
+              <span className="text-green-400 font-bold"><AnimatedCounter value={globalVoteData?.totalUsers || 0} /></span> kullanıcı toplam{' '}
+              <span className="text-green-400 font-bold"><AnimatedCounter value={globalVoteData?.totalVotes || 0} /></span> oy verdi
               {globalVoteData?.competitions && ` (${globalVoteData.competitions.length} yarışma)`}
             </>
           )}
@@ -269,7 +286,7 @@ export default function HaritaPage() {
                         <p>Bölünen veya dağılan ülkelere verdiğiniz oylar, halef ülkelerine eşit şekilde dağıtılır:</p>
                         <ul className="list-disc list-inside space-y-1 text-xs">
                           <li><strong>Yugoslavia</strong> → Sırbistan Karadağ, Hırvatistan, Slovenya, Kuzey Makedonya, Bosna-Hersek</li>
-                          <li><strong>Serbia and Montenegro</strong> → Sırbistan + Karadağ</li>
+                          <li><strong>Serbia and Montenegro</strong> → Sırbistan, Karadağ</li>
                         </ul>
                         <p className="text-xs text-gray-400 mt-2 pt-2 border-gray-600">
                           💡 Örnek: "Serbia and Montenegro"ya 12 puan verdiyseniz, hem Sırbistan hem de Karadağ 12'şer puan alır.
@@ -327,9 +344,11 @@ export default function HaritaPage() {
                             <div className="flex justify-between items-center mb-1">
                               <div className="flex flex-col">
                                 <span className="text-white font-medium">{country}</span>
-                                <span className="text-xs text-gray-400">{count} oy + {points} puan</span>
+                                <span className="text-xs text-gray-400">
+                                  <AnimatedCounter value={count} /> oy + <AnimatedCounter value={points} /> puan
+                                </span>
                               </div>
-                              <span className="text-yellow-400 font-bold">{sum}</span>
+                              <span className="text-yellow-400 font-bold"><AnimatedCounter value={sum} /></span>
                             </div>
                             <div className="w-full bg-[#1a1a2e] rounded-full h-2">
                               <div
@@ -386,9 +405,11 @@ export default function HaritaPage() {
                             <div className="flex justify-between items-center mb-1">
                               <div className="flex flex-col">
                                 <span className="text-white font-medium">{country}</span>
-                                <span className="text-xs text-gray-400">{count} oy + {points} puan</span>
+                                <span className="text-xs text-gray-400">
+                                  <AnimatedCounter value={count} /> oy + <AnimatedCounter value={points} /> puan
+                                </span>
                               </div>
-                              <span className="text-green-400 font-bold">{sum}</span>
+                              <span className="text-green-400 font-bold"><AnimatedCounter value={sum} /></span>
                             </div>
                             <div className="w-full bg-[#1a1a2e] rounded-full h-2">
                               <div
@@ -443,18 +464,44 @@ export default function HaritaPage() {
                 )}
 
                 {/* Interactive Map */}
-                <div className="w-full" style={{ height: '500px' }}>
+                <div className="w-full relative" style={{ height: '500px' }}>
+                  {/* Zoom Controls */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                    <button
+                      onClick={() => setPosition(pos => ({ ...pos, zoom: Math.min(pos.zoom * 1.5, 8) }))}
+                      className="w-8 h-8 bg-gray-700 text-white rounded-lg flex items-center justify-center hover:bg-gray-600 transition-colors shadow-lg"
+                      title="Yakınlaştır"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setPosition(pos => ({ ...pos, zoom: Math.max(pos.zoom / 1.5, 1) }))}
+                      className="w-8 h-8 bg-gray-700 text-white rounded-lg flex items-center justify-center hover:bg-gray-600 transition-colors shadow-lg"
+                      title="Uzaklaştır"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+
                   <ComposableMap
                     projection="geoMercator"
                     projectionConfig={{
-                      scale: 150,
-                      center: [15, 50]
+                      scale: 180,
+                      center: [70, 28]
                     }}
                     width={800}
                     height={450}
                   >
-                    <ZoomableGroup>
-                      <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
+                    <ZoomableGroup
+                      zoom={position.zoom}
+                      center={position.coordinates}
+                      onMoveEnd={(position) => setPosition(position)}
+                    >
+                      <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json">
                         {({ geographies }) =>
                           geographies.map((geo) => {
                             const countryCode = geo.id; // ISO 3166-1 numeric code
@@ -526,10 +573,10 @@ export default function HaritaPage() {
                                   
                                   if (matchedCountry && totalScore > 0) {
                                     setTooltipContent(
-                                      `${matchedCountry}: ${voteCount} oy + ${votePoints} puan = ${totalScore}`
+                                      `${matchedCountry}: ${formatNumber(voteCount)} oy + ${formatNumber(votePoints)} puan = ${formatNumber(totalScore)}`
                                     );
                                   } else {
-                                    setTooltipContent(`${displayName}: Oy yok`);
+                                    setTooltipContent(`${displayName}`);
                                   }
                                 }}
                                 onMouseLeave={() => {
@@ -561,19 +608,19 @@ export default function HaritaPage() {
                 <>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-yellow-400">
-                      {Object.keys(voteData?.countryCounts || {}).filter(c => !legacyCountries.includes(c)).length}
+                      <AnimatedCounter value={Object.keys(voteData?.countryCounts || {}).filter(c => !legacyCountries.includes(c)).length} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Farklı Ülke</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-yellow-400">
-                      {voteData?.totalVotes || 0}
+                      <AnimatedCounter value={voteData?.totalVotes || 0} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Toplam Oy</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-yellow-400">
-                      {voteData?.competitions?.length || 0}
+                      <AnimatedCounter value={voteData?.competitions?.length || 0} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Yarışma</div>
                   </div>
@@ -582,19 +629,19 @@ export default function HaritaPage() {
                 <>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-400">
-                      {globalVoteData?.totalUsers || 0}
+                      <AnimatedCounter value={globalVoteData?.totalUsers || 0} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Tekil Kullanıcı</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-400">
-                      {Object.keys(globalVoteData?.countryCounts || {}).filter(c => !legacyCountries.includes(c)).length}
+                      <AnimatedCounter value={Object.keys(globalVoteData?.countryCounts || {}).filter(c => !legacyCountries.includes(c)).length} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Farklı Ülke</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-400">
-                      {globalVoteData?.totalVotes || 0}
+                      <AnimatedCounter value={globalVoteData?.totalVotes || 0} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Toplam Oy</div>
                   </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
@@ -6,6 +6,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 import { eurovision2020DataGroupB, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
+import { formatNumber } from '@/utils/formatNumber';
 
 type Results = {
   countryPoints: { [country: string]: number };
@@ -956,7 +957,7 @@ export default function Eurovision2020SemiFinalBRevealPage() {
                                   const userPct = (voteCount / totalVoters) * 100;
                                   return (
                                     <>
-                                      <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                      <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span>
                                     </>
                                   );
                                 })()}
@@ -1074,7 +1075,7 @@ export default function Eurovision2020SemiFinalBRevealPage() {
                                   const userPct = (voteCount / totalVoters) * 100;
                                   return (
                                     <>
-                                      <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                      <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span>
                                     </>
                                   );
                                 })()}

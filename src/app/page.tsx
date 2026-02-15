@@ -4,6 +4,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { formatNumber } from '@/utils/formatNumber';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -87,6 +88,33 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* Harita Card */}
+            <div className="group">
+              <Link 
+                href="/Harita"
+                className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+              >
+                <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                  <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                    <div className="w-20 h-20 border-4 border-white rounded-full" />
+                  </div>
+                </div>
+                
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Harita
+                </h2>
+                
+                <div className="flex items-end justify-between h-5 relative">
+                  <div className="text-gray-300 text-sm self-end">
+                    <span>Oylama Haritası</span>
+                  </div>
+                  <div className="text-gray-200 text-5xl absolute right-0 bottom-[+5px]">
+                    <span>🌍</span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
             {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => {
               // Special handling for year 2020 - show only contest-specific cards
               if (year === 2020) {
@@ -114,7 +142,7 @@ export default function Home() {
                           </div>
                           {voteCounts[2020] !== undefined && (
                             <div className="text-gray-200 text-xs">
-                              <span>{voteCounts[2020] === 0 ? '⌛' : `${voteCounts[2020]} oy`}</span>
+                              <span>{voteCounts[2020] === 0 ? '⌛' : `${formatNumber(voteCounts[2020])} oy`}</span>
                             </div>
                           )}
                         </div>
@@ -145,7 +173,7 @@ export default function Home() {
                           </h3>
                           {voteCounts['202003'] !== undefined && (
                             <div className="text-gray-200 text-xs">
-                              <span>{voteCounts['202003'] === 0 ? '⌛' : `${voteCounts['202003']} oy`}</span>
+                              <span>{voteCounts['202003'] === 0 ? '⌛' : `${formatNumber(voteCounts['202003'])} oy`}</span>
                             </div>
                           )}
                         </div>
@@ -177,7 +205,7 @@ export default function Home() {
                           </h3>
                           {voteCounts['202002'] !== undefined && (
                             <div className="text-gray-200 text-xs">
-                              <span>{voteCounts['202002'] === 0 ? '⌛' : `${voteCounts['202002']} oy`}</span>
+                              <span>{voteCounts['202002'] === 0 ? '⌛' : `${formatNumber(voteCounts['202002'])} oy`}</span>
                             </div>
                           )}
                         </div>
@@ -210,7 +238,7 @@ export default function Home() {
                           </h3>
                           {voteCounts['202001'] !== undefined && (
                             <div className="text-gray-200 text-xs">
-                              <span>{voteCounts['202001'] === 0 ? '⌛' : `${voteCounts['202001']} oy`}</span>
+                              <span>{voteCounts['202001'] === 0 ? '⌛' : `${formatNumber(voteCounts['202001'])} oy`}</span>
                             </div>
                           )}
                         </div>
@@ -253,7 +281,7 @@ export default function Home() {
                       </div>
                       {voteCounts[year] !== undefined && (
                         <div className="text-gray-200 text-xs">
-                          <span>{voteCounts[year] === 0 ? '⌛' : `${voteCounts[year]} oy`}</span>
+                          <span>{voteCounts[year] === 0 ? '⌛' : `${formatNumber(voteCounts[year])} oy`}</span>
                         </div>
                       )}
                     </div>
@@ -291,6 +319,33 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* Harita Card */}
+          <div className="group">
+            <Link 
+              href="/Harita"
+              className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+            >
+              <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                  <div className="w-20 h-20 border-4 border-white rounded-full" />
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Harita
+              </h2>
+              
+                <div className="flex items-end justify-between h-5 relative">
+                  <div className="text-gray-300 text-sm self-end">
+                    <span>Oylama Haritası</span>
+                  </div>
+                  <div className="text-gray-200 text-5xl absolute right-0 bottom-[+5px]">
+                  <span>🌍</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+
           {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => {
             // Special handling for year 2020 - show only contest-specific cards
             if (year === 2020) {
@@ -318,7 +373,7 @@ export default function Home() {
                         </div>
                         {voteCounts[2020] !== undefined && (
                           <div className="text-gray-200 text-xs">
-                            <span>{voteCounts[2020] === 0 ? '⌛' : `${voteCounts[2020]} oy`}</span>
+                            <span>{voteCounts[2020] === 0 ? '⌛' : `${formatNumber(voteCounts[2020])} oy`}</span>
                           </div>
                         )}
                       </div>
@@ -349,7 +404,7 @@ export default function Home() {
                         </h3>
                         {voteCounts['202003'] !== undefined && (
                           <div className="text-gray-200 text-xs">
-                            <span>{voteCounts['202003'] === 0 ? '⌛' : `${voteCounts['202003']} oy`}</span>
+                            <span>{voteCounts['202003'] === 0 ? '⌛' : `${formatNumber(voteCounts['202003'])} oy`}</span>
                           </div>
                         )}
                       </div>
@@ -381,7 +436,7 @@ export default function Home() {
                         </h3>
                         {voteCounts['202002'] !== undefined && (
                           <div className="text-gray-200 text-xs">
-                            <span>{voteCounts['202002'] === 0 ? '⌛' : `${voteCounts['202002']} oy`}</span>
+                            <span>{voteCounts['202002'] === 0 ? '⌛' : `${formatNumber(voteCounts['202002'])} oy`}</span>
                           </div>
                         )}
                       </div>
@@ -414,7 +469,7 @@ export default function Home() {
                         </h3>
                         {voteCounts['202001'] !== undefined && (
                           <div className="text-gray-200 text-xs">
-                            <span>{voteCounts['202001'] === 0 ? '⌛' : `${voteCounts['202001']} oy`}</span>
+                            <span>{voteCounts['202001'] === 0 ? '⌛' : `${formatNumber(voteCounts['202001'])} oy`}</span>
                           </div>
                         )}
                       </div>
@@ -457,7 +512,7 @@ export default function Home() {
                     </div>
                     {voteCounts[year] !== undefined && (
                       <div className="text-gray-200 text-xs">
-                          <span>{voteCounts[year] === 0 ? '⌛' : `${voteCounts[year]} oy`}</span>
+                          <span>{voteCounts[year] === 0 ? '⌛' : `${formatNumber(voteCounts[year])} oy`}</span>
                       </div>
                     )}
                   </div>

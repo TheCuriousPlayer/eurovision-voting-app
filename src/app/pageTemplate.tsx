@@ -5,6 +5,7 @@ import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { formatNumber } from '@/utils/formatNumber';
 
 const eurovision2999Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
 // 'Albania': { code: 'AL', performer: '', song: '', youtubeId: '' },

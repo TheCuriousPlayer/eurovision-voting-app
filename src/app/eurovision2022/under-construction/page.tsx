@@ -1,5 +1,7 @@
 'use client';
 
+
+import { formatNumber } from '@/utils/formatNumber';
 export default function UnderConstruction() {
 
   return (

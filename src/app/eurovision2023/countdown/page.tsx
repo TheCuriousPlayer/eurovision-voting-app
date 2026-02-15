@@ -1,5 +1,7 @@
 'use client';
 
+
+import { formatNumber } from '@/utils/formatNumber';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';

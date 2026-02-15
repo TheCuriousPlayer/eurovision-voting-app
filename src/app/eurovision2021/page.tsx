@@ -1,5 +1,7 @@
-'use client';
+﻿'use client';
 
+
+import { formatNumber } from '@/utils/formatNumber';
 import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
@@ -1011,7 +1013,7 @@ export default function Eurovision2021() {
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
-                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
+                      `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})`
                     ) : (
                       <>
                         <span>Ülkeler (Alfabetik) </span>
@@ -1119,7 +1121,7 @@ export default function Eurovision2021() {
                                       }`}>
                                         <div className="ml-2 whitespace-nowrap text-right">
                                           <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                            {points} points
+                                            {formatNumber(points)} points
                                           </div>
                                           {preferences.showWeightPercentage && (
 
@@ -1147,7 +1149,7 @@ export default function Eurovision2021() {
                                                 const totalVoters = results.totalVotes || 0;
                                                 if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1261,7 +1263,7 @@ export default function Eurovision2021() {
                                       }`}>
                                         <div className="ml-2 whitespace-nowrap text-right">
                                           <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                            {points} points
+                                            {formatNumber(points)} points
                                           </div>
                                           {preferences.showWeightPercentage && (
 
@@ -1289,7 +1291,7 @@ export default function Eurovision2021() {
                                                 const totalVoters = results.totalVotes || 0;
                                                 if (!totalVoters) return (<><span>0%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>0</span></>);
                                                 const userPct = (voteCount / totalVoters) * 100;
-                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span></>);
+                                                return (<><span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span></>);
                                               })()}
                                             </div>
                                           )}
@@ -1322,7 +1324,7 @@ export default function Eurovision2021() {
               <div className="bg-[#2c3e50] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-white mb-4">
                     {showResults ? (
-                      `Sonuçlar (Toplam Kullanıcı: ${results.totalVotes})`
+                      `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})`
                     ) : (
                       <>
                         <span>Ülkeler (Alfabetik) </span>
@@ -1403,7 +1405,7 @@ export default function Eurovision2021() {
                           }`}>
                             <div className="ml-2 whitespace-nowrap text-right">
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                {points} points
+                                {formatNumber(points)} points
                               </div>
                               {preferences.showWeightPercentage && (
 
@@ -1437,7 +1439,7 @@ export default function Eurovision2021() {
                                     const userPct = (voteCount / totalVoters) * 100;
                                     return (
                                       <>
-                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span>
                                       </>
                                     );
                                   })()}
@@ -1519,7 +1521,7 @@ export default function Eurovision2021() {
                           }`}>
                             <div className="ml-2 whitespace-nowrap text-right">
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                {points} points
+                                {formatNumber(points)} points
                               </div>
                               {preferences.showWeightPercentage && (
 
@@ -1553,7 +1555,7 @@ export default function Eurovision2021() {
                                     const userPct = (voteCount / totalVoters) * 100;
                                     return (
                                       <>
-                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{voteCount}</span>
+                                        <span>{userPct.toFixed(1)}%</span> <span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> <span>{formatNumber(voteCount)}</span>
                                       </>
                                     );
                                   })()}
