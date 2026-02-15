@@ -664,7 +664,7 @@ export default function Eurovision2025() {
         }
         
         // Only set selectedCountries if user is authenticated and has votes
-        if (session && loading && data.userVote?.votes) {
+        if (session && data.userVote?.votes) {
           // Mark that we've loaded votes from database BEFORE setting state
           // This prevents the useEffect from triggering a save
           hasLoadedVotesFromDB.current = true;

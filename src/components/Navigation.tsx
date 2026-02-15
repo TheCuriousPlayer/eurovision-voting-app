@@ -32,16 +32,8 @@ export default function Navigation() {
 
   const navItems = [
     {
-      href: '/eurovision2020/semi-final-a',
-      label: 'Yarı Final A Gurubu',
-    },
-    {
-      href: '/eurovision2020/semi-final-b',
-      label: 'Yarı Final B Gurubu',
-    },
-    {
-      href: '/eurovision2020/final',
-      label: 'Final',
+      href: '/eurovision2021',
+      label: 'Eurovision 2021',
     },
   ];
 
@@ -84,7 +76,7 @@ export default function Navigation() {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="px-4 py-2 rounded-md text-sm font-medium transition-colors text-center bg-[#2c3e50] text-white hover:bg-[#34495e] flex items-center gap-2"
               >
-                Eurovision 2020
+                Güncel
                 <svg 
                   className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
                   fill="none" 

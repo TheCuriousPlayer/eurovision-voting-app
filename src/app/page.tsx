@@ -3,9 +3,53 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const [voteCounts, setVoteCounts] = useState<{ [year: string]: number }>({});
+
+  useEffect(() => {
+    // Fetch vote counts for all years
+    const fetchVoteCounts = async () => {
+      const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+      const subCompetitions = [
+        { key: '202001', year: 2020 }, // Semi-Final A
+        { key: '202002', year: 2020 }, // Semi-Final B
+        { key: '202003', year: 2020 }  // Final
+      ];
+      const counts: { [year: string]: number } = {};
+      
+      await Promise.all([
+        ...years.map(async (year) => {
+          try {
+            const response = await fetch(`/api/votes/${year}/simple`);
+            if (response.ok) {
+              const data = await response.json();
+              counts[year] = data.totalVotes || 0;
+            }
+          } catch (error) {
+            console.error(`Error fetching votes for ${year}:`, error);
+          }
+        }),
+        ...subCompetitions.map(async ({ key }) => {
+          try {
+            const response = await fetch(`/api/votes/${key}/simple`);
+            if (response.ok) {
+              const data = await response.json();
+              counts[key] = data.totalVotes || 0;
+            }
+          } catch (error) {
+            console.error(`Error fetching votes for ${key}:`, error);
+          }
+        })
+      ]);
+      
+      setVoteCounts(counts);
+    };
+    
+    fetchVoteCounts();
+  }, []);
 
   if (String(status) === 'loading') {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -64,8 +108,15 @@ export default function Home() {
                           Eurovision 2020
                         </h2>
                         
-                        <div className="text-gray-300 text-sm">
-                          <span>Aktif</span>
+                        <div className="flex items-end justify-between">
+                          <div className="text-gray-300 text-sm">
+                            <span>Aktif</span>
+                          </div>
+                          {voteCounts[2020] !== undefined && (
+                            <div className="text-gray-200 text-xs">
+                              <span>{voteCounts[2020] === 0 ? '⌛' : `${voteCounts[2020]} oy`}</span>
+                            </div>
+                          )}
                         </div>
                       </Link>
                     </div>
@@ -88,9 +139,16 @@ export default function Home() {
                         <h3 className="text-sm font-semibold text-white">
                           Grand Final
                         </h3>
-                        <h3 className="text-sm font-semibold text-white">
-                          Oylama Tamamlandı
-                        </h3>
+                        <div className="flex items-end justify-between">
+                          <h3 className="text-sm font-semibold text-white">
+                            Oylama Tamamlandı
+                          </h3>
+                          {voteCounts['202003'] !== undefined && (
+                            <div className="text-gray-200 text-xs">
+                              <span>{voteCounts['202003'] === 0 ? '⌛' : `${voteCounts['202003']} oy`}</span>
+                            </div>
+                          )}
+                        </div>
                         
                       </Link>
                     </div>
@@ -113,9 +171,16 @@ export default function Home() {
                         <h3 className="text-sm font-semibold text-white">
                           Yarı Final B
                         </h3>
-                        <h3 className="text-sm font-semibold text-white">
-                          Oylama Tamamlandı
-                        </h3>
+                        <div className="flex items-end justify-between">
+                          <h3 className="text-sm font-semibold text-white">
+                            Oylama Tamamlandı
+                          </h3>
+                          {voteCounts['202002'] !== undefined && (
+                            <div className="text-gray-200 text-xs">
+                              <span>{voteCounts['202002'] === 0 ? '⌛' : `${voteCounts['202002']} oy`}</span>
+                            </div>
+                          )}
+                        </div>
                         
 
                       </Link>
@@ -139,9 +204,16 @@ export default function Home() {
                         <h3 className="text-sm font-semibold text-white">
                           Yarı Final A
                         </h3>
-                        <h3 className="text-sm font-semibold text-white">
-                          Oylama Tamamlandı
-                        </h3>
+                        <div className="flex items-end justify-between">
+                          <h3 className="text-sm font-semibold text-white">
+                            Oylama Tamamlandı
+                          </h3>
+                          {voteCounts['202001'] !== undefined && (
+                            <div className="text-gray-200 text-xs">
+                              <span>{voteCounts['202001'] === 0 ? '⌛' : `${voteCounts['202001']} oy`}</span>
+                            </div>
+                          )}
+                        </div>
                         
 
                       </Link>
@@ -156,7 +228,7 @@ export default function Home() {
                     href={`/eurovision${year}`}
                     className={`
                       block relative overflow-hidden rounded-xl p-6 
-                      ${year < 2026 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                      ${year < 2026 && year > 2020 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
                       transform transition-all duration-300 shadow-lg
                       hover:scale-105 hover:shadow-xl
                     `}
@@ -171,11 +243,18 @@ export default function Home() {
                       Eurovision {year}
                     </h2>
                     
-                    <div className="text-gray-300 text-sm">
-                      {year < 2026 && year > 2021 ? (
-                        <span>Aktif</span>
-                      ) : (
-                        <span>Eklenecek...</span>
+                    <div className="flex items-end justify-between">
+                      <div className="text-gray-300 text-sm">
+                        {year < 2026 && year > 2020 ? (
+                          <span>Aktif</span>
+                        ) : (
+                          <span>Eklenecek...</span>
+                        )}
+                      </div>
+                      {voteCounts[year] !== undefined && (
+                        <div className="text-gray-200 text-xs">
+                          <span>{voteCounts[year] === 0 ? '⌛' : `${voteCounts[year]} oy`}</span>
+                        </div>
                       )}
                     </div>
                   </Link>
@@ -233,8 +312,15 @@ export default function Home() {
                         Eurovision 2020
                       </h2>
                       
-                      <div className="text-gray-300 text-sm">
-                        <span>Aktif</span>
+                      <div className="flex items-end justify-between">
+                        <div className="text-gray-300 text-sm">
+                          <span>Aktif</span>
+                        </div>
+                        {voteCounts[2020] !== undefined && (
+                          <div className="text-gray-200 text-xs">
+                            <span>{voteCounts[2020] === 0 ? '⌛' : `${voteCounts[2020]} oy`}</span>
+                          </div>
+                        )}
                       </div>
                     </Link>
                   </div>
@@ -257,9 +343,16 @@ export default function Home() {
                       <h3 className="text-sm font-semibold text-white">
                         Grand Final
                       </h3>
-                      <h3 className="text-sm font-semibold text-white">
-                        Oylama Tamamlandı
-                      </h3>
+                      <div className="flex items-end justify-between">
+                        <h3 className="text-sm font-semibold text-white">
+                          Oylama Tamamlandı
+                        </h3>
+                        {voteCounts['202003'] !== undefined && (
+                          <div className="text-gray-200 text-xs">
+                            <span>{voteCounts['202003'] === 0 ? '⌛' : `${voteCounts['202003']} oy`}</span>
+                          </div>
+                        )}
+                      </div>
                       
                     </Link>
                   </div>
@@ -282,9 +375,16 @@ export default function Home() {
                       <h3 className="text-sm font-semibold text-white">
                         Yarı Final B
                       </h3>
-                      <h3 className="text-sm font-semibold text-white">
-                        Oylama Tamamlandı
-                      </h3>
+                      <div className="flex items-end justify-between">
+                        <h3 className="text-sm font-semibold text-white">
+                          Oylama Tamamlandı
+                        </h3>
+                        {voteCounts['202002'] !== undefined && (
+                          <div className="text-gray-200 text-xs">
+                            <span>{voteCounts['202002'] === 0 ? '⌛' : `${voteCounts['202002']} oy`}</span>
+                          </div>
+                        )}
+                      </div>
                       
 
                     </Link>
@@ -308,9 +408,16 @@ export default function Home() {
                       <h3 className="text-sm font-semibold text-white">
                         Yarı Final A
                       </h3>
-                      <h3 className="text-sm font-semibold text-white">
-                        Oylama Tamamlandı
-                      </h3>
+                      <div className="flex items-end justify-between">
+                        <h3 className="text-sm font-semibold text-white">
+                          Oylama Tamamlandı
+                        </h3>
+                        {voteCounts['202001'] !== undefined && (
+                          <div className="text-gray-200 text-xs">
+                            <span>{voteCounts['202001'] === 0 ? '⌛' : `${voteCounts['202001']} oy`}</span>
+                          </div>
+                        )}
+                      </div>
                       
 
                     </Link>
@@ -325,7 +432,7 @@ export default function Home() {
                   href={`/eurovision${year}`}
                   className={`
                     block relative overflow-hidden rounded-xl p-6 
-                    ${year < 2026 && year > 2021 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
+                    ${year < 2026 && year > 2020 ? 'bg-gradient-to-r from-[#249e57] to-[#11816b]' : 'bg-[#2c3e50]'}
                     transform transition-all duration-300 shadow-lg
                     hover:scale-105 hover:shadow-xl
                   `}
@@ -340,11 +447,18 @@ export default function Home() {
                     Eurovision {year}
                   </h2>
                   
-                  <div className="text-gray-300 text-sm">
-                    {year < 2026 && year > 2021 ? (
-                      <span>Aktif</span>
-                    ) : (
-                      <span>Eklenecek...</span>
+                  <div className="flex items-end justify-between">
+                    <div className="text-gray-300 text-sm">
+                      {year < 2026 && year > 2020 ? (
+                        <span>Aktif</span>
+                      ) : (
+                        <span>Eklenecek...</span>
+                      )}
+                    </div>
+                    {voteCounts[year] !== undefined && (
+                      <div className="text-gray-200 text-xs">
+                          <span>{voteCounts[year] === 0 ? '⌛' : `${voteCounts[year]} oy`}</span>
+                      </div>
                     )}
                   </div>
                 </Link>

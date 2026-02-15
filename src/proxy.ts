@@ -47,18 +47,18 @@ function isRequestFromOurApp(request: NextRequest): boolean {
   return false;
 }
 
-  // API koruma middleware
-export function middleware(request: NextRequest) {
+  // API koruma proxy
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const now = new Date();
   
   // Debug için bilgileri yazdır
-  console.log(`[Middleware] Path: ${path}, Date: ${now.toISOString()}`);
-  console.log(`[Middleware] Processing request for path: ${path}`);
+  console.log(`[Proxy] Path: ${path}, Date: ${now.toISOString()}`);
+  console.log(`[Proxy] Processing request for path: ${path}`);
   
   // Log the matcher check for root Eurovision paths
   if (path === '/eurovision2020' || path === '/eurovision2021' || path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025' || path === '/eurovision2026') {
-    console.log(`[Middleware] EXACT MATCH for Eurovision year path: ${path}`);
+    console.log(`[Proxy] EXACT MATCH for Eurovision year path: ${path}`);
   }
   
   // vote-config API için yıl parametresini ekle (middleware'den geçirerek)
@@ -82,7 +82,7 @@ export function middleware(request: NextRequest) {
     const isRevealPage = path.includes('-reveal');
     if (isRevealPage) {
       // Reveal sayfaları için bakım modu kontrolü yapma
-      console.log(`[Middleware] Skipping UNDER_CONSTRUCTION check for reveal page: ${path}`);
+      console.log(`[Proxy] Skipping UNDER_CONSTRUCTION check for reveal page: ${path}`);
     } else {
       // Semi-final sayfalarını kontrol et
       const isSemiFinalA = path.includes('/semi-final-a');
@@ -92,7 +92,7 @@ export function middleware(request: NextRequest) {
       
       // Exclude final-player from under-construction check
       if (isFinalPlayer) {
-        console.log(`[Middleware] Skipping UNDER_CONSTRUCTION check for final-player: ${path}`);
+        console.log(`[Proxy] Skipping UNDER_CONSTRUCTION check for final-player: ${path}`);
         return NextResponse.next();
       }
       
@@ -146,7 +146,7 @@ export function middleware(request: NextRequest) {
     const isVotingPage = path.includes('/vote') || path.includes('/voting');
     
     if (isMainPage || isVotingPage) {
-      console.log(`[Middleware] Checking path: ${path}, isMainPage: ${isMainPage}, isVotingPage: ${isVotingPage}`);
+      console.log(`[Proxy] Checking path: ${path}, isMainPage: ${isMainPage}, isVotingPage: ${isVotingPage}`);
       
       const voteConfig = VotePages_variables[year as keyof typeof VotePages_variables];
       
@@ -157,7 +157,7 @@ export function middleware(request: NextRequest) {
         
         // "HH:MM DD.MM.YYYY" formatını parse et
         try {
-          console.log(`[Middleware] Checking date for ${year}. Config date: ${voteConfig.ShowCountDown}`);
+          console.log(`[Proxy] Checking date for ${year}. Config date: ${voteConfig.ShowCountDown}`);
           
           const [timeStr, dateStr] = voteConfig.ShowCountDown.split(' ');
           if (!timeStr || !dateStr) {
@@ -175,27 +175,27 @@ export function middleware(request: NextRequest) {
           const targetDate = new Date(yearNum, month - 1, day, hours, minutes);
           
           // Debug için tarihleri logla
-          console.log(`[Middleware] Current date: ${now.toISOString()} (${now.getTime()})`);
-          console.log(`[Middleware] Target date: ${targetDate.toISOString()} (${targetDate.getTime()})`);
+          console.log(`[Proxy] Current date: ${now.toISOString()} (${now.getTime()})`);
+          console.log(`[Proxy] Target date: ${targetDate.toISOString()} (${targetDate.getTime()})`);
           
           // Milisaniye cinsinden karşılaştır
           const nowMs = now.getTime();
           const targetMs = targetDate.getTime();
           const isBeforeTarget = nowMs < targetMs;
           
-          console.log(`[Middleware] Date comparison: ${nowMs} < ${targetMs} = ${isBeforeTarget}`);
+          console.log(`[Proxy] Date comparison: ${nowMs} < ${targetMs} = ${isBeforeTarget}`);
           
           // Eğer hedef tarih henüz gelmediyse, countdown sayfasına yönlendir
           if (isBeforeTarget) {
-            console.log(`[Middleware] REDIRECTING to countdown page for ${year}`);
+            console.log(`[Proxy] REDIRECTING to countdown page for ${year}`);
             return NextResponse.rewrite(
               new URL(`/eurovision${year}/countdown`, request.url)
             );
           } else {
-            console.log(`[Middleware] NOT redirecting to countdown - target date has passed`);
+            console.log(`[Proxy] NOT redirecting to countdown - target date has passed`);
           }
         } catch (error) {
-          console.error(`[Middleware] Tarih parse hatası (${year}):`, error);
+          console.error(`[Proxy] Tarih parse hatası (${year}):`, error);
         }
       }
     }

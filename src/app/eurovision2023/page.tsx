@@ -658,7 +658,7 @@ export default function Eurovision2023() {
         }
         
         // Only set selectedCountries if user is authenticated and has votes
-        if (session && loading && data.userVote?.votes) {
+        if (session && data.userVote?.votes) {
           // Create an array of 10 elements with empty strings
           const newSelectedCountries = Array(10).fill('');
           
