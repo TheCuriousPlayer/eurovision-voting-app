@@ -32,6 +32,10 @@ export default function Navigation() {
 
   const navItems = [
     {
+      href: '/Harita',
+      label: 'Haritam',
+    },
+    {
       href: '/eurovision2021',
       label: 'Eurovision 2021',
     },
