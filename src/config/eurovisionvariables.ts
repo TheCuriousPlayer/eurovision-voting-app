@@ -7,6 +7,7 @@
 export const VOTE_DATES = {
   // Yıllara göre oylama başlangıç tarihleri
   '2020': '',
+  '2021': '',
   '2022': '', 
   '2023': '',
   '2024': '',
@@ -38,6 +39,12 @@ export const VOTE_CONFIG = {
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
     Mode: 'visible', // 'visible' | 'hide'
+    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+  },
+  '2021': { 
+    Status: false,
+    ShowCountDown: VOTE_DATES['2021'],
+    Mode: 'hide', // 'visible' | 'hide'
     GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
   },
   '2022': { 
@@ -87,6 +94,7 @@ export const UNDER_CONSTRUCTION = {
   '202001': false,  // true: bakım modunda, false: aktif
   '202002': false,  // true: bakım modunda, false: aktif
   '202003': false,   // true: bakım modunda, false: aktif
+  '2021': false,    // true: bakım modunda, false: aktif
   '2022': false,    // true: bakım modunda, false: aktif
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif

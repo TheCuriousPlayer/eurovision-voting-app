@@ -3,12 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST() {
   try {
-    console.log('Creating Eurovision 2020 competitions...');
+    console.log('Creating Eurovision competitions...');
     
     // Check if competitions already exist
     const existing202000 = await prisma.competition.findFirst({ where: { year: 202000 } });
     const existing202001 = await prisma.competition.findFirst({ where: { year: 202001 } });
     const existing202002 = await prisma.competition.findFirst({ where: { year: 202002 } });
+    const existing2021 = await prisma.competition.findFirst({ where: { year: 2021 } });
     
     const results = [];
     
@@ -55,6 +56,21 @@ export async function POST() {
       results.push(`Created 202002: ${comp202002.id}`);
     } else {
       results.push('202002 already exists');
+    }
+    
+    // Create 2021 (Eurovision 2021) if it doesn't exist
+    if (!existing2021) {
+      const comp2021 = await prisma.competition.create({
+        data: {
+          year: 2021,
+          name: "Eurovision 2021",
+          isActive: true,
+          countries: ["Albania", "Armenia", "Australia", "Austria", "Azerbaijan", "Belgium", "Bulgaria", "Croatia", "Southern Cyprus", "Czechia", "Denmark", "Estonia", "Finland", "France", "Georgia", "Germany", "Greece", "Iceland", "Ireland", "Israel", "Italy", "Latvia", "Lithuania", "Malta", "Moldova", "Netherlands", "North Macedonia", "Norway", "Poland", "Portugal", "Romania", "Russia", "San Marino", "Serbia", "Slovenia", "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom"]
+        }
+      });
+      results.push(`Created 2021: ${comp2021.id}`);
+    } else {
+      results.push('2021 already exists');
     }
     
     return NextResponse.json({ 
