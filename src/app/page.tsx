@@ -108,8 +108,8 @@ export default function Home() {
                   <div className="text-gray-300 text-sm self-end">
                     <span>Oylama Haritası</span>
                   </div>
-                  <div className="text-gray-200 text-5xl absolute right-0 bottom-[+5px]">
-                    <span>🌍</span>
+                  <div className="text-gray-200 text-9xl absolute right-0 bottom-[-30px]">
+                    <span>🗺</span>
                   </div>
                 </div>
               </Link>
@@ -339,8 +339,8 @@ export default function Home() {
                   <div className="text-gray-300 text-sm self-end">
                     <span>Oylama Haritası</span>
                   </div>
-                  <div className="text-gray-200 text-5xl absolute right-0 bottom-[+5px]">
-                  <span>🌍</span>
+                  <div className="text-gray-200 text-9xl absolute right-0 bottom-[-30px]">
+                  <span>🗺</span>
                 </div>
               </div>
             </Link>
