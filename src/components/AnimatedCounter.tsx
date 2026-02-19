@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useRef } from 'react';
-import { useInView, useMotionValue, useSpring } from 'framer-motion';
+import { useMotionValue, useSpring } from 'framer-motion';
 import { formatNumber } from '@/utils/formatNumber';
 
 interface AnimatedCounterProps {
@@ -9,6 +9,7 @@ interface AnimatedCounterProps {
   direction?: 'up' | 'down';
   className?: string;
   duration?: number; // Duration in seconds
+  slow?: boolean; // Use slower spring animation for large stat numbers
 }
 
 export default function AnimatedCounter({
@@ -16,20 +17,21 @@ export default function AnimatedCounter({
   direction = 'up',
   className = '',
   duration = 1,
+  slow = false,
 }: AnimatedCounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const motionValue = useMotionValue(direction === 'down' ? value : 0);
-  const springValue = useSpring(motionValue, {
-    damping: 300,
-    stiffness: 100,
+  const springValue = useSpring(motionValue, slow ? {
+    bounce: 0,
+    duration: 8000.0,
+  } : {
+    bounce: 0,
+    duration: 0.8
   });
-  const isInView = useInView(ref, { once: true, margin: '-10px' });
 
   useEffect(() => {
-    if (isInView) {
-      motionValue.set(direction === 'down' ? 0 : value);
-    }
-  }, [motionValue, isInView, value, direction]);
+    motionValue.set(direction === 'down' ? 0 : value);
+  }, [motionValue, value, direction]);
 
   useEffect(() => {
     const unsubscribe = springValue.on('change', (latest) => {
@@ -45,14 +47,6 @@ export default function AnimatedCounter({
 
     return () => unsubscribe();
   }, [springValue, motionValue]);
-
-  // Handle case where animated value might change after initial mount
-  useEffect(() => {
-     if(isInView) {
-        motionValue.set(value);
-     }
-  }, [value, isInView, motionValue]);
-
 
   return <span className={className} ref={ref}>{formatNumber(direction === 'down' ? value : 0)}</span>;
 }

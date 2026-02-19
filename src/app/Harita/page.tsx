@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
 import { formatNumber } from '@/utils/formatNumber';
 import AnimatedCounter from '@/components/AnimatedCounter';
+import { motion } from 'framer-motion';
 
 interface VoteMapData {
   countryCounts: { [country: string]: number };
@@ -13,6 +14,7 @@ interface VoteMapData {
   totalVotes: number;
   competitions?: number[];
   totalUsers?: number;
+  byYear?: { [year: number]: { countryCounts: { [country: string]: number }, countryPoints: { [country: string]: number } } };
 }
 
 // Legacy countries that have been divided/dissolved (should be filtered out from display)
@@ -100,6 +102,20 @@ export default function HaritaPage() {
   const [activeTab, setActiveTab] = useState<'personal' | 'global'>('personal');
   const [tooltipContent, setTooltipContent] = useState('');
   const [position, setPosition] = useState({ coordinates: [70, 28] as [number, number], zoom: 1 });
+  
+  // New animation approach - tick-based
+  const [animatedPersonalCounts, setAnimatedPersonalCounts] = useState<{ [country: string]: number }>({});
+  const [animatedPersonalPoints, setAnimatedPersonalPoints] = useState<{ [country: string]: number }>({});
+  const [animatedGlobalCounts, setAnimatedGlobalCounts] = useState<{ [country: string]: number }>({});
+  const [animatedGlobalPoints, setAnimatedGlobalPoints] = useState<{ [country: string]: number }>({});
+  const [visiblePersonalCountries, setVisiblePersonalCountries] = useState<Set<string>>(new Set());
+  const [visibleGlobalCountries, setVisibleGlobalCountries] = useState<Set<string>>(new Set());
+  const [allPersonalCountries, setAllPersonalCountries] = useState<string[]>([]);
+  const [allGlobalCountries, setAllGlobalCountries] = useState<string[]>([]);
+  const [currentMaxPersonal, setCurrentMaxPersonal] = useState(1);
+  const [currentMaxGlobal, setCurrentMaxGlobal] = useState(1);
+  const [personalAnimationComplete, setPersonalAnimationComplete] = useState(false);
+  const [globalAnimationComplete, setGlobalAnimationComplete] = useState(false);
 
   function handleZoomIn() {
     if (position.zoom >= 8) return;
@@ -169,6 +185,202 @@ export default function HaritaPage() {
     }
   }, [activeTab]);
 
+  // NEW APPROACH: Tick-based animation for personal data
+  useEffect(() => {
+    if (!voteData || !voteData.byYear || activeTab !== 'personal' || loading) return;
+
+    // Reset state
+    setAnimatedPersonalCounts({});
+    setAnimatedPersonalPoints({});
+    setVisiblePersonalCountries(new Set());
+    setCurrentMaxPersonal(1);
+    setPersonalAnimationComplete(false);
+
+    const years = Object.keys(voteData.byYear)
+      .map(Number)
+      .sort((a, b) => b - a); // Sort descending (2025, 2024, 2023...)
+
+    if (years.length === 0) return;
+
+    // Step 1: Get all countries from all years
+    const allCountriesSet = new Set<string>();
+    years.forEach(year => {
+      const yearData = voteData.byYear![year];
+      Object.keys(yearData.countryCounts).forEach(c => allCountriesSet.add(c));
+      Object.keys(yearData.countryPoints).forEach(c => allCountriesSet.add(c));
+    });
+    const countries = Array.from(allCountriesSet).filter(c => !legacyCountries.includes(c));
+    setAllPersonalCountries(countries);
+
+    // Step 2: Calculate animation budget
+    const MS_PER_TICK = 20; // Her tick 20ms
+    const TICKS_PER_YEAR = Math.floor(8000 / (MS_PER_TICK * years.length)); // 8000 / 120 = 66 tick per year
+    const totalTicks = years.length * TICKS_PER_YEAR;
+
+    // Step 3: Animate through ticks with progressive increases
+    let currentTick = 0;
+
+    const interval = setInterval(() => {
+      if (currentTick > totalTicks+200) { // +200 to allow final values to be visible for a moment before stopping animation
+        clearInterval(interval);
+        setPersonalAnimationComplete(true);
+        return;
+      }
+
+      // Hangi yılın kaçıncı tick'indeyiz?
+      const currentYearIndex = Math.floor(currentTick / TICKS_PER_YEAR);
+      const yearTick = currentTick % TICKS_PER_YEAR;
+
+      // Tüm yılları işle ve kümülatif toplamları hesapla
+      const newCounts: { [country: string]: number } = {};
+      const newPoints: { [country: string]: number } = {};
+      const visibleCountries = new Set<string>();
+
+      years.forEach((year, yearIndex) => {
+        if (yearIndex > currentYearIndex) return; // Henüz bu yıla gelmedik
+
+        const yearData = voteData.byYear![year];
+        
+        // Bu yıl için progress hesapla
+        // Eğer önceki yıllarsa 100%, şu anki yılsa progressive
+        const tickProgress = yearIndex < currentYearIndex 
+          ? TICKS_PER_YEAR 
+          : (yearTick + 1);
+        
+        // Her ülke için bu yıldaki değerleri progressif olarak ekle
+        Object.entries(yearData.countryCounts).forEach(([country, totalVotes]) => {
+          if (legacyCountries.includes(country)) return;
+          
+          const totalPoints = yearData.countryPoints[country] || 0;
+          
+          // floor((totalVotes / TICKS_PER_YEAR) * tickProgress)
+          const currentVotes = Math.floor((totalVotes / TICKS_PER_YEAR) * tickProgress);
+          const currentPoints = Math.floor((totalPoints / TICKS_PER_YEAR) * tickProgress);
+          
+          newCounts[country] = (newCounts[country] || 0) + currentVotes;
+          newPoints[country] = (newPoints[country] || 0) + currentPoints;
+          visibleCountries.add(country);
+        });
+      });
+
+      // State'leri güncelle
+      setAnimatedPersonalCounts({ ...newCounts });
+      setAnimatedPersonalPoints({ ...newPoints });
+      setVisiblePersonalCountries(visibleCountries);
+
+      // Update max for progress bars
+      const newMax = Math.max(
+        ...Object.keys(newCounts).map(c => 
+          (newCounts[c] || 0) + (newPoints[c] || 0)
+        ),
+        1
+      );
+      setCurrentMaxPersonal(newMax);
+
+      currentTick++;
+    }, MS_PER_TICK);
+
+    return () => clearInterval(interval);
+  }, [voteData, activeTab]);
+
+  // NEW APPROACH: Tick-based animation for global data
+  useEffect(() => {
+    if (!globalVoteData || !globalVoteData.byYear || activeTab !== 'global' || globalLoading) return;
+
+    // Reset state
+    setAnimatedGlobalCounts({});
+    setAnimatedGlobalPoints({});
+    setVisibleGlobalCountries(new Set());
+    setCurrentMaxGlobal(1);
+    setGlobalAnimationComplete(false);
+
+    const years = Object.keys(globalVoteData.byYear)
+      .map(Number)
+      .sort((a, b) => b - a); // Sort descending (2025, 2024, 2023...)
+
+    if (years.length === 0) return;
+
+    // Step 1: Get all countries from all years
+    const allCountriesSet = new Set<string>();
+    years.forEach(year => {
+      const yearData = globalVoteData.byYear![year];
+      Object.keys(yearData.countryCounts).forEach(c => allCountriesSet.add(c));
+      Object.keys(yearData.countryPoints).forEach(c => allCountriesSet.add(c));
+    });
+    const countries = Array.from(allCountriesSet).filter(c => !legacyCountries.includes(c));
+    setAllGlobalCountries(countries);
+
+    // Step 2: Calculate animation budget
+    const MS_PER_TICK = 20; // Her tick 20ms
+    const TICKS_PER_YEAR = Math.floor(8000 / (MS_PER_TICK * years.length)); // 8000 / 120 = 66 tick per year
+    const totalTicks = years.length * TICKS_PER_YEAR;
+
+    // Step 3: Animate through ticks with progressive increases
+    let currentTick = 0;
+
+    const interval = setInterval(() => {
+      if (currentTick > totalTicks+200) { // +200 to allow final values to be visible for a moment before stopping animation
+        clearInterval(interval);
+        setGlobalAnimationComplete(true);
+        return;
+      }
+
+      // Hangi yılın kaçıncı tick'indeyiz?
+      const currentYearIndex = Math.floor(currentTick / TICKS_PER_YEAR);
+      const yearTick = currentTick % TICKS_PER_YEAR;
+
+      // Tüm yılları işle ve kümülatif toplamları hesapla
+      const newCounts: { [country: string]: number } = {};
+      const newPoints: { [country: string]: number } = {};
+      const visibleCountries = new Set<string>();
+
+      years.forEach((year, yearIndex) => {
+        if (yearIndex > currentYearIndex) return; // Henüz bu yıla gelmedik
+
+        const yearData = globalVoteData.byYear![year];
+        
+        // Bu yıl için progress hesapla
+        // Eğer önceki yıllarsa 100%, şu anki yılsa progressive
+        const tickProgress = yearIndex < currentYearIndex 
+          ? TICKS_PER_YEAR 
+          : (yearTick + 1);
+        
+        // Her ülke için bu yıldaki değerleri progressif olarak ekle
+        Object.entries(yearData.countryCounts).forEach(([country, totalVotes]) => {
+          if (legacyCountries.includes(country)) return;
+          
+          const totalPoints = yearData.countryPoints[country] || 0;
+          
+          // floor((totalVotes / TICKS_PER_YEAR) * tickProgress)
+          const currentVotes = Math.floor((totalVotes / TICKS_PER_YEAR) * tickProgress);
+          const currentPoints = Math.floor((totalPoints / TICKS_PER_YEAR) * tickProgress);
+          
+          newCounts[country] = (newCounts[country] || 0) + currentVotes;
+          newPoints[country] = (newPoints[country] || 0) + currentPoints;
+          visibleCountries.add(country);
+        });
+      });
+
+      // State'leri güncelle
+      setAnimatedGlobalCounts({ ...newCounts });
+      setAnimatedGlobalPoints({ ...newPoints });
+      setVisibleGlobalCountries(visibleCountries);
+
+      // Update max for progress bars
+      const newMax = Math.max(
+        ...Object.keys(newCounts).map(c => 
+          (newCounts[c] || 0) + (newPoints[c] || 0)
+        ),
+        1
+      );
+      setCurrentMaxGlobal(newMax);
+
+      currentTick++;
+    }, MS_PER_TICK);
+
+    return () => clearInterval(interval);
+  }, [globalVoteData, activeTab]);
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e]">
@@ -184,31 +396,35 @@ export default function HaritaPage() {
   }
 
   // Get top countries sorted by sum of count + points (for personal tab)
-  // Filter out legacy countries (Serbia and Montenegro, Yugoslavia, etc.)
-  const sortedCountries = Object.entries(voteData?.countryCounts || {})
-    .filter(([country]) => !legacyCountries.includes(country)) // Filter out legacy countries
+  // NEW: Include ALL countries (visible and invisible)
+  const invisiblePersonalCountries = allPersonalCountries.filter(c => !visiblePersonalCountries.has(c));
+  
+  const sortedCountries = Object.entries(animatedPersonalCounts)
+    .filter(([country]) => !legacyCountries.includes(country) && visiblePersonalCountries.has(country))
     .map(([country, count]) => {
-      const points = voteData?.countryPoints?.[country] || 0;
-      const sum = count + points;
-      return [country, count, points, sum] as [string, number, number, number];
-    })
-    .sort(([, , , sumA], [, , , sumB]) => sumB - sumA)
-    .slice(0, 100); // Top 100 (MAX 100 ülkeden fazla gösterilmez)
-
-  // Get top countries for global tab
-  const sortedGlobalCountries = Object.entries(globalVoteData?.countryCounts || {})
-    .filter(([country]) => !legacyCountries.includes(country))
-    .map(([country, count]) => {
-      const points = globalVoteData?.countryPoints?.[country] || 0;
+      const points = animatedPersonalPoints[country] || 0;
       const sum = count + points;
       return [country, count, points, sum] as [string, number, number, number];
     })
     .sort(([, , , sumA], [, , , sumB]) => sumB - sumA)
     .slice(0, 100);
 
-  // Calculate max sum for color scaling
-  const maxSum = Math.max(...sortedCountries.map(([, , , sum]) => sum), 1);
-  const maxGlobalSum = Math.max(...sortedGlobalCountries.map(([, , , sum]) => sum), 1);
+  // Get top countries for global tab
+  const invisibleGlobalCountries = allGlobalCountries.filter(c => !visibleGlobalCountries.has(c));
+  
+  const sortedGlobalCountries = Object.entries(animatedGlobalCounts)
+    .filter(([country]) => !legacyCountries.includes(country) && visibleGlobalCountries.has(country))
+    .map(([country, count]) => {
+      const points = animatedGlobalPoints[country] || 0;
+      const sum = count + points;
+      return [country, count, points, sum] as [string, number, number, number];
+    })
+    .sort(([, , , sumA], [, , , sumB]) => sumB - sumA)
+    .slice(0, 100);
+
+  // Calculate max sum for color scaling - use animated max values
+  const maxSum = currentMaxPersonal;
+  const maxGlobalSum = currentMaxGlobal;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e]">
@@ -219,13 +435,13 @@ export default function HaritaPage() {
         <p className="text-gray-300 text-center mb-8">
           {activeTab === 'personal' ? (
             <>
-              Toplam <span className="text-yellow-400 font-bold"><AnimatedCounter value={voteData?.totalVotes || 0} /></span> oy verdim
+              Toplam <span className="text-yellow-400 font-bold"><AnimatedCounter key="header-personal-votes" value={voteData?.totalVotes || 0} slow={true} /></span> oy verdim
               {voteData?.competitions && ` (${voteData.competitions.length} yarışma)`}
             </>
           ) : (
             <>
-              <span className="text-green-400 font-bold"><AnimatedCounter value={globalVoteData?.totalUsers || 0} /></span> kullanıcı toplam{' '}
-              <span className="text-green-400 font-bold"><AnimatedCounter value={globalVoteData?.totalVotes || 0} /></span> oy verdi
+              <span className="text-green-400 font-bold"><AnimatedCounter key="header-global-users" value={globalVoteData?.totalUsers || 0} slow={true} /></span> tekil kullanıcı toplam{' '}
+              <span className="text-green-400 font-bold"><AnimatedCounter key="header-global-votes" value={globalVoteData?.totalVotes || 0} slow={true} /></span> oy verdi
               {globalVoteData?.competitions && ` (${globalVoteData.competitions.length} yarışma)`}
             </>
           )}
@@ -302,132 +518,238 @@ export default function HaritaPage() {
                   )}
                 </div>
                 
-                <h2 className="text-2xl font-bold text-white">
-                  En Çok Oy Alan Ülkeler
-                </h2>
+                <div className="flex items-center justify-between flex-1 w-full">
+                  <h2 className="text-2xl font-bold text-white">
+                    En Çok Oy Alan Ülkeler
+                  </h2>
+                  
+                  {/* Animation Status Icon */}
+                  <div className="flex items-center justify-center ml-auto">
+                    {(activeTab === 'personal' ? personalAnimationComplete : globalAnimationComplete) ? (
+                      // Green Checkmark - Animation Complete
+                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-2xl font-bold">✔</span>
+                      </div>
+                    ) : (
+                      // Blue Pulsing Play Icon - Animation Running
+                      <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center animate-pulse">
+                        <span className="text-white text-xl">▶︎</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
                 {activeTab === 'personal' ? (
-                  // Personal Tab Content
-                  sortedCountries.length > 0 ? (
-                    sortedCountries.map(([country, count, points, sum], index) => {
-                      const code = nameToCode[country];
-                      const percentage = ((sum / maxSum) * 100).toFixed(0);
-                      
-                      // Debug: log countries without codes
-                      if (!code) {
-                        console.warn(`No flag code found for country: "${country}"`);
-                      }
-                      
-                      return (
-                        <div key={country} className="flex items-center gap-3">
-                          <div className="text-gray-400 font-mono text-sm w-6">
-                            #{index + 1}
-                          </div>
-                          {code ? (
-                            <img
-                              src={`/flags/${country}_${code}.png`}
-                              alt={country}
-                              className="w-8 h-6 object-cover rounded shadow"
-                              onError={(e) => {
-                                console.error(`Failed to load flag for ${country} (${code})`);
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">
-                              ?
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <div className="flex justify-between items-center mb-1">
-                              <div className="flex flex-col">
-                                <span className="text-white font-medium">{country}</span>
-                                <span className="text-xs text-gray-400">
-                                  <AnimatedCounter value={count} /> oy + <AnimatedCounter value={points} /> puan
-                                </span>
+                  // Personal Tab Content - NEW APPROACH
+                  <div className="space-y-3">
+                      {/* Visible countries with actual rankings */}
+                      {sortedCountries.length > 0 ? (
+                        sortedCountries.map(([country, count, points, sum], index) => {
+                          const code = nameToCode[country];
+                          const percentage = ((sum / maxSum) * 100).toFixed(0);
+                          const isVisible = visiblePersonalCountries.has(country);
+                          
+                          return (
+                            <div key={`personal-position-${index}`} className="flex items-center gap-3">
+                              {/* Static ranking number */}
+                              <div className="text-gray-400 font-mono text-sm w-6 flex-shrink-0">
+                                #{index + 1}
                               </div>
-                              <span className="text-yellow-400 font-bold"><AnimatedCounter value={sum} /></span>
+                              {/* Animated country content */}
+                              <motion.div
+                                layoutId={`personal-${country}`}
+                                className="flex items-center gap-3 flex-1"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: isVisible ? 1 : 0 }}
+                                transition={{ 
+                                }}
+                              >
+                                {code ? (
+                                  <img
+                                    src={`/flags/${country}_${code}.png`}
+                                    alt={country}
+                                    className="w-8 h-6 object-cover rounded shadow"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">?</div>
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <div className="flex flex-col">
+                                      <span className="text-white font-medium">{country}</span>
+                                      <span className="text-xs text-gray-400">
+                                        <AnimatedCounter value={count} /> oy + <AnimatedCounter value={points} /> puan
+                                      </span>
+                                    </div>
+                                    <span className="text-yellow-400 font-bold"><AnimatedCounter value={sum} /></span>
+                                  </div>
+                                  <div className="w-full bg-[#1a1a2e] rounded-full h-2">
+                                    <div
+                                      className="bg-gradient-to-r from-yellow-500 to-yellow-300 h-2 rounded-full transition-all duration-500 ease-in-out"
+                                      style={{ width: `${percentage}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </motion.div>
                             </div>
-                            <div className="w-full bg-[#1a1a2e] rounded-full h-2">
-                              <div
-                                className="bg-gradient-to-r from-yellow-500 to-yellow-300 h-2 rounded-full transition-all duration-500"
-                                style={{ width: `${percentage}%` }}
-                              />
+                          );
+                        })
+                      ) : null}
+
+                      {/* Invisible countries at the bottom */}
+                      {invisiblePersonalCountries.map((country) => {
+                        const code = nameToCode[country];
+                        return (
+                          <div
+                            key={`personal-invisible-${country}`}
+                            className="flex items-center gap-3 opacity-0 pointer-events-none"
+                          >
+                            <div className="text-gray-400 font-mono text-sm w-6 flex-shrink-0">#</div>
+                            <div className="flex items-center gap-3 flex-1">
+                              {code ? (
+                                <img
+                                  src={`/flags/${country}_${code}.png`}
+                                  alt={country}
+                                  className="w-8 h-6 object-cover rounded shadow"
+                                />
+                              ) : (
+                                <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">?</div>
+                              )}
+                              <div className="flex-1">
+                                <div className="flex justify-between items-center mb-1">
+                                  <div className="flex flex-col">
+                                    <span className="text-white font-medium">{country}</span>
+                                    <span className="text-xs text-gray-400">0 oy + 0 puan</span>
+                                  </div>
+                                  <span className="text-yellow-400 font-bold">0</span>
+                                </div>
+                                <div className="w-full bg-[#1a1a2e] rounded-full h-2">
+                                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-300 h-2 rounded-full" style={{ width: '0%' }} />
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-gray-400 text-center py-8">
-                      Henüz oy vermediniz
-                    </p>
-                  )
+                        );
+                      })}
+
+                      {sortedCountries.length === 0 && invisiblePersonalCountries.length === 0 && (
+                        <p className="text-gray-400 text-center py-8">Henüz oy vermediniz</p>
+                      )}
+                  </div>
                 ) : (
-                  // Global Tab Content
+                  // Global Tab Content - NEW APPROACH
                   globalLoading ? (
                     <div className="text-center py-12">
                       <div className="text-5xl mb-4">⏳</div>
                       <p className="text-gray-300">Yükleniyor...</p>
                     </div>
-                  ) : sortedGlobalCountries.length > 0 ? (
-                    sortedGlobalCountries.map(([country, count, points, sum], index) => {
-                      const code = nameToCode[country];
-                      const percentage = ((sum / maxGlobalSum) * 100).toFixed(0);
-                      
-                      if (!code) {
-                        console.warn(`No flag code found for country: "${country}"`);
-                      }
-                      
-                      return (
-                        <div key={country} className="flex items-center gap-3">
-                          <div className="text-gray-400 font-mono text-sm w-6">
-                            #{index + 1}
-                          </div>
-                          {code ? (
-                            <img
-                              src={`/flags/${country}_${code}.png`}
-                              alt={country}
-                              className="w-8 h-6 object-cover rounded shadow"
-                              onError={(e) => {
-                                console.error(`Failed to load flag for ${country} (${code})`);
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">
-                              ?
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <div className="flex justify-between items-center mb-1">
-                              <div className="flex flex-col">
-                                <span className="text-white font-medium">{country}</span>
-                                <span className="text-xs text-gray-400">
-                                  <AnimatedCounter value={count} /> oy + <AnimatedCounter value={points} /> puan
-                                </span>
-                              </div>
-                              <span className="text-green-400 font-bold"><AnimatedCounter value={sum} /></span>
-                            </div>
-                            <div className="w-full bg-[#1a1a2e] rounded-full h-2">
-                              <div
-                                className="bg-gradient-to-r from-green-500 to-green-300 h-2 rounded-full transition-all duration-500"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
                   ) : (
-                    <div className="text-center py-12">
-                      <div className="text-5xl mb-4">🌍</div>
-                      <p className="text-gray-300 text-lg mb-2">Global İstatistikler</p>
-                      <p className="text-gray-500 text-sm">
-                        Henüz hiç oy verilmemiş
-                      </p>
+                    <div className="space-y-3">
+                        {/* Visible countries with actual rankings */}
+                        {sortedGlobalCountries.length > 0 ? (
+                          sortedGlobalCountries.map(([country, count, points, sum], index) => {
+                            const code = nameToCode[country];
+                            const percentage = ((sum / maxGlobalSum) * 100).toFixed(0);
+                            const isVisible = visibleGlobalCountries.has(country);
+                            
+                            return (
+                              <div key={`global-position-${index}`} className="flex items-center gap-3">
+                                {/* Static ranking number */}
+                                <div className="text-gray-400 font-mono text-sm w-6 flex-shrink-0">
+                                  #{index + 1}
+                                </div>
+                                {/* Animated country content */}
+                                <motion.div
+                                  layoutId={`global-${country}`}
+                                  className="flex items-center gap-3 flex-1"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: isVisible ? 1 : 0 }}
+                                  transition={{ 
+                                  }}
+                                >
+                                  {code ? (
+                                    <img
+                                      src={`/flags/${country}_${code}.png`}
+                                      alt={country}
+                                      className="w-8 h-6 object-cover rounded shadow"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">?</div>
+                                  )}
+                                  <div className="flex-1">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <div className="flex flex-col">
+                                        <span className="text-white font-medium">{country}</span>
+                                        <span className="text-xs text-gray-400">
+                                          <AnimatedCounter value={count} /> oy + <AnimatedCounter value={points} /> puan
+                                        </span>
+                                      </div>
+                                      <span className="text-green-400 font-bold"><AnimatedCounter value={sum} /></span>
+                                    </div>
+                                    <div className="w-full bg-[#1a1a2e] rounded-full h-2">
+                                      <div
+                                        className="bg-gradient-to-r from-green-500 to-green-300 h-2 rounded-full transition-all duration-500 ease-in-out"
+                                        style={{ width: `${percentage}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              </div>
+                            );
+                          })
+                        ) : null}
+
+                        {/* Invisible countries at the bottom */}
+                        {invisibleGlobalCountries.map((country) => {
+                          const code = nameToCode[country];
+                          return (
+                            <div
+                              key={`global-invisible-${country}`}
+                              className="flex items-center gap-3 opacity-0 pointer-events-none"
+                            >
+                              <div className="text-gray-400 font-mono text-sm w-6 flex-shrink-0">#</div>
+                              <div className="flex items-center gap-3 flex-1">
+                                {code ? (
+                                  <img
+                                    src={`/flags/${country}_${code}.png`}
+                                    alt={country}
+                                    className="w-8 h-6 object-cover rounded shadow"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">?</div>
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <div className="flex flex-col">
+                                      <span className="text-white font-medium">{country}</span>
+                                      <span className="text-xs text-gray-400">0 oy + 0 puan</span>
+                                    </div>
+                                    <span className="text-green-400 font-bold">0</span>
+                                  </div>
+                                  <div className="w-full bg-[#1a1a2e] rounded-full h-2">
+                                    <div className="bg-gradient-to-r from-green-500 to-green-300 h-2 rounded-full" style={{ width: '0%' }} />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {sortedGlobalCountries.length === 0 && invisibleGlobalCountries.length === 0 && (
+                          <div className="text-center py-12">
+                            <div className="text-5xl mb-4">🌍</div>
+                            <p className="text-gray-300 text-lg mb-2">Global İstatistikler</p>
+                            <p className="text-gray-500 text-sm">Henüz hiç oy verilmemiş</p>
+                          </div>
+                        )}
                     </div>
                   )
                 )}
@@ -507,10 +829,9 @@ export default function HaritaPage() {
                             const countryCode = geo.id; // ISO 3166-1 numeric code
                             const countryName = geo.properties.name;
                             
-                            // Try to find matching country in our data
-                            const currentData = activeTab === 'personal' ? voteData : globalVoteData;
-                            const countryCounts = currentData?.countryCounts || {};
-                            const countryPoints = currentData?.countryPoints || {};
+                            // Use animated data instead of raw data
+                            const countryCounts = activeTab === 'personal' ? animatedPersonalCounts : animatedGlobalCounts;
+                            const countryPoints = activeTab === 'personal' ? animatedPersonalPoints : animatedGlobalPoints;
                             
                             // Find country by name match
                             let matchedCountry = null;
@@ -608,19 +929,19 @@ export default function HaritaPage() {
                 <>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-yellow-400">
-                      <AnimatedCounter value={Object.keys(voteData?.countryCounts || {}).filter(c => !legacyCountries.includes(c)).length} />
+                      <AnimatedCounter key="personal-countries" value={Object.keys(animatedPersonalCounts).filter(c => !legacyCountries.includes(c)).length} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Farklı Ülke</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-yellow-400">
-                      <AnimatedCounter value={voteData?.totalVotes || 0} />
+                      <AnimatedCounter key="personal-votes" value={voteData?.totalVotes || 0} slow={true} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Toplam Oy</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-yellow-400">
-                      <AnimatedCounter value={voteData?.competitions?.length || 0} />
+                      <AnimatedCounter key="personal-competitions" value={voteData?.competitions?.length || 0} slow={true} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Yarışma</div>
                   </div>
@@ -629,19 +950,19 @@ export default function HaritaPage() {
                 <>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-400">
-                      <AnimatedCounter value={globalVoteData?.totalUsers || 0} />
+                      <AnimatedCounter key="global-users" value={globalVoteData?.totalUsers || 0} slow={true} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Tekil Kullanıcı</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-400">
-                      <AnimatedCounter value={Object.keys(globalVoteData?.countryCounts || {}).filter(c => !legacyCountries.includes(c)).length} />
+                      <AnimatedCounter key="global-countries" value={Object.keys(animatedGlobalCounts).filter(c => !legacyCountries.includes(c)).length} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Farklı Ülke</div>
                   </div>
                   <div className="bg-[#2c3e50] rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-400">
-                      <AnimatedCounter value={globalVoteData?.totalVotes || 0} />
+                      <AnimatedCounter key="global-votes" value={globalVoteData?.totalVotes || 0} slow={true} />
                     </div>
                     <div className="text-gray-300 text-sm mt-1">Toplam Oy</div>
                   </div>

@@ -55,15 +55,26 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Aggregate votes by country (count and points)
+    // Create a map of competitionId to year
+    const competitionYearMap = new Map(competitions.map(c => [c.id, c.year]));
+
+    // Aggregate votes by country (count and points) - both total and by year
     const countryCounts: { [country: string]: number } = {};
     const countryPoints: { [country: string]: number } = {};
+    const byYear: { [year: number]: { countryCounts: { [country: string]: number }, countryPoints: { [country: string]: number } } } = {};
     let totalVotes = 0;
 
     // Points array: [12, 10, 8, 7, 6, 5, 4, 3, 2, 1]
     const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
 
     votes.forEach(vote => {
+      const year = competitionYearMap.get(vote.competitionId);
+      
+      // Initialize year data if not exists
+      if (year && !byYear[year]) {
+        byYear[year] = { countryCounts: {}, countryPoints: {} };
+      }
+
       if (vote.votes && Array.isArray(vote.votes)) {
         (vote.votes as string[]).forEach((country, index) => {
           if (typeof country === 'string' && country.trim() !== '') {
@@ -73,9 +84,18 @@ export async function GET(request: NextRequest) {
             if (successors && successors.length > 0) {
               // Distribute votes and points to all successor countries
               successors.forEach(successor => {
+                // Total counts
                 countryCounts[successor] = (countryCounts[successor] || 0) + 1;
                 if (index < POINTS.length) {
                   countryPoints[successor] = (countryPoints[successor] || 0) + POINTS[index];
+                }
+                
+                // Year-specific counts
+                if (year) {
+                  byYear[year].countryCounts[successor] = (byYear[year].countryCounts[successor] || 0) + 1;
+                  if (index < POINTS.length) {
+                    byYear[year].countryPoints[successor] = (byYear[year].countryPoints[successor] || 0) + POINTS[index];
+                  }
                 }
               });
             } else {
@@ -83,6 +103,14 @@ export async function GET(request: NextRequest) {
               countryCounts[country] = (countryCounts[country] || 0) + 1;
               if (index < POINTS.length) {
                 countryPoints[country] = (countryPoints[country] || 0) + POINTS[index];
+              }
+              
+              // Year-specific counts
+              if (year) {
+                byYear[year].countryCounts[country] = (byYear[year].countryCounts[country] || 0) + 1;
+                if (index < POINTS.length) {
+                  byYear[year].countryPoints[country] = (byYear[year].countryPoints[country] || 0) + POINTS[index];
+                }
               }
             }
             totalVotes++;
@@ -95,7 +123,8 @@ export async function GET(request: NextRequest) {
       countryCounts,
       countryPoints,
       totalVotes,
-      competitions: competitions.map(c => c.year)
+      competitions: competitions.map(c => c.year),
+      byYear
     });
 
   } catch (error) {
