@@ -18,7 +18,7 @@ export async function GET() {
     }
 
     // Check if user is authorized jury member
-    if (!Juri2020final.includes(session.user.email)) {
+    if (!juryEmails().includes(session.user.email)) {
       return NextResponse.json({ error: 'Unauthorized - Not a jury member' }, { status: 403 });
     }
 

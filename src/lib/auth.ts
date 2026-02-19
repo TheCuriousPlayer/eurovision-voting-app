@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
 // Helper function to check if a user is an admin
 export const isAdmin = (email: string | null | undefined): boolean => {
   if (!email) return false;
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim()) ?? [];
   return adminEmails.includes(email);
 };
 
