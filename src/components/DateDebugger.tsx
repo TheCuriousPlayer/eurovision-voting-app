@@ -127,12 +127,12 @@ export default function DateDebugger() {
         <h2 className="text-lg font-semibold mb-2">Middleware için Kopyala:</h2>
         <div className="bg-gray-100 p-3 rounded-lg">
           <code className="text-sm">
-            {`'2022': { Status: true, ShowCountDown: '${dateStr}', Mode: 'hide', GMs: '${process.env.NEXT_PUBLIC_GM_EMAIL ?? ''}' },`}
+            {`'2022': { Status: true, ShowCountDown: '${dateStr}', Mode: 'hide', GMs: '' },`}
           </code>
           <button 
             onClick={() => {
               navigator.clipboard.writeText(
-                `'2022': { Status: true, ShowCountDown: '${dateStr}', Mode: 'hide', GMs: '${process.env.NEXT_PUBLIC_GM_EMAIL ?? ''}' },`
+                `'2022': { Status: true, ShowCountDown: '${dateStr}', Mode: 'hide', GMs: '' },`
               );
               alert('Kopyalandı!');
             }}

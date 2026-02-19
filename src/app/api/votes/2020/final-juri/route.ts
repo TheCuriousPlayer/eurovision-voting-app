@@ -2,7 +2,8 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Juri2020final } from '@/config/eurovisionvariables';
+
+const juryEmails = () => process.env.JURI_2020_FINAL_EMAILS?.split(',').map(e => e.trim()) ?? [];
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user is authorized jury member
-    if (!Juri2020final.includes(session.user.email)) {
+    if (!juryEmails().includes(session.user.email)) {
       return NextResponse.json({ error: 'Unauthorized - Not a jury member' }, { status: 403 });
     }
 

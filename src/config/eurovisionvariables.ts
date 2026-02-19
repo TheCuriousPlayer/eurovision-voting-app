@@ -80,7 +80,7 @@ export const VOTE_CONFIG = {
 };
 
 // Jüri üyeleri - Sayfa erişimi için yetkilendirme
-export const Juri2020final = process.env.NEXT_PUBLIC_JURI_2020_FINAL_EMAILS?.split(',').map(e => e.trim()) ?? [];
+// Juri2020final is server-side only — use /api/auth/is-jury for client-side checks
 
 // Eurovision yılları için bakım modu ayarları
 // Dinamik Örnek:

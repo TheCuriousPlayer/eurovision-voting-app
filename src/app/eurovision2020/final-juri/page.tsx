@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { eurovision2020DataFinal } from '@/data/eurovision2020';
-import { Juri2020final } from '@/config/eurovisionvariables';
 import { motion } from 'framer-motion';
 
 const eurovision2020Songs = eurovision2020DataFinal;
@@ -26,11 +25,12 @@ export default function Eurovision2020FinalJuri() {
   // Check if user is authorized jury member
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
-      const authorized = Juri2020final.includes(session.user.email);
-      setIsAuthorized(authorized);
-      if (authorized) {
-        loadVotes();
-      }
+      fetch('/api/auth/is-jury')
+        .then(r => r.json())
+        .then(data => {
+          setIsAuthorized(data.isJury);
+          if (data.isJury) loadVotes();
+        });
     }
     setLoading(false);
   }, [session, status]);

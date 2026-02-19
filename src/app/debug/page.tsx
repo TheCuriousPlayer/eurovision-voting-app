@@ -111,7 +111,7 @@ export default function DebugPage() {
     Status: true, 
     ShowCountDown: '00:00 27.05.2026', 
     Mode: 'hide', 
-    GMs: '${process.env.NEXT_PUBLIC_GM_EMAIL ?? ''}' 
+    GMs: '' 
   },
   // ...other years
 };`}</pre>
