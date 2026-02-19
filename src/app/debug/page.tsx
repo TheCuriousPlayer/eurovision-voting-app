@@ -1,12 +1,22 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import DateDebugger from '@/components/DateDebugger';
 
 export default function DebugPage() {
   const { data: session, status } = useSession();
-  
-  if (status === "loading") {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/auth/is-admin')
+        .then(r => r.json())
+        .then(data => setIsAdmin(data.isAdmin));
+    }
+  }, [status]);
+
+  if (status === "loading" || (status === 'authenticated' && isAdmin === null)) {
     return (
       <div className="min-h-screen bg-gray-100 flex justify-center items-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
@@ -38,9 +48,8 @@ export default function DebugPage() {
     );
   }
   
-  // Admin kontrolü - yalnızca belirli e-posta adreslerine izin verilir
-  const adminEmails = ['ozgunciziltepe@gmail.com'];
-  if (!adminEmails.includes(session.user?.email || '')) {
+  // Admin kontrolü - /api/auth/is-admin üzerinden kontrol edilir
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
@@ -102,7 +111,7 @@ export default function DebugPage() {
     Status: true, 
     ShowCountDown: '00:00 27.05.2026', 
     Mode: 'hide', 
-    GMs: 'ozgunciziltepe@gmail.com' 
+    GMs: '${process.env.NEXT_PUBLIC_GM_EMAIL ?? ''}' 
   },
   // ...other years
 };`}</pre>

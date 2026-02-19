@@ -21,37 +21,37 @@ export const VOTE_CONFIG = {
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '202002': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '202003': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2020': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2020'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2021': { 
     Status: false,
     ShowCountDown: VOTE_DATES['2021'],
     Mode: 'hide', // 'visible' | 'hide'
-    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2022': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2022'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: 'ozgunciziltepe@gmail.com, bugrasisman@googlemail.com' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2023': { 
     Status: false, 
@@ -80,7 +80,7 @@ export const VOTE_CONFIG = {
 };
 
 // Jüri üyeleri - Sayfa erişimi için yetkilendirme
-export const Juri2020final = ['ozgunciziltepe@gmail.com', 'bugrasisman@googlemail.com', 'ceyhunsaklar@gmail.com', 'info@mertalp.net', 'ulassbayrakk@gmail.com'];
+export const Juri2020final = process.env.NEXT_PUBLIC_JURI_2020_FINAL_EMAILS?.split(',').map(e => e.trim()) ?? [];
 
 // Eurovision yılları için bakım modu ayarları
 // Dinamik Örnek:

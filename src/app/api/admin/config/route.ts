@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-// Define admin emails
-const ADMIN_EMAILS = ['ozgunciziltepe@gmail.com'];
+// Admin emails loaded from environment variable
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim()) ?? [];
 
 interface YearConfig {
   Status: boolean;
@@ -19,7 +19,7 @@ interface ConfigState {
 // Current configurations - this should be loaded from a database or file
 // For demonstration purposes, we're using the same structure as middleware.ts
 const VotePages_variables: ConfigState = {
-  '2022': { Status: true, ShowCountDown: '00:00 27.09.2025', Mode: 'hide', GMs: 'ozgunciziltepe@gmail.com' },
+  '2022': { Status: true, ShowCountDown: '00:00 27.09.2025', Mode: 'hide', GMs: process.env.GM_EMAILS_DEFAULT ?? '' },
   '2023': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
   '2024': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },
   '2025': { Status: false, ShowCountDown: '', Mode: 'visible', GMs: '' },

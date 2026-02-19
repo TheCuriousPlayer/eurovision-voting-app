@@ -31,14 +31,14 @@ export default function AdminPanel() {
   
   // Admin kontrolü
   useEffect(() => {
-    // Burada admin e-posta adreslerini tanımlayabilirsiniz
-    const adminEmails = ['ozgunciziltepe@gmail.com'];
-    
-    if (session?.user?.email) {
-      setIsAdmin(adminEmails.includes(session.user.email));
+    if (!session?.user?.email) {
+      setLoading(false);
+      return;
     }
-    
-    setLoading(false);
+    fetch('/api/auth/is-admin')
+      .then(r => r.json())
+      .then(data => setIsAdmin(data.isAdmin))
+      .finally(() => setLoading(false));
   }, [session]);
   
   // Yapılandırmaları yükle
