@@ -9,8 +9,8 @@ export interface DisplayPreferences {
 }
 
 const DEFAULT_PREFERENCES: DisplayPreferences = {
-  showWeightPercentage: false, // Hidden by default
-  showVoterPercentage: false,  // Hidden by default
+  showWeightPercentage: true, // Enabled by default
+  showVoterPercentage: true,  // Enabled by default
 };
 
 const COOKIE_NAME = 'eurovision_display_prefs';
