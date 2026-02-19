@@ -151,6 +151,16 @@ export default function Navigation() {
                       />
                         <span className="text-gray-300 text-sm group-hover:text-white transition-colors"><span className="inline-flex items-center justify-center w-4 h-3 rounded-md bg-yellow-500 text-[10px]">👤</span> göster (Oy veren yüzdesi)</span>
                     </label>
+
+                    <div className="border-t border-gray-700 pt-3 mt-1">
+                      <p className="text-gray-500 text-xs">Görüş ve Önerileriniz için</p>
+                      <a
+                        href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`}
+                        className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
+                      >
+                        {process.env.NEXT_PUBLIC_CONTACT_EMAIL}
+                      </a>
+                    </div>
                   </div>
                 </div>
               )}
