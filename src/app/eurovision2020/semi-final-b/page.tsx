@@ -8,6 +8,8 @@ import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { formatNumber } from '@/utils/formatNumber';
+import EurovisionNavigation from '@/components/EurovisionNavigation';
+import PageReadySignal from '@/components/PageReadySignal';
 
   const eurovision2020Songs = eurovision2020DataGroupB;
   // Direct finalists (not voteable on this page)
@@ -917,58 +919,15 @@ export default function Eurovision2020SemiFinalB() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      <PageReadySignal />
       <div className="container mx-auto px-4">
         
-        {/* Countdown Banner */}
-        {/* {timeRemaining && (
-          <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-lg p-4 mb-6 border-2 border-yellow-400 shadow-lg">
-            <div className="text-center">
-              <h2 className="text-lg md:text-xl font-bold text-white mb-2">
-                A Gurubu oylama penceresi kapanmak üzere. A Gurubu oylamasını yaptıysanız, B Gurubu oylamasına katılmak için{' '}
-                <a 
-                  href="https://eurotr.vercel.app/eurovision2020/semi-final-b" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="underline hover:text-yellow-300 transition-colors"
-                >
-                  Yarı Final B Gurubu
-                </a>
-                {' '}linkine gidin.
-              </h2>
-              <div className="flex justify-center gap-4 text-white text-2xl md:text-3xl font-bold">
-                {timeRemaining.days > 0 && (
-                  <div className="flex flex-col items-center bg-black bg-opacity-30 rounded-lg px-3 py-2 min-w-[70px]">
-                    <span>{timeRemaining.days}</span>
-                    <span className="text-xs font-normal">Gün</span>
-                  </div>
-                )}
-                {(timeRemaining.days > 0 || timeRemaining.hours > 0) && (
-                  <div className="flex flex-col items-center bg-black bg-opacity-30 rounded-lg px-3 py-2 min-w-[70px]">
-                    <span>{String(timeRemaining.hours).padStart(2, '0')}</span>
-                    <span className="text-xs font-normal">Saat</span>
-                  </div>
-                )}
-                {(timeRemaining.days > 0 || timeRemaining.hours > 0 || timeRemaining.minutes > 0) && (
-                  <div className="flex flex-col items-center bg-black bg-opacity-30 rounded-lg px-3 py-2 min-w-[70px]">
-                    <span>{String(timeRemaining.minutes).padStart(2, '0')}</span>
-                    <span className="text-xs font-normal">Dakika</span>
-                  </div>
-                )}
-                <div className="flex flex-col items-center bg-black bg-opacity-30 rounded-lg px-3 py-2 min-w-[70px]">
-                  <span>{String(timeRemaining.seconds).padStart(2, '0')}</span>
-                  <span className="text-xs font-normal">Saniye</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )} */}
+        <EurovisionNavigation currentPage="2020-semi-final-b" />
         
-        <h1 className="text-4xl font-bold text-center text-white mb-1">
-          Eurovision 2020 Yarı Final B
-        </h1>
-        <h1 className="text-l font-bold text-center text-white mb-8">
+        <h2 className="text-2xl font-bold text-center text-white mb-1">
           10 Ülke Finale Yükseliyor
-        </h1>
+        </h2>
+        <div className="h-6"></div>
 
         {/* READ-ONLY BANNER when voting is closed */}
         {votingClosed && (

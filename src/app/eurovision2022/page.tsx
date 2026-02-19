@@ -9,6 +9,8 @@ import { eurovision2022Data } from '@/data/eurovision2022';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
+import EurovisionNavigation from '@/components/EurovisionNavigation';
+import PageReadySignal from '@/components/PageReadySignal';
 
 const eurovision2022Songs = eurovision2022Data;
 
@@ -848,11 +850,13 @@ export default function Eurovision2022() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      <PageReadySignal />
       <div className="container mx-auto px-4">
         
-        <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2022<br/>Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
-        </h1>
+        <EurovisionNavigation currentYear={2022} />
+        <p className="text-center text-gray-300 mb-8">
+          Sonuçlar <a href="https://www.youtube.com/watch?v=dmYmztVrZy4" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalından izlenebilir.
+        </p>
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>

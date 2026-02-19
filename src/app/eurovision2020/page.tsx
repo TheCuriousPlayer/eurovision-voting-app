@@ -9,6 +9,8 @@ import { eurovision2020Data } from '@/data/eurovision2020';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
+import EurovisionNavigation from '@/components/EurovisionNavigation';
+import PageReadySignal from '@/components/PageReadySignal';
 
 const eurovision2020Songs = eurovision2020Data;
 
@@ -847,6 +849,7 @@ export default function Eurovision2020() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      <PageReadySignal />
       {/* 404 Error Message - Temporary Full Screen Overlay
       <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
         <div className="text-center text-white">
@@ -857,9 +860,7 @@ export default function Eurovision2020() {
 
       <div className="container mx-auto px-4">
         
-        <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2020
-        </h1>
+        <EurovisionNavigation currentYear={2020} />
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>

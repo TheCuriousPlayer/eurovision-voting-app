@@ -8,6 +8,8 @@ import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { formatNumber } from '@/utils/formatNumber';
+import EurovisionNavigation from '@/components/EurovisionNavigation';
+import PageReadySignal from '@/components/PageReadySignal';
 
 const eurovision2020Songs = eurovision2020DataFinal;
 
@@ -889,11 +891,10 @@ export default function Eurovision2020Final() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      <PageReadySignal />
       <div className="container mx-auto px-4">
         
-        <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2020 Grand Final
-        </h1>
+        <EurovisionNavigation currentPage="2020-final" />
 
         {/* Voting Closed Notice */}
         <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg p-4 mb-6 border-2 border-gray-500 shadow-lg">

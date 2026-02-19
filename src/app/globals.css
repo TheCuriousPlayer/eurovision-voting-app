@@ -48,3 +48,51 @@ body {
 .animate-heartbeat {
   animation: heartbeat 1s ease-in-out infinite;
 }
+
+/* View Transitions API for smooth page navigation */
+@view-transition {
+  navigation: auto;
+}
+
+/* ── Left arrow clicked (going to newer page) ──
+   Old page exits to the RIGHT, new page enters from the LEFT */
+:root[data-nav-direction="left"]::view-transition-old(root) {
+  animation: exit-to-right 900ms ease-in-out;
+}
+:root[data-nav-direction="left"]::view-transition-new(root) {
+  animation: enter-from-left 900ms ease-in-out;
+}
+
+/* ── Right arrow clicked (going to older page) ──
+   Old page exits to the LEFT, new page enters from the RIGHT */
+:root[data-nav-direction="right"]::view-transition-old(root) {
+  animation: exit-to-left 900ms ease-in-out;
+}
+:root[data-nav-direction="right"]::view-transition-new(root) {
+  animation: enter-from-right 900ms ease-in-out;
+}
+
+/* Default (no attribute) – slide left */
+::view-transition-old(root) {
+  animation: exit-to-left 900ms ease-in-out;
+}
+::view-transition-new(root) {
+  animation: enter-from-right 900ms ease-in-out;
+}
+
+@keyframes exit-to-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(0); }
+}
+@keyframes enter-from-right {
+  from { opacity: 0; transform: translateX(5000px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes exit-to-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(0); }
+}
+@keyframes enter-from-left {
+  from { opacity: 0; transform: translateX(-5000px); }
+  to   { opacity: 1; transform: translateX(0); }
+}

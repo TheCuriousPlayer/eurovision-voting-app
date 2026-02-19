@@ -9,6 +9,8 @@ import { eurovision2021Data } from '@/data/eurovision2021';
 import { ResultsData } from '@/types/votes';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
+import EurovisionNavigation from '@/components/EurovisionNavigation';
+import PageReadySignal from '@/components/PageReadySignal';
 
 const eurovision2021Songs = eurovision2021Data;
 
@@ -848,11 +850,13 @@ export default function Eurovision2021() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
+      <PageReadySignal />
       <div className="container mx-auto px-4">
         
-        <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Eurovision 2021<br/>Sonuçlar <a href="https://www.youtube.com/playlist?list=PLvYQzibNzDx01WQHqmrIL-CXvrPHuDl4I" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
-        </h1>
+        <EurovisionNavigation currentYear={2021} />
+        <p className="text-center text-gray-300 mb-8">
+          Sonuçlar <a href="https://www.youtube.com/playlist?list=PLvYQzibNzDx01WQHqmrIL-CXvrPHuDl4I" target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-500">Buğra Şişman YouTube</a> kanalında açıklanacak.
+        </p>
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>

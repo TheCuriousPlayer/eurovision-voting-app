@@ -7,6 +7,8 @@ import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simp
 import { formatNumber } from '@/utils/formatNumber';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import { motion } from 'framer-motion';
+import EurovisionNavigation from '@/components/EurovisionNavigation';
+import PageReadySignal from '@/components/PageReadySignal';
 
 interface VoteMapData {
   countryCounts: { [country: string]: number };
@@ -428,25 +430,9 @@ export default function HaritaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e]">
+      <PageReadySignal />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-white mb-2 text-center">
-          {activeTab === 'personal' ? 'Oy Haritam' : 'Global Oy Haritası'}
-        </h1>
-        <p className="text-gray-300 text-center mb-8">
-          {activeTab === 'personal' ? (
-            <>
-              Toplam <span className="text-yellow-400 font-bold"><AnimatedCounter key="header-personal-votes" value={voteData?.totalVotes || 0} slow={true} /></span> oy verdim
-              {voteData?.competitions && ` (${voteData.competitions.length} yarışma)`}
-            </>
-          ) : (
-            <>
-              <span className="text-green-400 font-bold"><AnimatedCounter key="header-global-users" value={globalVoteData?.totalUsers || 0} slow={true} /></span> tekil kullanıcı toplam{' '}
-              <span className="text-green-400 font-bold"><AnimatedCounter key="header-global-votes" value={globalVoteData?.totalVotes || 0} slow={true} /></span> oy verdi
-              {globalVoteData?.competitions && ` (${globalVoteData.competitions.length} yarışma)`}
-            </>
-          )}
-        </p>
-
+        <EurovisionNavigation currentPage="harita" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Country List */}
           <div className="lg:col-span-1">
@@ -761,7 +747,7 @@ export default function HaritaPage() {
           <div className="lg:col-span-2">
             <div className="bg-[#2c3e50] rounded-lg p-6">
               <h2 className="text-2xl font-bold text-white mb-4 text-center">
-                Dünya Haritası
+                {activeTab === 'personal' ? 'Kişisel Oy Haritam' : 'Global Oy Haritası'}
               </h2>
               
               <div className="bg-[#1a1a2e] rounded-lg p-4 relative">
