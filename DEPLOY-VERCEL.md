@@ -42,9 +42,9 @@ git push -u origin main
 ### 5. Add Environment Variables
 In Vercel dashboard, add these:
 ```
-GOOGLE_ID=87219256128-7k4p98c0pdp07lg8b3ds0b90u16nbokh.apps.googleusercontent.com
-GOOGLE_SECRET=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
-NEXTAUTH_SECRET=2b80d6ad2c49db241a51260e30b2e3fd160b9983ea8ec125bb300c5e83bdd7df
+GOOGLE_ID=***your-google-client-id***
+GOOGLE_SECRET=***your-google-client-secret***
+NEXTAUTH_SECRET=***generate-with-openssl-rand-hex-32***
 NEXTAUTH_URL=https://your-app-name.vercel.app
 ```
 

@@ -47,6 +47,7 @@ src/app/eurovision2023/votes/vote_*.json
 src/app/eurovision2023/votes/cumulative_results.json
 
 # vercel
+# vercel
 .vercel
 
 # typescript
@@ -54,3 +55,9 @@ src/app/eurovision2023/votes/cumulative_results.json
 next-env.d.ts
 
 /src/generated/prisma
+
+# Sensitive files — never commit
+client_secret*.json
+OAuthClientID.txt
+*.secret
+*.key
