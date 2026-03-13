@@ -10,6 +10,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import EurovisionNavigation from '@/components/EurovisionNavigation';
 import PageReadySignal from '@/components/PageReadySignal';
+import NextVotingSelector from '@/components/NextVotingSelector';
 
 const eurovision2023Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
   'Albania': { code: 'AL', performer: 'Albina & Familja Kelmendi', song: 'Duje', youtubeId: 'TI9rSDhXwyc' },
@@ -884,6 +885,7 @@ export default function Eurovision2023() {
             <div className="flex flex-wrap gap-8">
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
+                <NextVotingSelector currentYear="2023" />
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">

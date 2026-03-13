@@ -5,13 +5,14 @@ import { useState } from 'react';
 
 interface EurovisionNavigationProps {
   currentYear?: number;
-  currentPage?: 'harita' | '2020-final' | '2020-semi-final-b' | '2020-semi-final-a';
+  currentPage?: 'harita' | '2026-preview' | '2020-final' | '2020-semi-final-b' | '2020-semi-final-a';
 }
 
 // Define the complete navigation chain (newest to oldest)
 const NAVIGATION_CHAIN = [
   { id: 'harita', path: '/Harita', label: 'Harita', title: 'Oy Haritası' },
   { id: 2026, path: '/eurovision2026', label: '2026', title: 'Eurovision 2026' },
+  { id: '2026-preview', path: '/eurovision2026Preview', label: '2026 Preview', title: 'Eurovision 2026' },
   { id: 2025, path: '/eurovision2025', label: '2025', title: 'Eurovision 2025' },
   { id: 2024, path: '/eurovision2024', label: '2024', title: 'Eurovision 2024' },
   { id: 2023, path: '/eurovision2023', label: '2023', title: 'Eurovision 2023' },

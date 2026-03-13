@@ -71,8 +71,14 @@ export const VOTE_CONFIG = {
     Mode: 'visible', // 'visible' | 'hide'
     GMs: '' 
   },
-  '2026': { 
+  '202600': { 
     Status: false, 
+    ShowCountDown: VOTE_DATES['2026'], 
+    Mode: 'hide', // 'visible' | 'hide'
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
+  },
+  '2026': { 
+    Status: true, 
     ShowCountDown: VOTE_DATES['2026'], 
     Mode: 'hide', // 'visible' | 'hide'
     GMs: '' 
@@ -99,5 +105,6 @@ export const UNDER_CONSTRUCTION = {
   '2023': false,   // true: bakım modunda, false: aktif
   '2024': false,    // true: bakım modunda, false: aktif
   '2025': false,    // true: bakım modunda, false: aktif
+  '202600': false,    // true: bakım modunda, false: aktif
   '2026': true    // true: bakım modunda, false: aktif
 };

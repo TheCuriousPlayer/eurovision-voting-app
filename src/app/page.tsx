@@ -17,7 +17,8 @@ export default function Home() {
       const subCompetitions = [
         { key: '202001', year: 2020 }, // Semi-Final A
         { key: '202002', year: 2020 }, // Semi-Final B
-        { key: '202003', year: 2020 }  // Final
+        { key: '202003', year: 2020 }, // Final
+        { key: '202600', year: 2026 }  // Preview
       ];
       const counts: { [year: string]: number } = {};
       
@@ -116,6 +117,68 @@ export default function Home() {
             </div>
 
             {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => {
+              // Special handling for year 2026 - show main card + Preview sub-card
+              if (year === 2026) {
+                return (
+                  <div key={year} className="contents">
+                    {/* Eurovision 2026 Main Card */}
+                    <div className="group">
+                      <Link
+                        href="/eurovision2026"
+                        className="block relative overflow-hidden rounded-xl p-6 bg-[#2c3e50] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      >
+                        <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                          <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                            <div className="w-20 h-20 border-4 border-white rounded-full" />
+                          </div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2">
+                          Eurovision 2026
+                        </h2>
+                        <div className="flex items-end justify-between">
+                          <div className="text-gray-300 text-sm">
+                            <span>Eklenecek...</span>
+                          </div>
+                          {voteCounts[2026] !== undefined && (
+                            <div className="text-gray-200 text-xs">
+                              <span>{voteCounts[2026] === 0 ? '⌛' : `${formatNumber(voteCounts[2026])} oy`}</span>
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Eurovision 2026 Preview Card */}
+                    <div className="group">
+                      <Link
+                        href="/eurovision2026Preview"
+                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#b45309] to-[#92400e] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      >
+                        <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                          <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                            <div className="w-20 h-20 border-4 border-white rounded-full" />
+                          </div>
+                        </div>
+                        <h2 className="text-xl font-bold text-white">
+                          Eurovision 2026
+                        </h2>
+                        <h3 className="text-sm font-semibold text-amber-200">
+                          Preview
+                        </h3>
+                        <div className="flex items-end justify-between mt-1">
+                          <span className="text-amber-100 text-xs">Ön Oylama</span>
+                          {voteCounts['202600'] !== undefined && (
+                            <div className="text-amber-200 text-xs">
+                              <span>{voteCounts['202600'] === 0 ? '⌛' : `${formatNumber(voteCounts['202600'])} oy`}</span>
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              }
+
               // Special handling for year 2020 - show only contest-specific cards
               if (year === 2020) {
                 return (
@@ -347,6 +410,68 @@ export default function Home() {
           </div>
 
           {Array.from({ length: 32 }, (_, i) => 2026 - i).map(year => {
+            // Special handling for year 2026 - show main card + Preview sub-card
+            if (year === 2026) {
+              return (
+                <div key={year} className="contents">
+                  {/* Eurovision 2026 Main Card */}
+                  <div className="group">
+                    <Link
+                      href="/eurovision2026"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-[#2c3e50] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      <h2 className="text-2xl font-bold text-white mb-2">
+                        Eurovision 2026
+                      </h2>
+                      <div className="flex items-end justify-between">
+                        <div className="text-gray-300 text-sm">
+                          <span>Eklenecek...</span>
+                        </div>
+                        {voteCounts[2026] !== undefined && (
+                          <div className="text-gray-200 text-xs">
+                            <span>{voteCounts[2026] === 0 ? '⌛' : `${formatNumber(voteCounts[2026])} oy`}</span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  </div>
+
+                  {/* Eurovision 2026 Preview Card */}
+                  <div className="group">
+                    <Link
+                      href="/eurovision2026Preview"
+                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#b45309] to-[#92400e] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                        <div className="transform rotate-45 translate-x-8 -translate-y-8">
+                          <div className="w-20 h-20 border-4 border-white rounded-full" />
+                        </div>
+                      </div>
+                      <h2 className="text-xl font-bold text-white">
+                        Eurovision 2026
+                      </h2>
+                      <h3 className="text-sm font-semibold text-amber-200">
+                        Preview
+                      </h3>
+                      <div className="flex items-end justify-between mt-1">
+                        <span className="text-amber-100 text-xs">Ön Oylama</span>
+                        {voteCounts['202600'] !== undefined && (
+                          <div className="text-amber-200 text-xs">
+                            <span>{voteCounts['202600'] === 0 ? '⌛' : `${formatNumber(voteCounts['202600'])} oy`}</span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              );
+            }
+
             // Special handling for year 2020 - show only contest-specific cards
             if (year === 2020) {
               return (

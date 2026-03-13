@@ -58,3 +58,15 @@ model CumulativeResult {
   
   @@map("cumulative_results")
 }
+
+// Model for "Next Year" survey responses
+model survey_next_year {
+  id            Int      @id @default(autoincrement())
+  user_email    String   @unique
+  selected_year String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  
+  @@index([selected_year])
+  @@map("survey_next_year")
+}

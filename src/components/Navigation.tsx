@@ -36,8 +36,8 @@ export default function Navigation() {
       label: 'Harita 🌍',
     },
     {
-      href: '/eurovision2021',
-      label: 'Eurovision 2021',
+      href: '/eurovision2026Preview',
+      label: 'Eurovision 2026',
     },
   ];
 

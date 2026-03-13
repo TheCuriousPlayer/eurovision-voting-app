@@ -12,62 +12,61 @@ import EurovisionNavigation from '@/components/EurovisionNavigation';
 import PageReadySignal from '@/components/PageReadySignal';
 import NextVotingSelector from '@/components/NextVotingSelector';
 
-const eurovision2024Songs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
-  'Albania': { code: 'AL', performer: 'BESA', song: 'TITAN', youtubeId: 'aQG22XJIdWw' },
-//   'Andorra': { code: 'AD', performer: '', song: '', youtubeId: '' },
-  'Armenia': { code: 'AM', performer: 'LADANIVA', song: 'Jako', youtubeId: 'hAYXDoZzAyE' },
-  'Australia': { code: 'AU', performer: 'Electric Fields', song: 'One Milkali (One Blood)', youtubeId: 'Wzpp6996QdI' },
-  'Austria': { code: 'AT', performer: 'Kaleen', song: 'We Will Rave', youtubeId: 'VZ6SlZnk_EI' },
-  'Azerbaijan': { code: 'AZ', performer: 'FAHREE feat. Ilkin Dovlatov', song: 'Özünlə Apar', youtubeId: 'QhN9r8TH2Hw' },
-//   'Belarus': { code: 'BY', performer: '', song: '', youtubeId: '' },
-  'Belgium': { code: 'BE', performer: 'Mustii', song: "Before the Party's Over", youtubeId: 'hNIemQwCaM4' },
-//   'Bosnia & Herzegovina': { code: 'BA', performer: '', song: '', youtubeId: '' },
-//   'Bulgaria': { code: 'BG', performer: '', song: '', youtubeId: '' },
-  'Croatia': { code: 'HR', performer: 'Baby Lasagna', song: 'Rim Tim Tagi Dim', youtubeId: 'YIBjarAiAVc' },
-  'Czechia': { code: 'CZ', performer: 'Aiko', song: 'Pedestal', youtubeId: 'RiItbHRF1BY' },
-  'Denmark': { code: 'DK', performer: 'SABA', song: 'SAND', youtubeId: '4f_phiGot7w' },
-  'Estonia': { code: 'EE', performer: '5MIINUST x Puuluup', song: '(nendest) narkootikumidest ei tea me (küll) midagi', youtubeId: 'RSMMU2wX0Bk' },
-  'Finland': { code: 'FI', performer: 'Windows95man', song: 'No Rules!', youtubeId: '7nidDtyS0Wo' },
-  'France': { code: 'FR', performer: 'Slimane', song: 'Mon amour', youtubeId: '-XyLecY2JyE' },
-  'Georgia': { code: 'GE', performer: 'Nutsa Buzaladze', song: 'Firefighter', youtubeId: 'He4PGhm7jOw' },
-  'Germany': { code: 'DE', performer: 'ISAAK', song: 'Always On The Run', youtubeId: 'kVOHTxFOhak' },
-  'Greece': { code: 'GR', performer: 'Marina Satti', song: 'ZARI', youtubeId: 'ENb4LCeq9Lc' },
-//   'Hungary': { code: 'HU', performer: '', song: '', youtubeId: '' },
-  'Iceland': { code: 'IS', performer: 'Hera Björk', song: 'Scared of Heights', youtubeId: 'VChBgcycVl8' },
-  'Ireland': { code: 'IE', performer: 'Bambie Thug', song: 'Doomsday Blue', youtubeId: 'UMq8ofCstMQ' },
-  'Israel': { code: 'IL', performer: 'Eden Golan', song: 'Hurricane', youtubeId: 'K60BWlEhtAA' },
-  'Italy': { code: 'IT', performer: 'Angelina Mango', song: 'La noia', youtubeId: 'zp1FXHjkjpQ' },
-  'Latvia': { code: 'LV', performer: 'Dons', song: 'Hollow', youtubeId: 'kgIwQkMwURY' },
-  'Lithuania': { code: 'LT', performer: 'Silvester Belt', song: 'Luktelk', youtubeId: 'N8YuQzJLR_k' },
-  'Luxembourg': { code: 'LU', performer: 'TALI', song: 'Fighter', youtubeId: 'TCWH3Nq5y9A' },
-  'Malta': { code: 'MT', performer: 'Sarah Bonnici', song: 'Loop', youtubeId: 'uG-JHeia13c' },
-  'Moldova': { code: 'MD', performer: 'Natalia Barbu', song: 'In The Middle', youtubeId: 'evIoGkZXj2s' },
-//   'Monaco': { code: 'MC', performer: '', song: '', youtubeId: '' },
-//   'Montenegro': { code: 'ME', performer: '', song: '', youtubeId: '' },
-//   'Morocco': { code: 'MA', performer: '', song: '', youtubeId: '' },
-  'Netherlands': { code: 'NL', performer: 'Joost Klein', song: 'Europapa', youtubeId: 'IiHFnmI8pxg' },
-//   'North Macedonia': { code: 'MK', performer: '', song: '', youtubeId: '' },
-  'Norway': { code: 'NO', performer: 'Gåte', song: 'Ulveham', youtubeId: 'YBbL8ORqNVU' },
-  'Poland': { code: 'PL', performer: 'LUNA', song: 'The Tower', youtubeId: 'ESKG8Uo1YaU' },
-  'Portugal': { code: 'PT', performer: 'iolanda', song: 'Grito', youtubeId: 'OZn4-H6JvKU' },
-//   'Romania': { code: 'RO', performer: '', song: '', youtubeId: '' },
-//   'Russia': { code: 'RU', performer: '', song: '', youtubeId: '' },
-  'San Marino': { code: 'SM', performer: 'MEGARA', song: '11:11', youtubeId: 'IqyJvkGmAjo' },
-  'Serbia': { code: 'RS', performer: 'TEYA DORA', song: 'RAMONDA', youtubeId: '4hUg64uIY_4' },
-//   'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
-//   'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
-  'Slovenia': { code: 'SI', performer: 'Raiven', song: 'Veronika', youtubeId: 'l86DxpRnz5M' },
-  'Southern Cyprus': { code: 'CY', performer: 'Silia Kapsis', song: 'Liar', youtubeId: 'c4wMioZXbMk' },
-  'Spain': { code: 'ES', performer: 'Nebulossa', song: 'ZORRA', youtubeId: 'FOMoQoHG5aU' },
-  'Sweden': { code: 'SE', performer: 'Marcus & Martinus', song: 'Unforgettable', youtubeId: 'DcZpzObYzxs' },
-  'Switzerland': { code: 'CH', performer: 'Nemo', song: 'The Code', youtubeId: 'CO_qJf-nW0k' },
-//   'Türkiye': { code: 'TR', performer: '', song: '', youtubeId: '' },
-  'Ukraine': { code: 'UA', performer: 'alyona alyona & Jerry Heil', song: 'Teresa & Maria', youtubeId: 'd4N82wPpdg8' },
-  'United Kingdom': { code: 'GB', performer: 'Olly Alexander', song: 'Dizzy', youtubeId: 'q0_FdJqyQW0' }
-//   'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
+const eurovision2026PreviewSongs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
+  'Albania': { code: 'AL', performer: 'Alis', song: 'Nân', youtubeId: 'b9AdRrA554o' },
+// 'Andorra': { code: 'AD', performer: '', song: '', youtubeId: '' },
+  'Armenia': { code: 'AM', performer: 'Simón', song: 'Paloma Rumba', youtubeId: '5EXoK-lgocw' },
+  'Australia': { code: 'AU', performer: 'Delta Goodrem', song: 'Eclipse', youtubeId: 'EUMCr1pnaMY' },
+  'Austria': { code: 'AT', performer: 'Cosmó', song: 'Tanzschein', youtubeId: 'zPGP9ZphxiY' },
+  'Azerbaijan': { code: 'AZ', performer: 'Jiva', song: 'Just Go', youtubeId: 'iMDBPe25JhM' },
+// 'Belarus': { code: 'BY', performer: '', song: '', youtubeId: '' },
+  'Belgium': { code: 'BE', performer: 'Essyla', song: 'Dancing on the Ice', youtubeId: '9sfI4g6DWTU' },
+// 'Bosnia & Herzegovina': { code: 'BA', performer: '', song: '', youtubeId: '' },
+  'Bulgaria': { code: 'BG', performer: 'Dara', song: 'Bangaranga', youtubeId: '_pkC9J6BPFY' },
+  'Croatia': { code: 'HR', performer: 'Lelek', song: 'Andromeda', youtubeId: 'vl7Jqnw10sU' },
+  'Czechia': { code: 'CZ', performer: 'Daniel Zizka', song: 'Crossroads', youtubeId: '6ea25aRGpLo' },
+  'Denmark': { code: 'DK', performer: 'Søren Torpegaard Lund', song: 'Før vi går hjem', youtubeId: 'xKzEP9dwoss' },
+  'Estonia': { code: 'EE', performer: 'Vanilla Ninja', song: 'Too Epic to Be True', youtubeId: 'lOiWuol3t3o' },
+  'Finland': { code: 'FI', performer: 'Linda Lampenius & Pete Parkkonen', song: 'Liekinheitin', youtubeId: '9bfwNIYb96Q' },
+  'France': { code: 'FR', performer: 'Monroe', song: 'Regarde !', youtubeId: 'ujoCYrvvTYQ' },
+  'Georgia': { code: 'GE', performer: 'Bzikebi', song: 'On Replay', youtubeId: 'coh-lygCINY' },
+  'Germany': { code: 'DE', performer: 'Sarah Engels', song: 'Fire', youtubeId: 'AzvRc3eH_rA' },
+  'Greece': { code: 'GR', performer: 'Akylas', song: 'Ferto', youtubeId: 'NGwNTd_DA9s' },
+// 'Hungary': { code: 'HU', performer: '', song: '', youtubeId: '' },
+// 'Iceland': { code: 'IS', performer: '', song: '', youtubeId: '' },
+// 'Ireland': { code: 'IE', performer: '', song: '', youtubeId: '' },
+  'Israel': { code: 'IL', performer: 'Noam Bettan', song: 'Michelle', youtubeId: 'xWCnWSoG8nI' },
+  'Italy': { code: 'IT', performer: 'Sal Da Vinci', song: 'Per sempre sì', youtubeId: 'V406FAGkhyQ' },
+  'Latvia': { code: 'LV', performer: 'Atvara', song: 'Ēnā', youtubeId: '6C2ivaB5D00' },
+  'Lithuania': { code: 'LT', performer: 'Lion Ceccah', song: 'Sólo quiero más', youtubeId: '0H-PXnbhG7A' },
+  'Luxembourg': { code: 'LU', performer: 'Eva Marija', song: 'Mother Nature', youtubeId: 'DmVfJSRqgnI' },
+  'Malta': { code: 'MT', performer: 'Aidan', song: 'Bella', youtubeId: 'CW6mQLBh6Js' },
+  'Moldova': { code: 'MD', performer: 'Satoshi', song: 'Viva, Moldova!', youtubeId: 'SViojHjNSzc' },
+// 'Monaco': { code: 'MC', performer: '', song: '', youtubeId: '' },
+  'Montenegro': { code: 'ME', performer: 'Tamara Živković', song: 'Nova zora', youtubeId: 'nuvy2d60HbI' },
+// 'Netherlands': { code: 'NL', performer: '', song: '', youtubeId: '' },
+// 'North Macedonia': { code: 'MK', performer: '', song: '', youtubeId: '' },
+  'Norway': { code: 'NO', performer: 'Jonas Lovv', song: 'Ya Ya Ya', youtubeId: 'MasllzWk_bQ' },
+  'Poland': { code: 'PL', performer: 'Alicja', song: 'Pray', youtubeId: 'q78cnYIoF9Y' },
+  'Portugal': { code: 'PT', performer: 'Bandidos do Cante', song: 'Rosa', youtubeId: 'jyHaE6GqaaQ' },
+  'Romania': { code: 'RO', performer: 'Alexandra Căpitănescu', song: 'Choke Me', youtubeId: 'JrSl0sTX5W4' },
+// 'Russia': { code: 'RU', performer: '', song: '', youtubeId: '' },
+  'San Marino': { code: 'SM', performer: 'Senhit', song: 'Superstar', youtubeId: 'wOQe-fQSFxg' },
+  'Serbia': { code: 'RS', performer: 'Lavina', song: 'Kraj mene', youtubeId: 'FJTLKBOOE98' },
+// 'Serbia Montenegro': { code: 'RM', performer: '', song: '', youtubeId: '' },
+// 'Slovakia': { code: 'SK', performer: '', song: '', youtubeId: '' },
+// 'Slovenia': { code: 'SI', performer: '', song: '', youtubeId: '' },
+  'Southern Cyprus': { code: 'CY', performer: 'Antigoni', song: 'Jalla', youtubeId: 'TzSs51BiQrE' },
+// 'Spain': { code: 'ES', performer: '', song: '', youtubeId: '' },
+  'Sweden': { code: 'SE', performer: 'Felicia', song: 'My System', youtubeId: 'ibbfS8iG450' },
+  'Switzerland': { code: 'CH', performer: 'Veronica Fusaro', song: 'Alice', youtubeId: 'PfpYGAzW5dM' },
+// 'Türkiye': { code: 'TR', performer: '', song: '', youtubeId: '' },
+  'Ukraine': { code: 'UA', performer: 'Leléka', song: 'Ridnym', youtubeId: 'SoEXezpblAc' },
+  'United Kingdom': { code: 'GB', performer: 'Look Mum No Computer', song: 'Eins, zwei, drei', youtubeId: 'niMKvJ-Itq8' },
+// 'Yugoslavia': { code: 'YU', performer: '', song: '', youtubeId: '' }
 };
 
-export default function Eurovision2024() {
+export default function Eurovision2026Preview() {
   // Current time state for testing middleware redirect
   // (Removed unused currentTime state and timer)
   
@@ -86,6 +85,7 @@ export default function Eurovision2024() {
   const [autoRefreshTimer, setAutoRefreshTimer] = useState<NodeJS.Timeout | null>(null);
   // Use a ref to hold the live timer so cleanup on unmount always sees the current timer
   const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // keep a no-op reference so linters don't complain about unused state variable
   void autoRefreshTimer;
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
@@ -93,8 +93,8 @@ export default function Eurovision2024() {
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const infoTooltipRef = useRef<HTMLDivElement>(null);
   const [pendingSave, setPendingSave] = useState(false);
+  const previousVotesRef = useRef<string[]>([]); // Removed: lastSavedAt
   const hasLoadedVotesFromDB = useRef(false);
-  const previousVotesRef = useRef<string[]>([]);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
   const [clearCountdown, setClearCountdown] = useState(7);
@@ -105,7 +105,7 @@ export default function Eurovision2024() {
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
 
   const openYouTubeModal = (country: string) => {
-    const songData = eurovision2024Songs[country];
+    const songData = eurovision2026PreviewSongs[country];
     if (songData?.youtubeId) {
       setSelectedVideoId(songData.youtubeId);
       setSelectedCountryName(country);
@@ -122,17 +122,17 @@ export default function Eurovision2024() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        console.log(`[Eurovision2024] Fetching config for year: 2024`);
-        console.log(`[Eurovision2024] User authentication status: ${status}`);
-        console.log(`[Eurovision2024] User email: ${session?.user?.email || 'Not signed in'}`);
+        console.log(`[Eurovision2026Preview] Fetching config for year: 202600`);
+        console.log(`[Eurovision2026Preview] User authentication status: ${status}`);
+        console.log(`[Eurovision2026Preview] User email: ${session?.user?.email || 'Not signed in'}`);
         
         // Add a timestamp to prevent caching issues
-        const response = await fetch(`/api/config/vote-config?year=2024&t=${Date.now()}`);
+        const response = await fetch(`/api/config/vote-config?year=202600&t=${Date.now()}`);
         if (response.ok) {
           const data = await response.json();
-          console.log(`[Eurovision2024] Config API response:`, data);
-          console.log(`[Eurovision2024] isGM status: ${data.isGM}`);
-          console.log(`[Eurovision2024] Mode setting: ${data.mode}`);
+          console.log(`[Eurovision2026Preview] Config API response:`, data);
+          console.log(`[Eurovision2026Preview] isGM status: ${data.isGM}`);
+          console.log(`[Eurovision2026Preview] Mode setting: ${data.mode}`);
           setVoteConfig(data);
         }
       } catch (error) {
@@ -213,7 +213,7 @@ export default function Eurovision2024() {
 
   // On mount, try to resend any pending votes from localStorage
   useEffect(() => {
-    const pendingKey = 'eurovision2024_pending_votes';
+    const pendingKey = 'eurovision2026Preview_pending_votes';
 
     async function tryResendPending() {
       try {
@@ -222,8 +222,8 @@ export default function Eurovision2024() {
         const parsed = JSON.parse(raw) as { votes: string[]; ts: number };
         if (!parsed || !Array.isArray(parsed.votes)) return;
 
-        console.log('Found pending votes in localStorage (2024), attempting resend');
-        const resp = await fetch('/api/votes/2024', {
+        console.log('Found pending votes in localStorage (2026Preview), attempting resend');
+        const resp = await fetch('/api/votes/202600', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ votes: parsed.votes }),
@@ -232,13 +232,13 @@ export default function Eurovision2024() {
         if (resp.ok) {
           window.localStorage.removeItem(pendingKey);
           setPendingSave(false);
-          console.log('Resent pending votes successfully (2024)');
+          console.log('Resent pending votes successfully (2026Preview)');
         } else {
-          console.warn('Resend of pending votes failed (2024), will keep for later');
+          console.warn('Resend of pending votes failed (2026Preview), will keep for later');
           setPendingSave(true);
         }
       } catch {
-        console.warn('Error while resending pending votes (2024)');
+        console.warn('Error while resending pending votes (2026Preview)');
         setPendingSave(true);
       }
     }
@@ -257,7 +257,7 @@ export default function Eurovision2024() {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
         if (navigator && 'sendBeacon' in navigator) {
-          const url = '/api/votes/2024';
+          const url = '/api/votes/202600';
           const blob = new Blob([raw], { type: 'application/json' });
           navigator.sendBeacon(url, blob);
         }
@@ -296,7 +296,7 @@ export default function Eurovision2024() {
     console.log('Updating results with selectedCountries:', selectedCountries);
 
     // Start with base points (all countries at 0)
-    const allCountries = Object.keys(eurovision2024Songs);
+    const allCountries = Object.keys(eurovision2026PreviewSongs);
     const basePoints: { [country: string]: number } = {};
     
     // Initialize all countries to 0
@@ -361,16 +361,16 @@ export default function Eurovision2024() {
 
     // Persist pending vote locally immediately so users leaving the page know it's saved locally
     try {
-      window.localStorage.setItem('eurovision2024_pending_votes', JSON.stringify({ votes: selectedCountries, ts: Date.now() }));
+      window.localStorage.setItem('eurovision2026Preview_pending_votes', JSON.stringify({ votes: selectedCountries, ts: Date.now() }));
       setPendingSave(true);
     } catch (e) {
-      console.warn('Failed to write pending votes to localStorage (2024)', e);
+      console.warn('Failed to write pending votes to localStorage (2026Preview)', e);
     }
 
     // Try to send to server (don't block UI). On success clear pending state/localStorage.
     try {
       console.log('Sending votes to API (preserving slot positions):', selectedCountries);
-      const response = await fetch('/api/votes/2024', {
+      const response = await fetch('/api/votes/202600', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -387,14 +387,14 @@ export default function Eurovision2024() {
         console.log('Votes saved successfully');
         // Clear local pending copy
         try {
-          window.localStorage.removeItem('eurovision2024_pending_votes');
+          window.localStorage.removeItem('eurovision2026Preview_pending_votes');
         } catch (e) {
-          console.warn('Failed to remove pending votes from localStorage (2024)', e);
+          console.warn('Failed to remove pending votes from localStorage (2026Preview)', e);
         }
         setPendingSave(false);
       }
     } catch (error) {
-      console.warn('Error saving votes to server, will retry later (2024):', error);
+      console.warn('Error saving votes to server, will retry later (2026Preview):', error);
       setPendingSave(true);
     }
   };
@@ -402,7 +402,7 @@ export default function Eurovision2024() {
   const fetchFreshResults = async () => {
     try {
       console.log('Fetching fresh results from simple endpoint...');
-      const endpoint = '/api/votes/2024/simple';
+      const endpoint = '/api/votes/202600/simple';
       const cacheBustUrl = `${endpoint}?t=${Date.now()}`;
       console.log('Using simple endpoint:', cacheBustUrl);
       
@@ -456,6 +456,7 @@ export default function Eurovision2024() {
       startAutoRefresh(); // Restart the timer
     }, 60000); // 60 seconds
 
+    // store both in ref and state (state kept for backwards compat / debugging)
     autoRefreshTimerRef.current = newTimer;
     setAutoRefreshTimer(newTimer);
     console.log('Auto-refresh timer started (60 seconds)');
@@ -571,7 +572,7 @@ export default function Eurovision2024() {
       }
       
       // Use simple endpoint that returns hardcoded working data
-      const endpoint = '/api/votes/2024/simple';
+      const endpoint = '/api/votes/202600/simple';
       // Add cache-busting timestamp to force fresh data
       // If we expect auth but don't have userVote yet, add waitForAuth param
       const needsAuth = status === 'authenticated' && session?.user?.email;
@@ -588,25 +589,6 @@ export default function Eurovision2024() {
       
       if (response.ok) {
         const data = await response.json();
-
-        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
-        // Extract only the first number (total points) for each country
-        if (data.countryPoints) {
-          const parsedPoints: { [country: string]: number } = {};
-          Object.entries(data.countryPoints).forEach(([country, value]) => {
-            if (typeof value === 'string' && value.includes(',')) {
-              // Format: "2090,648,430,312,..." - take first number only
-              const total = parseInt(value.split(',')[0]);
-              parsedPoints[country] = total;
-            } else if (typeof value === 'number') {
-              parsedPoints[country] = value;
-            } else {
-              parsedPoints[country] = 0;
-            }
-          });
-          data.countryPoints = parsedPoints;
-        }
-
         console.log('Fetched data:', data);
         console.log('Total votes in response:', data.totalVotes);
         console.log('User session email:', session?.user?.email);
@@ -648,7 +630,7 @@ export default function Eurovision2024() {
             console.log('Debug data:', debugData);
             
             // If debug shows votes exist but API returns 0, force a retry in 2 seconds
-            if (debugData.focus2024?.votesCount > 0) {
+            if (debugData.focus2026Preview?.votesCount > 0) {
               console.warn('Mismatch detected - retrying in 2 seconds...');
               setTimeout(() => {
                 fetchResults();
@@ -659,11 +641,29 @@ export default function Eurovision2024() {
           }
         }
         
+        // Handle comma-separated format: "total,12pts,10pts,8pts,..."
+        // Extract only the first number (total points) for each country
+        if (data.countryPoints) {
+          const parsedPoints: { [country: string]: number } = {};
+          Object.entries(data.countryPoints).forEach(([country, value]) => {
+            if (typeof value === 'string' && value.includes(',')) {
+              // Format: "2090,648,430,312,..." - take first number only
+              const total = parseInt(value.split(',')[0]);
+              parsedPoints[country] = total;
+            } else if (typeof value === 'number') {
+              parsedPoints[country] = value;
+            } else {
+              parsedPoints[country] = 0;
+            }
+          });
+          data.countryPoints = parsedPoints;
+        }
+
         setResults(data);
         console.log('Results state set with totalVotes:', data.totalVotes);
         
         // Load user's show results preference from localStorage (for both auth and unauth users)
-        const savedShowResults = localStorage.getItem('eurovision2024_showResults');
+        const savedShowResults = localStorage.getItem('eurovision2026Preview_showResults');
         if (savedShowResults !== null) {
           setShowResults(JSON.parse(savedShowResults));
         }
@@ -724,7 +724,7 @@ export default function Eurovision2024() {
     
     const newShowResults = !showResults;
     setShowResults(newShowResults);
-    localStorage.setItem('eurovision2024_showResults', JSON.stringify(newShowResults));
+    localStorage.setItem('eurovision2026Preview_showResults', JSON.stringify(newShowResults));
     
     if (newShowResults) {
       // Start auto-refresh when showing results
@@ -821,7 +821,7 @@ export default function Eurovision2024() {
       */}
       {(() => {
         // Wait for auth and config before making decisions
-        if (status === 'loading') {
+        if (String(status) === 'loading') {
           return null; // Don't render while loading
         }
         
@@ -859,8 +859,8 @@ export default function Eurovision2024() {
     </div>
   );
 
-  // Get all countries from the eurovision2024Songs mapping
-  const allCountries = Object.keys(eurovision2024Songs);
+  // Get all countries from the eurovision2026PreviewSongs mapping
+  const allCountries = Object.keys(eurovision2026PreviewSongs);
   
   // Create array of all countries with their points (including 0 points)
   // Sort alphabetically when results are hidden, by points when shown
@@ -891,14 +891,16 @@ export default function Eurovision2024() {
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] py-8">
       <PageReadySignal />
       <div className="container mx-auto px-4">
-        <EurovisionNavigation currentYear={2024} />
+        <EurovisionNavigation currentPage="2026-preview" />
         
         {session ? (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex flex-wrap gap-8">
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
-                <NextVotingSelector currentYear="2024" />
+                {/* Next Voting Selection Section */}
+                <NextVotingSelector currentYear="2026" />
+
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -974,7 +976,7 @@ export default function Eurovision2024() {
                                         }`}
                                       >
                                         <Image 
-                                          src={`/flags/${selectedCountries[index].replace('&', 'and')}_${eurovision2024Songs[selectedCountries[index]]?.code}.png`}
+                                          src={`/flags/${selectedCountries[index].replace('&', 'and')}_${eurovision2026PreviewSongs[selectedCountries[index]]?.code}.png`}
                                           alt={`${selectedCountries[index]} flag`}
                                           width={24}
                                           height={16}
@@ -1051,12 +1053,30 @@ export default function Eurovision2024() {
               <div className="flex-1">
                 {/* Display Preferences */}
                 <div className="bg-[#2c3e50] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-white mb-4">
-                    {showResults 
-                      ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})` 
-                      : 'Ülkeler (Alfabetik)'
-                    }
-                  </h2>
+                  <div className="flex items-center gap-2 mb-4">
+                    {!showResults && (
+                      <button
+                        onClick={() => {
+                          setSelectedVideoId('1jnR-m5u5yQ');
+                          setSelectedCountryName('Eurovision 2026 Preview');
+                          setShowYouTubeModal(true);
+                        }}
+                        className="text-red-600 hover:text-red-800 transition-colors"
+                        title="Watch Preview Video"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                          <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                      </button>
+                    )}
+                    <h2 className="text-2xl font-bold text-white">
+                      {showResults 
+                        ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})` 
+                        : 'Ülkeler (Alfabetik)'
+                      }
+                    </h2>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     {/* First Column - Higher Rankings */}
                     <div className="space-y-2">
@@ -1112,7 +1132,7 @@ export default function Eurovision2024() {
                                       )}
                                       <div className="flex-shrink-0 flex flex-col items-center">
                                         <Image 
-                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2024Songs[country]?.code}.png`}
+                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2026PreviewSongs[country]?.code}.png`}
                                           alt={`${country} flag`}
                                           width={24}
                                           height={16}
@@ -1120,7 +1140,7 @@ export default function Eurovision2024() {
                                             !showResults ? 'opacity-60' : ''
                                           }`}
                                         />
-                                        {eurovision2024Songs[country]?.youtubeId && (
+                                        {eurovision2026PreviewSongs[country]?.youtubeId && (
                                           <button 
                                             onClick={() => openYouTubeModal(country)}
                                             className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -1137,13 +1157,13 @@ export default function Eurovision2024() {
                                         <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                           {country}
                                         </span>
-                                        {eurovision2024Songs[country] && (
+                                        {eurovision2026PreviewSongs[country] && (
                                           <div className="flex flex-col">
                                             <span className="text-xs text-gray-400 truncate">
-                                              {eurovision2024Songs[country].performer}
+                                              {eurovision2026PreviewSongs[country].performer}
                                             </span>
                                             <span className="text-xs text-gray-500 truncate">
-                                              {eurovision2024Songs[country].song}
+                                              {eurovision2026PreviewSongs[country].song}
                                             </span>
                                           </div>
                                         )}
@@ -1254,7 +1274,7 @@ export default function Eurovision2024() {
                                       )}
                                       <div className="flex-shrink-0 flex flex-col items-center">
                                         <Image 
-                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2024Songs[country]?.code}.png`}
+                                          src={`/flags/${country.replace('&', 'and')}_${eurovision2026PreviewSongs[country]?.code}.png`}
                                           alt={`${country} flag`}
                                           width={24}
                                           height={16}
@@ -1262,7 +1282,7 @@ export default function Eurovision2024() {
                                             !showResults ? 'opacity-60' : ''
                                           }`}
                                         />
-                                        {eurovision2024Songs[country]?.youtubeId && (
+                                        {eurovision2026PreviewSongs[country]?.youtubeId && (
                                           <button 
                                             onClick={() => openYouTubeModal(country)}
                                             className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -1279,13 +1299,13 @@ export default function Eurovision2024() {
                                         <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                           {country}
                                         </span>
-                                        {eurovision2024Songs[country] && (
+                                        {eurovision2026PreviewSongs[country] && (
                                           <div className="flex flex-col">
                                             <span className="text-xs text-gray-400 truncate">
-                                              {eurovision2024Songs[country].performer}
+                                              {eurovision2026PreviewSongs[country].performer}
                                             </span>
                                             <span className="text-xs text-gray-500 truncate">
-                                              {eurovision2024Songs[country].song}
+                                              {eurovision2026PreviewSongs[country].song}
                                             </span>
                                           </div>
                                         )}
@@ -1356,12 +1376,30 @@ export default function Eurovision2024() {
             {/* Results section for unauthenticated users - no drag and drop */}
             <div className="flex-1">
               <div className="bg-[#2c3e50] rounded-lg p-6">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  {showResults 
-                    ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})` 
-                    : 'Ülkeler (Alfabetik)'
-                  }
-                </h2>
+                <div className="flex items-center gap-2 mb-4">
+                  {!showResults && (
+                    <button
+                      onClick={() => {
+                        setSelectedVideoId('1jnR-m5u5yQ');
+                        setSelectedCountryName('Eurovision 2026 Preview');
+                        setShowYouTubeModal(true);
+                      }}
+                      className="text-red-600 hover:text-red-800 transition-colors"
+                      title="Watch Preview Video"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a2.952 2.952 0 0 0-2.075-2.088C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.423.598A2.952 2.952 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.952 2.952 0 0 0 2.075 2.088C4.495 20.5 12 20.5 12 20.5s7.505 0 9.423-.598a2.952 2.952 0 0 0 2.075-2.088C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                        <path fill="white" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>
+                    </button>
+                  )}
+                  <h2 className="text-2xl font-bold text-white">
+                    {showResults 
+                      ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})` 
+                      : 'Ülkeler (Alfabetik)'
+                    }
+                  </h2>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   {/* First Column - Higher Rankings */}
                   <div className="space-y-1">
@@ -1380,7 +1418,7 @@ export default function Eurovision2024() {
                           </span>
                           <div className="flex-shrink-0 flex flex-col items-center">
                             <Image 
-                              src={`/flags/${country.replace('&', 'and')}_${eurovision2024Songs[country]?.code}.png`}
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2026PreviewSongs[country]?.code}.png`}
                               alt={`${country} flag`}
                               width={24}
                               height={16}
@@ -1388,7 +1426,7 @@ export default function Eurovision2024() {
                                 !showResults ? 'opacity-60' : ''
                               }`}
                             />
-                            {eurovision2024Songs[country]?.youtubeId && (
+                            {eurovision2026PreviewSongs[country]?.youtubeId && (
                               <button 
                                 onClick={() => openYouTubeModal(country)}
                                 className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -1405,13 +1443,13 @@ export default function Eurovision2024() {
                             <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                               {country}
                             </span>
-                            {eurovision2024Songs[country] && (
+                            {eurovision2026PreviewSongs[country] && (
                               <div className="flex flex-col">
                                 <span className="text-xs text-gray-400 truncate">
-                                  {eurovision2024Songs[country].performer}
+                                  {eurovision2026PreviewSongs[country].performer}
                                 </span>
                                 <span className="text-xs text-gray-500 truncate">
-                                  {eurovision2024Songs[country].song}
+                                  {eurovision2026PreviewSongs[country].song}
                                 </span>
                               </div>
                             )}
@@ -1480,7 +1518,7 @@ export default function Eurovision2024() {
                           </span>
                           <div className="flex-shrink-0 flex flex-col items-center">
                             <Image 
-                              src={`/flags/${country.replace('&', 'and')}_${eurovision2024Songs[country]?.code}.png`}
+                              src={`/flags/${country.replace('&', 'and')}_${eurovision2026PreviewSongs[country]?.code}.png`}
                               alt={`${country} flag`}
                               width={24}
                               height={16}
@@ -1488,7 +1526,7 @@ export default function Eurovision2024() {
                                 !showResults ? 'opacity-60' : ''
                               }`}
                             />
-                            {eurovision2024Songs[country]?.youtubeId && (
+                            {eurovision2026PreviewSongs[country]?.youtubeId && (
                               <button 
                                 onClick={() => openYouTubeModal(country)}
                                 className="mt-1 text-red-600 hover:text-red-800 transition-colors"
@@ -1505,13 +1543,13 @@ export default function Eurovision2024() {
                             <span className={showResults && points > 0 ? 'text-white' : 'text-gray-400'}>
                                 {country}
                             </span>
-                            {eurovision2024Songs[country] && (
+                            {eurovision2026PreviewSongs[country] && (
                                 <div className="flex flex-col">
                                 <span className="text-xs text-gray-400 truncate">
-                                    {eurovision2024Songs[country].performer}
+                                    {eurovision2026PreviewSongs[country].performer}
                                 </span>
                                 <span className="text-xs text-gray-500 truncate">
-                                    {eurovision2024Songs[country].song}
+                                    {eurovision2026PreviewSongs[country].song}
                                 </span>
                                 </div>
                             )}
@@ -1584,13 +1622,13 @@ export default function Eurovision2024() {
             >
               ×
             </button>
-            <h3 className="text-xl font-bold mb-4 text-white">{selectedCountryName} - Eurovision 2024</h3>
+            <h3 className="text-xl font-bold mb-4 text-white">{selectedCountryName} - Eurovision 2026</h3>
             <div className="aspect-video">
               <iframe
                 width="100%"
                 height="100%"
                 src={`https://www.youtube.com/embed/${selectedVideoId}?hd=1&quality=hd720`}
-                title={`${selectedCountryName} Eurovision 2024 Performance`}
+                title={`${selectedCountryName} Eurovision 2026Preview Performance`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
