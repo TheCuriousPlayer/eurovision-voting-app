@@ -1683,7 +1683,7 @@ export default function Eurovision2020Final() {
           >
             <h3 className="text-xl font-bold mb-4 text-white">⚠️ Uyarı</h3>
             <p className="text-gray-300 mb-6">
-              Veri merkezindeki tüm oyları silmek istediğinizden emin misiniz?
+              Veri merkezindeki bu yıla ait tüm oyları silmek istediğinizden emin misiniz?
             </p>
             <div className="flex gap-3 justify-end">
               <button

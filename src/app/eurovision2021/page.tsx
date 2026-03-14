@@ -41,6 +41,7 @@ export default function Eurovision2021() {
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const infoTooltipRef = useRef<HTMLDivElement>(null);
   const hasLoadedVotesFromDB = useRef(false);
+  const lastZeroVotesRetryRef = useRef<number>(0);
   const previousVotesRef = useRef<string[]>([]);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
@@ -544,23 +545,30 @@ export default function Eurovision2021() {
           return;
         }
         
-        // If still getting 0 votes, try a direct API test
+        // If still getting 0 votes, try a direct API test (throttled to once per 60s)
         if (data.totalVotes === 0) {
-          console.warn('Still receiving 0 votes, testing debug endpoint...');
-          try {
-            const debugResponse = await fetch(`/api/debug?t=${Date.now()}`, { cache: 'no-store' });
-            const debugData = await debugResponse.json();
-            console.log('Debug data:', debugData);
-            
-            // If debug shows votes exist but API returns 0, force a retry in 2 seconds
-            if (debugData.focus2021?.votesCount > 0) {
-              console.warn('Mismatch detected - retrying in 2 seconds...');
-              setTimeout(() => {
-                fetchResults();
-              }, 2000);
+          const now = Date.now();
+          const timeSinceLastRetry = now - lastZeroVotesRetryRef.current;
+          if (timeSinceLastRetry >= 60000) {
+            lastZeroVotesRetryRef.current = now;
+            console.warn('Still receiving 0 votes, testing debug endpoint...');
+            try {
+              const debugResponse = await fetch(`/api/debug?t=${now}`, { cache: 'no-store' });
+              const debugData = await debugResponse.json();
+              console.log('Debug data:', debugData);
+              
+              // If debug shows votes exist but API returns 0, retry after 60 seconds
+              if (debugData.focus2021?.votesCount > 0) {
+                console.warn('Mismatch detected - retrying in 60 seconds...');
+                setTimeout(() => {
+                  fetchResults();
+                }, 60000);
+              }
+            } catch (debugError) {
+              console.warn('Debug endpoint failed:', debugError);
             }
-          } catch (debugError) {
-            console.warn('Debug endpoint failed:', debugError);
+          } else {
+            console.log(`Zero votes retry throttled - ${Math.ceil((60000 - timeSinceLastRetry) / 1000)}s until next check`);
           }
         }
         
@@ -1627,7 +1635,7 @@ export default function Eurovision2021() {
           >
             <h3 className="text-xl font-bold mb-4 text-white">⚠️ Uyarı</h3>
             <p className="text-gray-300 mb-6">
-              Veri merkezindeki tüm oyları silmek istediğinizden emin misiniz?
+              Veri merkezindeki bu yıla ait tüm oyları silmek istediğinizden emin misiniz?
             </p>
             <div className="flex gap-3 justify-end">
               <button
