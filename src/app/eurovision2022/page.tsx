@@ -398,21 +398,26 @@ export default function Eurovision2022() {
   };
 
   const startAutoRefresh = () => {
-    // Clear existing timer (use ref so we always clear the most recent timer)
+      // Auto-refresh timer intentionally disabled for now.
+      // Re-enable by restoring the timer setup below.
     if (autoRefreshTimerRef.current) {
       clearTimeout(autoRefreshTimerRef.current);
       autoRefreshTimerRef.current = null;
     }
 
-    // Start new 60-second timer
-    const newTimer = setTimeout(() => {
-      fetchFreshResults();
-      startAutoRefresh(); // Restart the timer
-    }, 60000); // 60 seconds
+      setAutoRefreshTimer(null);
 
-    autoRefreshTimerRef.current = newTimer;
-    setAutoRefreshTimer(newTimer);
-    console.log('Auto-refresh timer started (60 seconds)');
+      /*
+      // Start new 60-second timer
+      const newTimer = setTimeout(() => {
+        fetchFreshResults();
+        startAutoRefresh(); // Restart the timer
+      }, 60000); // 60 seconds
+
+      autoRefreshTimerRef.current = newTimer;
+      setAutoRefreshTimer(newTimer);
+      console.log('Auto-refresh timer started (60 seconds)');
+      */
   };
 
   const resetAutoRefreshTimer = () => {

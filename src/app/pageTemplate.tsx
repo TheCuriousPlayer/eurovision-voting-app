@@ -359,19 +359,24 @@ export default function Eurovision2999() {
   };
 
   const startAutoRefresh = () => {
-    // Clear existing timer
+      // Auto-refresh timer intentionally disabled for now.
+      // Re-enable by restoring the timer setup below.
     if (autoRefreshTimer) {
       clearTimeout(autoRefreshTimer);
     }
-    
-    // Start new 30-second timer
-    const newTimer = setTimeout(() => {
-      fetchFreshResults();
-      startAutoRefresh(); // Restart the timer
-    }, 30000); // 30 seconds
-    
-    setAutoRefreshTimer(newTimer);
-    console.log('Auto-refresh timer started (30 seconds)');
+
+      setAutoRefreshTimer(null);
+
+      /*
+      // Start new 30-second timer
+      const newTimer = setTimeout(() => {
+        fetchFreshResults();
+        startAutoRefresh(); // Restart the timer
+      }, 30000); // 30 seconds
+
+      setAutoRefreshTimer(newTimer);
+      console.log('Auto-refresh timer started (30 seconds)');
+      */
   };
 
   const resetAutoRefreshTimer = () => {
