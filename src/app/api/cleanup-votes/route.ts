@@ -1,8 +1,15 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 
 export async function POST() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Get all competitions
     const competitions = await prisma.competition.findMany();
 
@@ -10,7 +17,8 @@ export async function POST() {
     for (const competition of competitions) {
       // Get all votes for this competition
       const votes = await prisma.vote.findMany({
-        where: { competitionId: competition.id }
+        where: { competitionId: competition.id },
+        select: { id: true, userId: true, createdAt: true, points: true }
       });
 
       console.log(`Competition ${competition.year} has ${votes.length} votes`);
@@ -46,7 +54,8 @@ export async function POST() {
 
       // Get remaining votes after cleanup
       const cleanVotes = await prisma.vote.findMany({
-        where: { competitionId: competition.id }
+        where: { competitionId: competition.id },
+        select: { points: true }
       });
 
       // Recalculate cumulative results with clean data

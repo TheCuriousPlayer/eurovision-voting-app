@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -11,43 +11,17 @@ export default function Home() {
   const [voteCounts, setVoteCounts] = useState<{ [year: string]: number }>({});
 
   useEffect(() => {
-    // Fetch vote counts for all years
+    // Fetch vote counts for all years in a single lightweight request
     const fetchVoteCounts = async () => {
-      const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
-      const subCompetitions = [
-        { key: '202001', year: 2020 }, // Semi-Final A
-        { key: '202002', year: 2020 }, // Semi-Final B
-        { key: '202003', year: 2020 }, // Final
-        { key: '202600', year: 2026 }  // Preview
-      ];
-      const counts: { [year: string]: number } = {};
-      
-      await Promise.all([
-        ...years.map(async (year) => {
-          try {
-            const response = await fetch(`/api/votes/${year}/simple`);
-            if (response.ok) {
-              const data = await response.json();
-              counts[year] = data.totalVotes || 0;
-            }
-          } catch (error) {
-            console.error(`Error fetching votes for ${year}:`, error);
-          }
-        }),
-        ...subCompetitions.map(async ({ key }) => {
-          try {
-            const response = await fetch(`/api/votes/${key}/simple`);
-            if (response.ok) {
-              const data = await response.json();
-              counts[key] = data.totalVotes || 0;
-            }
-          } catch (error) {
-            console.error(`Error fetching votes for ${key}:`, error);
-          }
-        })
-      ]);
-      
-      setVoteCounts(counts);
+      try {
+        const response = await fetch('/api/vote-counts');
+        if (response.ok) {
+          const counts = await response.json();
+          setVoteCounts(counts);
+        }
+      } catch (error) {
+        console.error('Error fetching vote counts:', error);
+      }
     };
     
     fetchVoteCounts();

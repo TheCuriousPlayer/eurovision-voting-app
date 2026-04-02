@@ -34,96 +34,85 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch ALL votes across ALL users for main competitions
-    const votes = await prisma.vote.findMany({
+    const competitionIds = competitions.map(c => c.id);
+    const competitionYearMap = new Map(competitions.map(c => [c.id, c.year]));
+
+    // Use cached cumulative results instead of fetching all votes
+    const cachedResults = await prisma.cumulativeResult.findMany({
       where: {
         competitionId: {
-          in: competitions.map(c => c.id)
+          in: competitionIds
         }
-        // NO userEmail filter - get everyone's data
-      },
-      select: {
-        votes: true,
-        userEmail: true,
-        competitionId: true
       }
     });
 
-    // Create a map of competitionId to year
-    const competitionYearMap = new Map(competitions.map(c => [c.id, c.year]));
+    // Get unique user count efficiently with a single DB query
+    const uniqueUserCount = await prisma.vote.groupBy({
+      by: ['userEmail'],
+      where: {
+        competitionId: {
+          in: competitionIds
+        }
+      }
+    });
 
-    // Aggregate votes by country (count and points) - both total and by year
+    // Aggregate from cached results
     const countryCounts: { [country: string]: number } = {};
     const countryPoints: { [country: string]: number } = {};
     const byYear: { [year: number]: { countryCounts: { [country: string]: number }, countryPoints: { [country: string]: number } } } = {};
-    const uniqueUsers = new Set<string>();
     let totalVotes = 0;
 
-    // Points array: [12, 10, 8, 7, 6, 5, 4, 3, 2, 1]
-    const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+    cachedResults.forEach(cached => {
+      const year = competitionYearMap.get(cached.competitionId);
+      if (!year) return;
 
-    votes.forEach(vote => {
-      // Track unique users
-      if (vote.userEmail) {
-        uniqueUsers.add(vote.userEmail);
-      }
+      totalVotes += cached.totalVotes;
 
-      const year = competitionYearMap.get(vote.competitionId);
-      
-      // Initialize year data if not exists
-      if (year && !byYear[year]) {
+      const results = cached.results as Record<string, unknown>;
+      const voteCounts = (cached.voteCounts as Record<string, number>) || {};
+
+      if (!byYear[year]) {
         byYear[year] = { countryCounts: {}, countryPoints: {} };
       }
 
-      if (vote.votes && Array.isArray(vote.votes)) {
-        (vote.votes as string[]).forEach((country, index) => {
-          if (typeof country === 'string' && country.trim() !== '') {
-            // Check if this is a legacy country that needs to be split
-            const successors = legacyCountries[country];
-            
-            if (successors && successors.length > 0) {
-              // Distribute votes and points to all successor countries
-              successors.forEach(successor => {
-                // Total counts
-                countryCounts[successor] = (countryCounts[successor] || 0) + 1;
-                if (index < POINTS.length) {
-                  countryPoints[successor] = (countryPoints[successor] || 0) + POINTS[index];
-                }
-                
-                // Year-specific counts
-                if (year) {
-                  byYear[year].countryCounts[successor] = (byYear[year].countryCounts[successor] || 0) + 1;
-                  if (index < POINTS.length) {
-                    byYear[year].countryPoints[successor] = (byYear[year].countryPoints[successor] || 0) + POINTS[index];
-                  }
-                }
-              });
-            } else {
-              // Normal country - add as usual
-              countryCounts[country] = (countryCounts[country] || 0) + 1;
-              if (index < POINTS.length) {
-                countryPoints[country] = (countryPoints[country] || 0) + POINTS[index];
-              }
-              
-              // Year-specific counts
-              if (year) {
-                byYear[year].countryCounts[country] = (byYear[year].countryCounts[country] || 0) + 1;
-                if (index < POINTS.length) {
-                  byYear[year].countryPoints[country] = (byYear[year].countryPoints[country] || 0) + POINTS[index];
-                }
-              }
-            }
-            totalVotes++;
-          }
+      // Parse results - can be "total,12pts,10pts,..." string or plain number
+      Object.entries(results).forEach(([country, value]) => {
+        let pts = 0;
+        if (typeof value === 'string') {
+          pts = parseInt(value.split(',')[0]) || 0;
+        } else if (typeof value === 'number') {
+          pts = value;
+        }
+
+        // Handle legacy countries
+        const successors = legacyCountries[country];
+        const targets = successors && successors.length > 0 ? successors : [country];
+
+        targets.forEach(target => {
+          // Total points
+          countryPoints[target] = (countryPoints[target] || 0) + pts;
+          // Year-specific points
+          byYear[year].countryPoints[target] = (byYear[year].countryPoints[target] || 0) + pts;
         });
-      }
+      });
+
+      // Parse vote counts
+      Object.entries(voteCounts).forEach(([country, count]) => {
+        const successors = legacyCountries[country];
+        const targets = successors && successors.length > 0 ? successors : [country];
+
+        targets.forEach(target => {
+          countryCounts[target] = (countryCounts[target] || 0) + count;
+          byYear[year].countryCounts[target] = (byYear[year].countryCounts[target] || 0) + count;
+        });
+      });
     });
 
     return NextResponse.json({
       countryCounts,
       countryPoints,
       totalVotes,
-      totalUsers: uniqueUsers.size,
+      totalUsers: uniqueUserCount.length,
       competitions: competitions.map(c => c.year),
       byYear
     });

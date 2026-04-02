@@ -1,23 +1,35 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     console.log('Force repair: Starting...');
     
     // Get 2023 competition
     const competition = await prisma.competition.findUnique({
-      where: { year: 2023 },
-      include: { votes: true }
+      where: { year: 2023 }
     });
 
     if (!competition) {
       return NextResponse.json({ error: 'Competition 2023 not found' }, { status: 404 });
     }
 
-    console.log(`Force repair: Found competition with ${competition.votes.length} votes`);
+    // Fetch votes separately with select to reduce data transfer
+    const votes = await prisma.vote.findMany({
+      where: { competitionId: competition.id },
+      select: { userName: true, points: true }
+    });
+
+    console.log(`Force repair: Found competition with ${votes.length} votes`);
 
     // Calculate fresh cumulative points
     const countryPoints: Record<string, number> = {};
@@ -29,7 +41,7 @@ export async function POST() {
 
     // Sum up all votes
     let totalProcessed = 0;
-    competition.votes.forEach(vote => {
+    votes.forEach(vote => {
       const points = vote.points as Record<string, number>;
       console.log(`Processing vote from ${vote.userName}:`, points);
       
@@ -41,7 +53,7 @@ export async function POST() {
       });
     });
 
-    const totalVotes = competition.votes.length;
+    const totalVotes = votes.length;
     console.log(`Force repair: Calculated ${totalVotes} votes, processed ${totalProcessed} point entries`);
     console.log('Calculated country points:', countryPoints);
 

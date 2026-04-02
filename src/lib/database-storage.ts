@@ -49,6 +49,17 @@ class DatabaseStorage {
         }
       });
 
+      // Get old vote BEFORE upserting (for incremental cumulative update)
+      const oldVote = await prisma.vote.findUnique({
+        where: {
+          userId_competitionId: {
+            userId: vote.userId,
+            competitionId: competition.id
+          }
+        },
+        select: { points: true, votes: true }
+      });
+
       // Upsert vote
       await prisma.vote.upsert({
         where: {
@@ -73,8 +84,10 @@ class DatabaseStorage {
         }
       });
 
-      // Update cumulative results after vote change
-      await this.updateCumulativeResults(yearCode);
+      // Incremental cumulative update (avoids re-fetching all votes)
+      const isNewVote = !oldVote;
+      const oldPoints = (oldVote?.points as { [country: string]: number }) || {};
+      await this.incrementalUpdateCumulativeResults(competition.id, oldPoints, points, isNewVote, competition.countries as string[]);
 
       console.log(`Vote saved for user ${vote.userId} in competition ${yearCode}`);
     } catch (error) {
@@ -191,6 +204,102 @@ class DatabaseStorage {
     } catch (error) {
       console.error('Error getting cumulative results:', error);
       return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
+    }
+  }
+
+  // Incremental update: apply delta from old vote to new vote without re-fetching all votes
+  private async incrementalUpdateCumulativeResults(
+    competitionId: string,
+    oldPoints: { [country: string]: number },
+    newPoints: { [country: string]: number },
+    isNewVote: boolean,
+    countries: string[]
+  ) {
+    try {
+      const cached = await prisma.cumulativeResult.findUnique({
+        where: { competitionId }
+      });
+
+      if (!cached) {
+        // No cached results yet — need full recalculation to bootstrap
+        // Find yearCode from competition
+        const competition = await prisma.competition.findFirst({
+          where: { id: competitionId },
+          select: { year: true }
+        });
+        if (competition) {
+          await this.updateCumulativeResults(competition.year);
+        }
+        return;
+      }
+
+      // Parse existing cached results
+      const cachedResults = cached.results as Record<string, unknown>;
+      const POINT_VALUES = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+
+      // Build current detailed breakdown from cached string format
+      const breakdown: { [country: string]: number[] } = {};
+      countries.forEach(country => {
+        if (typeof cachedResults[country] === 'string') {
+          breakdown[country] = (cachedResults[country] as string).split(',').map(Number);
+        } else if (typeof cachedResults[country] === 'number') {
+          // Legacy format: just total, no breakdown
+          breakdown[country] = [cachedResults[country] as number, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        } else {
+          breakdown[country] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+      });
+
+      // Parse existing vote counts
+      const voteCounts = (cached.voteCounts as { [country: string]: number }) || {};
+
+      // Subtract old points
+      Object.entries(oldPoints).forEach(([country, pts]) => {
+        if (breakdown[country]) {
+          breakdown[country][0] -= pts; // total
+          const idx = POINT_VALUES.indexOf(pts);
+          if (idx >= 0) breakdown[country][idx + 1] -= pts;
+        }
+        // Decrement vote count for old country
+        if (voteCounts[country] !== undefined) {
+          voteCounts[country] = Math.max(0, (voteCounts[country] || 0) - 1);
+        }
+      });
+
+      // Add new points
+      Object.entries(newPoints).forEach(([country, pts]) => {
+        if (breakdown[country]) {
+          breakdown[country][0] += pts; // total
+          const idx = POINT_VALUES.indexOf(pts);
+          if (idx >= 0) breakdown[country][idx + 1] += pts;
+        }
+        // Increment vote count for new country
+        if (voteCounts[country] !== undefined) {
+          voteCounts[country] = (voteCounts[country] || 0) + 1;
+        }
+      });
+
+      // Convert back to string format
+      const updatedResults: { [country: string]: string } = {};
+      Object.entries(breakdown).forEach(([country, vals]) => {
+        updatedResults[country] = vals.join(',');
+      });
+
+      const newTotalVotes = isNewVote ? cached.totalVotes + 1 : cached.totalVotes;
+
+      await prisma.cumulativeResult.update({
+        where: { competitionId },
+        data: {
+          results: updatedResults,
+          voteCounts: voteCounts,
+          totalVotes: newTotalVotes,
+          lastUpdated: new Date()
+        }
+      });
+
+      console.log(`Incremental update for competition ${competitionId}: totalVotes=${newTotalVotes}`);
+    } catch (error) {
+      console.error('Error in incremental cumulative update:', error);
     }
   }
 
