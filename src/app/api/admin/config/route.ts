@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // Admin emails loaded from environment variable
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim()) ?? [];
@@ -28,7 +29,7 @@ const VotePages_variables: ConfigState = {
 
 export async function GET() {
   // Check if user is admin
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email || '';
   
   if (!ADMIN_EMAILS.includes(userEmail)) {
@@ -44,7 +45,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   // Check if user is admin
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email || '';
   
   if (!ADMIN_EMAILS.includes(userEmail)) {

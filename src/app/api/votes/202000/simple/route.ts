@@ -11,7 +11,8 @@ export async function GET() {
     
     // Get the 2020 Final competition by year
     const competition = await prisma.competition.findFirst({
-      where: { year: 2020 }
+      where: { year: 2020 },
+      select: { id: true }
     });
 
     if (!competition) {
@@ -21,7 +22,6 @@ export async function GET() {
         totalVotes: 0,
         userVote: null,
         authPending: false,
-        sessionEmail: session?.user?.email || null,
         error: 'Competition not found'
       }, { status: 404 });
     }
@@ -29,36 +29,25 @@ export async function GET() {
     // Get cumulative results and user vote from database only
     const [cumulativeResult, userVoteData] = await Promise.all([
       prisma.cumulativeResult.findFirst({
-        where: { competitionId: competition.id }
+        where: { competitionId: competition.id },
+        select: { results: true, voteCounts: true, totalVotes: true }
       }),
       session?.user?.email ? prisma.vote.findFirst({
         where: {
           userEmail: session.user.email,
           competitionId: competition.id
-        }
+        },
+        select: { votes: true }
       }) : null
     ]);
-
-    console.log('Database query results for 2020:');
-    console.log('- Competition found:', !!competition);
-    console.log('- Cumulative result found:', !!cumulativeResult);
-    console.log('- User vote found:', !!userVoteData);
-    console.log('- Session email:', session?.user?.email);
-
     const responsePayload = {
       countryPoints: cumulativeResult?.results || {},
       countryVoteCounts: cumulativeResult?.voteCounts || {},
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,
       authPending: false,
-      sessionEmail: session?.user?.email || null,
     };
 
-    console.log('Final API response for 2020:', {
-      ...responsePayload,
-      countryPointsCount: Object.keys(responsePayload.countryPoints).length,
-      countryVoteCountsCount: Object.keys(responsePayload.countryVoteCounts || {}).length
-    });
 
     return NextResponse.json(responsePayload, {
       status: 200,
@@ -73,7 +62,6 @@ export async function GET() {
       totalVotes: 0,
       userVote: null,
       authPending: false,
-      sessionEmail: null,
       error: 'Database connection failed'
     }, { status: 500 });
   }

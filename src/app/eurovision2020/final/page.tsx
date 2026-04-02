@@ -573,26 +573,6 @@ export default function Eurovision2020Final() {
           return;
         }
         
-        // If still getting 0 votes, try a direct API test
-        if (data.totalVotes === 0) {
-          console.warn('Still receiving 0 votes, testing debug endpoint...');
-          try {
-            const debugResponse = await fetch(`/api/debug?t=${Date.now()}`, { cache: 'no-store' });
-            const debugData = await debugResponse.json();
-            console.log('Debug data:', debugData);
-            
-            // If debug shows votes exist but API returns 0, force a retry in 2 seconds
-            if (debugData.focus2020?.votesCount > 0) {
-              console.warn('Mismatch detected - retrying in 2 seconds...');
-              setTimeout(() => {
-                fetchResults();
-              }, 2000);
-            }
-          } catch (debugError) {
-            console.warn('Debug endpoint failed:', debugError);
-          }
-        }
-        
         setResults(data);
         console.log('Results state set with totalVotes:', data.totalVotes);
         

@@ -12,11 +12,9 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Raw SQL repair: Starting...');
-    
     // Use raw SQL to avoid prepared statement conflicts
     const competitions = await prisma.$queryRaw`
-      SELECT * FROM competitions WHERE year = 2023
+      SELECT id, year, countries FROM competitions WHERE year = 2023
     `;
     
     if (!Array.isArray(competitions) || competitions.length === 0) {
@@ -28,15 +26,13 @@ export async function POST() {
       year: number;
       countries: string[];
     };
-    console.log('Raw SQL repair: Found competition:', competition.id);
     
-    // Get all votes for this competition using raw SQL
+    // Get votes for this competition using raw SQL — only needed columns
     const votes = await prisma.$queryRaw`
-      SELECT * FROM votes WHERE "competitionId" = ${competition.id}
+      SELECT id, "userName", points FROM votes WHERE "competitionId" = ${competition.id}
     `;
     
-    console.log(`Raw SQL repair: Found ${Array.isArray(votes) ? votes.length : 0} votes`);
-    
+
     if (!Array.isArray(votes)) {
       return NextResponse.json({ error: 'Invalid votes data' }, { status: 500 });
     }
@@ -58,7 +54,6 @@ export async function POST() {
       points: string | Record<string, number>;
     }) => {
       const points = typeof vote.points === 'string' ? JSON.parse(vote.points) : vote.points;
-      console.log(`Processing vote from ${vote.userName}:`, points);
       
       if (points && typeof points === 'object') {
         Object.entries(points).forEach(([country, pointsValue]) => {
@@ -71,8 +66,6 @@ export async function POST() {
     });
     
     const totalVotes = votes.length;
-    console.log(`Raw SQL repair: Calculated ${totalVotes} votes, processed ${totalProcessed} point entries`);
-    console.log('Calculated country points:', countryPoints);
     
     // Use raw SQL to update/insert cumulative result
     const now = new Date().toISOString();
@@ -85,8 +78,6 @@ export async function POST() {
         "totalVotes" = ${totalVotes},
         "lastUpdated" = ${now}
     `;
-    
-    console.log('Raw SQL repair: Updated cumulative result successfully');
     
     return NextResponse.json({
       success: true,

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getServerSession } from 'next-auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 
 interface Vote {
   [country: string]: number;
@@ -14,6 +16,11 @@ interface UserVote {
 
 export async function POST() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const votesDir = path.join(process.cwd(), 'src', 'app', 'eurovision2023', 'votes');
     const cumulativeFile = path.join(votesDir, 'cumulative_results.json');
 

@@ -1,5 +1,7 @@
 ﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 
 const EUROVISION_2026_PREVIEW_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 
@@ -13,6 +15,10 @@ const EUROVISION_2026_PREVIEW_COUNTRIES = [
 
 export async function POST() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     // Check if competition already exists
     const existingCompetition = await prisma.competition.findFirst({
       where: { year: 202600 }
@@ -74,6 +80,11 @@ export async function POST() {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Check if competition exists
     const competition = await prisma.competition.findFirst({
       where: { year: 202600 }

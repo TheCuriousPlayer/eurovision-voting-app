@@ -16,7 +16,6 @@ class DatabaseStorage {
       // - 202001: Eurovision 2020A (Semi-Final A)  
       // - 202002: Eurovision 2020B (Semi-Final B)
         // - 202003: Eurovision 2020 Final (new final with 20 countries)
-      console.log('Competitions already exist in database');
       return;
     } catch (error) {
       console.error('Error checking competitions:', error);
@@ -31,7 +30,8 @@ class DatabaseStorage {
       const competition = await prisma.competition.findFirst({
         where: { 
           year: yearCode
-        }
+        },
+        select: { id: true, countries: true }
       });
 
       if (!competition) {
@@ -89,7 +89,7 @@ class DatabaseStorage {
       const oldPoints = (oldVote?.points as { [country: string]: number }) || {};
       await this.incrementalUpdateCumulativeResults(competition.id, oldPoints, points, isNewVote, competition.countries as string[]);
 
-      console.log(`Vote saved for user ${vote.userId} in competition ${yearCode}`);
+
     } catch (error) {
       console.error('Error adding/updating vote:', error);
       throw error;
@@ -101,7 +101,8 @@ class DatabaseStorage {
       const competition = await prisma.competition.findFirst({
         where: { 
           year: yearCode
-        }
+        },
+        select: { id: true }
       });
 
       if (!competition) return null;
@@ -136,11 +137,11 @@ class DatabaseStorage {
       const competition = await prisma.competition.findFirst({
         where: { 
           year: yearCode
-        }
+        },
+        select: { id: true }
       });
 
       if (!competition) {
-        console.log(`Competition for year code ${yearCode} not found`);
         return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
       }
 
@@ -150,9 +151,6 @@ class DatabaseStorage {
       });
 
       if (cached) {
-        console.log(`Found cached results for ${yearCode}: ${cached.totalVotes} votes`);
-        console.log('Cached results object keys:', Object.keys(cached.results as Record<string, unknown>));
-        console.log('Cached results sample:', JSON.stringify(cached.results).substring(0, 200));
         
         // Double-check if cached shows 0 but votes exist
         if (cached.totalVotes === 0) {
@@ -168,9 +166,7 @@ class DatabaseStorage {
               ) > 0
           `;
           const actualVoteCount = Array.isArray(rawCount) && rawCount.length > 0 && typeof rawCount[0].cnt === 'number' ? rawCount[0].cnt : 0;
-          console.warn(`Cached shows 0 votes but actual non-empty vote count is ${actualVoteCount}`);
           if (actualVoteCount > 0) {
-            console.log('Forcing recalculation due to mismatch...');
             return await this.updateCumulativeResults(yearCode);
           }
         }
@@ -199,7 +195,6 @@ class DatabaseStorage {
       }
 
       // No cached results, calculate fresh
-      console.log(`No cached results found for ${yearCode}, calculating fresh...`);
       return await this.updateCumulativeResults(yearCode);
     } catch (error) {
       console.error('Error getting cumulative results:', error);
@@ -297,7 +292,7 @@ class DatabaseStorage {
         }
       });
 
-      console.log(`Incremental update for competition ${competitionId}: totalVotes=${newTotalVotes}`);
+
     } catch (error) {
       console.error('Error in incremental cumulative update:', error);
     }
@@ -309,12 +304,18 @@ class DatabaseStorage {
         where: { 
           year: yearCode
         },
-        include: { votes: true }
+        select: { id: true, countries: true }
       });
 
       if (!competition) {
         return { countryPoints: {}, totalVotes: 0, countryVoteCounts: {} };
       }
+
+      // Fetch votes separately with only needed fields
+      const votes = await prisma.vote.findMany({
+        where: { competitionId: competition.id },
+        select: { points: true, votes: true }
+      });
 
       // Calculate cumulative points and vote counts with detailed breakdown
       const countryPointsDetailed: { [country: string]: string } = {};
@@ -357,7 +358,7 @@ class DatabaseStorage {
 
       // Sum up all votes and count only non-empty submissions for totalVotes
       let totalVotes = 0;
-      competition.votes.forEach(vote => {
+      votes.forEach(vote => {
         // Add points (if any) to country totals
         const points = (vote.points as { [country: string]: number }) || {};
         Object.entries(points).forEach(([country, pointsValue]) => {
@@ -382,13 +383,13 @@ class DatabaseStorage {
         });
 
         // Count this vote if it has at least one non-empty entry
-        const votes = vote.votes as string[];
-        const hasNonEmptyVote = votes.some(v => v && v.trim() !== '');
+        const voteEntries = vote.votes as string[];
+        const hasNonEmptyVote = voteEntries.some(v => v && v.trim() !== '');
         if (hasNonEmptyVote) {
           totalVotes++;
           
           // Count how many users voted for each country
-          votes.forEach(country => {
+          voteEntries.forEach(country => {
             if (country && country.trim() !== '' && countryVoteCounts[country] !== undefined) {
               countryVoteCounts[country]++;
             }
@@ -400,10 +401,6 @@ class DatabaseStorage {
       Object.entries(pointBreakdown).forEach(([country, breakdown]) => {
         countryPointsDetailed[country] = `${breakdown.total},${breakdown.points12},${breakdown.points10},${breakdown.points8},${breakdown.points7},${breakdown.points6},${breakdown.points5},${breakdown.points4},${breakdown.points3},${breakdown.points2},${breakdown.points1}`;
       });
-
-      console.log(`Calculated results for ${yearCode}: ${totalVotes} total votes`);
-      console.log('Point totals (detailed):', countryPointsDetailed);
-      console.log('Vote counts:', countryVoteCounts);
 
       // Cache the results
       await prisma.cumulativeResult.upsert({

@@ -1,8 +1,15 @@
 ﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 
 export async function POST() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     console.log('Creating Eurovision competitions...');
     
     // Check if competitions already exist

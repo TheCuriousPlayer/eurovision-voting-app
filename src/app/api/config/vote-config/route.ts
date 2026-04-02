@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 // Merkezi yapılandırma dosyasından yapılandırmayı al
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   const config = VotePages_variables[year as keyof typeof VotePages_variables];
   
   // Kullanıcı oturumunu kontrol et (GM mi?)
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email || '';
   const isGM = config.GMs ? config.GMs.split(',').map(email => email.trim()).includes(userEmail) : false;
   

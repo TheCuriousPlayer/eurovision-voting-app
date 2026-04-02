@@ -13,7 +13,8 @@ export async function GET() {
     
     // Get the 2021 competition
     const competition = await prisma.competition.findFirst({
-      where: { year: 2021 }
+      where: { year: 2021 },
+      select: { id: true }
     });
 
     if (!competition) {
@@ -23,7 +24,6 @@ export async function GET() {
         totalVotes: 0,
         userVote: null,
         authPending: false,
-        sessionEmail: session?.user?.email || null,
         error: 'Competition not found'
       }, { status: 404 });
     }
@@ -31,33 +31,22 @@ export async function GET() {
     // Get cumulative results and user vote from database only
     const [cumulativeResult, userVoteData] = await Promise.all([
       prisma.cumulativeResult.findFirst({
-        where: { competitionId: competition.id }
+        where: { competitionId: competition.id },
+        select: { results: true, voteCounts: true, totalVotes: true }
       }),
       session?.user?.email ? prisma.vote.findFirst({
         where: {
           userEmail: session.user.email,
           competitionId: competition.id
-        }
+        },
+        select: { votes: true }
       }) : null
     ]);
-
-    console.log('Database query results:');
-    console.log('- Competition found:', !!competition);
-    console.log('- Cumulative result found:', !!cumulativeResult);
-    console.log('- User vote found:', !!userVoteData);
-    console.log('- Session email:', session?.user?.email);
-
     // Check vote configuration to determine if results should be hidden
     const voteConfig = VOTE_CONFIG['2021'];
     const sessionEmail = session?.user?.email || null;
     const isGM = sessionEmail ? voteConfig?.GMs?.split(',').map(email => email.trim()).includes(sessionEmail) : false;
     const shouldHideResults = voteConfig?.Mode === 'hide' && !isGM;
-
-    console.log('Vote config check:');
-    console.log('- Mode:', voteConfig?.Mode);
-    console.log('- Is GM:', isGM);
-    console.log('- Should hide results:', shouldHideResults);
-
     // If results should be hidden, return empty data
     if (shouldHideResults) {
       const hiddenResponsePayload = {
@@ -66,12 +55,8 @@ export async function GET() {
         totalVotes: 0,
         userVote: userVoteData || null,
         authPending: false,
-        sessionEmail: sessionEmail,
         resultsHidden: true
       };
-
-      console.log('Results hidden due to mode: hide');
-
       return NextResponse.json(hiddenResponsePayload, {
         status: 200,
         headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
@@ -84,14 +69,8 @@ export async function GET() {
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,
       authPending: false,
-      sessionEmail: sessionEmail,
     };
 
-    console.log('Final API response:', {
-      ...responsePayload,
-      countryPointsCount: Object.keys(responsePayload.countryPoints).length,
-      countryVoteCountsCount: Object.keys(responsePayload.countryVoteCounts || {}).length
-    });
 
     return NextResponse.json(responsePayload, {
       status: 200,
@@ -106,7 +85,6 @@ export async function GET() {
       totalVotes: 0,
       userVote: null,
       authPending: false,
-      sessionEmail: null,
       error: 'Database connection failed'
     }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 // Legacy/divided countries mapping - distribute votes to successor states
 const legacyCountries: { [legacy: string]: string[] } = {
@@ -11,7 +12,12 @@ const legacyCountries: { [legacy: string]: string[] } = {
 export async function GET(request: NextRequest) {
   try {
     // Fetch votes from main competitions only (exclude 202001, 202002, 202003)
-    const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    // Also exclude competitions with Mode: 'hide'
+    const allYears = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    const years = allYears.filter(y => {
+      const config = VOTE_CONFIG[String(y) as keyof typeof VOTE_CONFIG];
+      return config?.Mode !== 'hide';
+    });
     
     const competitions = await prisma.competition.findMany({
       where: {
@@ -46,15 +52,12 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Get unique user count efficiently with a single DB query
-    const uniqueUserCount = await prisma.vote.groupBy({
-      by: ['userEmail'],
-      where: {
-        competitionId: {
-          in: competitionIds
-        }
-      }
-    });
+    // Get unique user count efficiently with a single COUNT(DISTINCT) query
+    const uniqueUserResult = await prisma.$queryRaw<[{ cnt: number }]>`
+      SELECT COUNT(DISTINCT "userEmail")::int AS cnt
+      FROM votes
+      WHERE "competitionId" = ANY(${competitionIds}::text[])
+    `;
 
     // Aggregate from cached results
     const countryCounts: { [country: string]: number } = {};
@@ -112,7 +115,7 @@ export async function GET(request: NextRequest) {
       countryCounts,
       countryPoints,
       totalVotes,
-      totalUsers: uniqueUserCount.length,
+      totalUsers: uniqueUserResult[0]?.cnt ?? 0,
       competitions: competitions.map(c => c.year),
       byYear
     });

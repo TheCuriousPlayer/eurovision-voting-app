@@ -31,7 +31,6 @@ export async function GET() {
     
     // Get cumulative results from database for Semi-Final A (202001)
     const cumulativeResults = await dbStorage.getCumulativeResults(202001);
-    console.log('Public API (Semi-Final A): Read cumulative results with', cumulativeResults.totalVotes, 'total votes');
 
     const results: ResultsData = {
       countryPoints: cumulativeResults.countryPoints,
@@ -39,8 +38,6 @@ export async function GET() {
       countryVoteCounts: cumulativeResults.countryVoteCounts || {},
       // No userVote for public endpoint (omitting the property)
     };
-
-    console.log('Public API (Semi-Final A): Returning cumulative results with total votes:', results.totalVotes);
 
     const response = NextResponse.json(results);
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');

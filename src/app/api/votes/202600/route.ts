@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { Vote, ResultsData } from '@/types/votes';
 import { dbStorage } from '@/lib/database-storage';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -62,9 +63,16 @@ export async function GET() {
     // Get user's individual vote
     const userVote = await dbStorage.getUserVote(session.user.email!, EUROVISION_YEAR);
 
+    // Check if results should be hidden (Mode: 'hide' and user is not GM)
+    const voteConfig = VOTE_CONFIG['202600'];
+    const userEmail = session.user.email!.toLowerCase();
+    const gmList = voteConfig?.GMs?.split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean) || [];
+    const isGM = gmList.includes(userEmail);
+    const shouldHideResults = voteConfig?.Mode === 'hide' && !isGM;
+
     const resultsData: ResultsData = {
-      totalVotes: cumulativeResults.totalVotes,
-      countryPoints: cumulativeResults.countryPoints,
+      totalVotes: shouldHideResults ? 0 : cumulativeResults.totalVotes,
+      countryPoints: shouldHideResults ? {} : cumulativeResults.countryPoints,
       ...(userVote && { userVote }) // Only include userVote if it's not null
     };
 

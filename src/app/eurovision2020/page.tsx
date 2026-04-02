@@ -41,7 +41,6 @@ export default function Eurovision2020() {
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const infoTooltipRef = useRef<HTMLDivElement>(null);
   const hasLoadedVotesFromDB = useRef(false);
-  const lastZeroVotesRetryRef = useRef<number>(0);
   const previousVotesRef = useRef<string[]>([]);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [pendingClearAction, setPendingClearAction] = useState<(() => void) | null>(null);
@@ -529,33 +528,6 @@ export default function Eurovision2020() {
             fetchResults(retryCount + 1);
           }, 500);
           return;
-        }
-        
-        // If still getting 0 votes, try a direct API test (throttled to once per 60s)
-        if (data.totalVotes === 0) {
-          const now = Date.now();
-          const timeSinceLastRetry = now - lastZeroVotesRetryRef.current;
-          if (timeSinceLastRetry >= 60000) {
-            lastZeroVotesRetryRef.current = now;
-            console.warn('Still receiving 0 votes, testing debug endpoint...');
-            try {
-              const debugResponse = await fetch(`/api/debug?t=${now}`, { cache: 'no-store' });
-              const debugData = await debugResponse.json();
-              console.log('Debug data:', debugData);
-              
-              // If debug shows votes exist but API returns 0, retry after 60 seconds
-              if (debugData.focus2020?.votesCount > 0) {
-                console.warn('Mismatch detected - retrying in 60 seconds...');
-                setTimeout(() => {
-                  fetchResults();
-                }, 60000);
-              }
-            } catch (debugError) {
-              console.warn('Debug endpoint failed:', debugError);
-            }
-          } else {
-            console.log(`Zero votes retry throttled - ${Math.ceil((60000 - timeSinceLastRetry) / 1000)}s until next check`);
-          }
         }
         
         // Handle comma-separated format: "total,12pts,10pts,8pts,..."
