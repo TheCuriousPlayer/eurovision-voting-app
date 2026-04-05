@@ -10,7 +10,6 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import EurovisionNavigation from '@/components/EurovisionNavigation';
 import PageReadySignal from '@/components/PageReadySignal';
-import NextVotingSelector from '@/components/NextVotingSelector';
 
 const eurovision2026PreviewSongs: { [key: string]: { code: string; performer: string; song: string; youtubeId: string } } = {
   'Albania': { code: 'AL', performer: 'Alis', song: 'Nân', youtubeId: 'b9AdRrA554o' },
@@ -101,6 +100,8 @@ export default function Eurovision2026Preview() {
 
   // Points mapping for slots (index 0 -> 12 points, index 1 -> 10 points, ...)
   const POINTS = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+  // VOTING CLOSED: hardcoded, all users cannot change/swap/remove votes
+  const votingClosed = true;
   const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
   const nextAvailablePoints = firstEmptyIndex !== -1 ? POINTS[firstEmptyIndex] : 0;
 
@@ -216,6 +217,10 @@ export default function Eurovision2026Preview() {
     const pendingKey = 'eurovision2026Preview_pending_votes';
 
     async function tryResendPending() {
+      if (votingClosed) {
+        console.log('🔒 Voting closed - skipping pending vote resend');
+        return;
+      }
       try {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
@@ -253,6 +258,10 @@ export default function Eurovision2026Preview() {
     document.addEventListener('visibilitychange', onVisibility);
 
     function onBeforeUnload() {
+      if (votingClosed) {
+        console.log('🔒 Voting closed - skipping sendBeacon');
+        return;
+      }
       try {
         const raw = window.localStorage.getItem(pendingKey);
         if (!raw) return;
@@ -292,6 +301,11 @@ export default function Eurovision2026Preview() {
 
   const updateResults = async () => {
     if (!results) return;
+
+    if (votingClosed) {
+      console.log('🔒 Voting closed - updateResults blocked (no server write)');
+      return;
+    }
 
     console.log('Updating results with selectedCountries:', selectedCountries);
 
@@ -481,6 +495,10 @@ export default function Eurovision2026Preview() {
 
   // Helper function to add a country to the first empty slot (uses closure)
   const addCountryToFirstEmptySlot = (country: string) => {
+    if (votingClosed) {
+      console.log('Voting closed - add ignored');
+      return;
+    }
     const firstEmptyIndex = selectedCountries.findIndex((slot) => slot === '');
     if (firstEmptyIndex !== -1) {
       const updatedCountries = [...selectedCountries];
@@ -500,6 +518,10 @@ export default function Eurovision2026Preview() {
 
   // Helper function to handle country removal with confirmation
   const handleRemoveCountry = (index: number) => {
+    if (votingClosed) {
+      console.log('Voting closed - remove ignored');
+      return;
+    }
     if (wouldClearAllVotes(index)) {
       // Show confirmation dialog
       setPendingClearAction(() => () => {
@@ -524,6 +546,11 @@ export default function Eurovision2026Preview() {
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
+
+    if (votingClosed) {
+      console.log('Voting closed - drag ignored');
+      return;
+    }
 
     const sourceId = result.source.droppableId;
     const destinationId = result.destination.droppableId;
@@ -877,15 +904,27 @@ export default function Eurovision2026Preview() {
       <PageReadySignal />
       <div className="container mx-auto px-4">
         <EurovisionNavigation currentPage="2026-preview" />
+
+        {/* Voting Closed Notice */}
+        <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg p-4 mb-6 border-2 border-gray-500 shadow-lg">
+          <div className="text-center">
+            <h2 className="text-lg md:text-xl font-bold text-white mb-2">
+              🔒 Oylama Kapandı / Voting Closed
+            </h2>
+            <p className="text-gray-300 text-sm">
+              2026 önizleme için oylama dönemi sona ermiştir. Oylar artık değiştirilemez ve yeni oy eklenemez. Resmi Eurovision yayınında oylama penceresi açıldığı zaman, 2026 yılına oy vermek için <a href="/eurovision2026" className="underline text-blue-300 hover:text-blue-500">Eurovision 2026</a> linkine gidin.
+            </p>
+            <p className="text-gray-400 text-xs mt-2">
+              The voting period for the 2026 preview has ended. Votes can no longer be changed or added. When the voting window opens on the official Eurovision broadcast, go to the <a href="/eurovision2026" className="underline text-blue-300 hover:text-blue-500">Eurovision 2026</a> link to vote.
+            </p>
+          </div>
+        </div>
         
         {session ? (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext onDragEnd={votingClosed ? () => {} : handleDragEnd}>
             <div className="flex flex-wrap gap-8">
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
-                {/* Next Voting Selection Section */}
-                <NextVotingSelector currentYear="2026" />
-
                 <div className="bg-[#2c3e50] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -950,6 +989,7 @@ export default function Eurovision2026Preview() {
                                     key={`${selectedCountries[index]}-${index}`} 
                                     draggableId={`slot-${index}-${selectedCountries[index]}`} 
                                     index={index}
+                                    isDragDisabled={votingClosed}
                                   >
                                     {(provided, snapshot) => (
                                       <div
@@ -982,7 +1022,7 @@ export default function Eurovision2026Preview() {
                                 <span className={`font-bold ${selectedCountries[index] ? 'text-white' : 'text-gray-500'}`}>
                                   {[12, 10, 8, 7, 6, 5, 4, 3, 2, 1][index]} points
                                 </span>
-                                {selectedCountries[index] && (
+                                {selectedCountries[index] && !votingClosed && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1002,7 +1042,7 @@ export default function Eurovision2026Preview() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-400 text-center">
-                    Sürükle-bırak veya artı düğmesiyle oy verin. <br /> Sıralamayı sürükle-bırak ile değiştirebilirsiniz. <br /> Oylarınız otomatik olarak kaydedilir. <br /> İstediğiniz zaman oylarınızı değiştirebilirsiniz.
+                    2026 Preview için oylama kapatılmıştır.
                   </div>
                   {(() => {
                     // Debug button visibility decision
@@ -1073,7 +1113,7 @@ export default function Eurovision2026Preview() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(0, Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index}>
+                              <Draggable key={country} draggableId={country} index={index} isDragDisabled={votingClosed}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -1086,7 +1126,7 @@ export default function Eurovision2026Preview() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                      {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                         <div className="group inline-block">
                                           <button
                                             className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
@@ -1215,7 +1255,7 @@ export default function Eurovision2026Preview() {
                             className="space-y-1"
                           >
                             {sortedCountries.slice(Math.ceil(sortedCountries.length / 2)).map(([country, points], index) => (
-                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)}>
+                              <Draggable key={country} draggableId={country} index={index + Math.ceil(sortedCountries.length / 2)} isDragDisabled={votingClosed}>
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
@@ -1228,7 +1268,7 @@ export default function Eurovision2026Preview() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {session && hasEmptySlots() && !selectedCountries.includes(country) ? (
+                                      {session && !votingClosed && hasEmptySlots() && !selectedCountries.includes(country) ? (
                                         <div className="group inline-block">
                                           <button
                                             className="bg-[#34895e] group-hover:bg-[#2d7a4a] text-white px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2d7a4a] active:scale-95 transform transition duration-150 ease-in-out"
