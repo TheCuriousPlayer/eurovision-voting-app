@@ -1,7 +1,7 @@
 ﻿const checks = [
   { name: 'NEXTAUTH_SECRET', minLen: 32 },
-  { name: 'GOOGLE_CLIENT_ID', minLen: 10 },
-  { name: 'GOOGLE_CLIENT_SECRET', minLen: 10 }
+  { name: 'GOOGLE_ID', minLen: 10 },
+  { name: 'GOOGLE_SECRET', minLen: 10 }
 ];
 
 let ok = true;
