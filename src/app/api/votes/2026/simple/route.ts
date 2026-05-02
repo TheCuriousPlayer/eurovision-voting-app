@@ -1,6 +1,6 @@
 ﻿import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { authOptions, isGM } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
@@ -45,8 +45,8 @@ export async function GET() {
     // Check vote configuration to determine if results should be hidden
     const voteConfig = VOTE_CONFIG['2026'];
     const sessionEmail = session?.user?.email || null;
-    const isGM = sessionEmail ? voteConfig?.GMs?.split(',').map(email => email.trim()).includes(sessionEmail) : false;
-    const shouldHideResults = voteConfig?.Mode === 'hide' && !isGM;
+    const isGMResult = isGM(sessionEmail);
+    const shouldHideResults = voteConfig?.Mode === 'hide' && !isGMResult;
     // If results should be hidden, return empty data
     if (shouldHideResults) {
       const hiddenResponsePayload = {

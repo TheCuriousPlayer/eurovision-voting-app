@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
+import { isGM } from '@/lib/auth';
 
 // Merkezi yapılandırma dosyasından yapılandırmayı al
 const VotePages_variables = VOTE_CONFIG;
@@ -25,13 +26,13 @@ export async function GET(request: NextRequest) {
   // Kullanıcı oturumunu kontrol et (GM mi?)
   const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email || '';
-  const isGM = config.GMs ? config.GMs.split(',').map(email => email.trim()).includes(userEmail) : false;
+  const isGMResult = isGM(userEmail);
   
   // Sadece client tarafı için gereken bilgileri gönder
   return NextResponse.json({
     status: config.Status,
     showCountDown: config.ShowCountDown,
     mode: config.Mode,
-    isGM
+    isGM: isGMResult
   });
 }

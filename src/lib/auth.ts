@@ -46,7 +46,18 @@ export const authOptions: NextAuthOptions = {
 // Helper function to check if a user is an admin
 export const isAdmin = (email: string | null | undefined): boolean => {
   if (!email) return false;
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim()) ?? [];
-  return adminEmails.includes(email);
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) ?? [];
+  return adminEmails.includes(email.trim().toLowerCase());
+};
+
+// Helper to check if a user is a GM (game master). This reads the
+// `GM_EMAILS_DEFAULT` environment variable and also treats any email
+// in `ADMIN_EMAILS` as a GM (admins implicitly have GM privileges).
+export const isGM = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  const gmEmails = process.env.GM_EMAILS_DEFAULT?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean) ?? [];
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean) ?? [];
+  const normalized = email.trim().toLowerCase();
+  return gmEmails.includes(normalized) || adminEmails.includes(normalized);
 };
 

@@ -43,7 +43,6 @@ function isRequestFromOurApp(request: NextRequest): boolean {
       // URL parse hatası; geçersiz bir URL
     }
   }
-  
   return false;
 }
 
