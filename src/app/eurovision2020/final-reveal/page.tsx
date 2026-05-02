@@ -5,7 +5,7 @@ import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { eurovision2020DataFinal } from '@/data/eurovision2020';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { VOTE_CONFIG } from '@/config/eurovisionvariables';
+
 import { formatNumber } from '@/utils/formatNumber';
 
 const eurovision2020Songs = eurovision2020DataFinal;
@@ -179,11 +179,23 @@ export default function Eurovision2020FinalReveal() {
     : 1;
 
   // Access control helpers (derived from session)
-  const userEmail = session?.user?.email ?? '';
-  const gmList = VOTE_CONFIG?.['202003']?.GMs
-    ? VOTE_CONFIG['202003'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
-    : [];
-  const isGM = userEmail ? gmList.includes(userEmail.toLowerCase()) : false;
+  const [isGM, setIsGM] = useState<boolean>(false);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchVoteConfig() {
+      try {
+        const res = await fetch('/api/config/vote-config?year=202003');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted) setIsGM(Boolean(data?.isGM));
+      } catch (err) {
+        // ignore
+      }
+    }
+    fetchVoteConfig();
+    return () => { mounted = false; };
+  }, []);
 
   // Log multiplier calculation when both values are available
   useEffect(() => {

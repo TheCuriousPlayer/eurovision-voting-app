@@ -1,6 +1,8 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { VOTE_CONFIG } from '@/config/eurovisionvariables';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 // Legacy/divided countries mapping - distribute votes to successor states
 const legacyCountries: { [legacy: string]: string[] } = {
@@ -11,6 +13,16 @@ const legacyCountries: { [legacy: string]: string[] } = {
 
 export async function GET(request: NextRequest) {
   try {
+    // Server-side GM authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized - Authentication required' }, { status: 401 });
+    }
+    const userEmail = session.user.email.toLowerCase();
+    const gmList = Object.values(VOTE_CONFIG).map(c => (c as any).GMs || '').join(',').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    if (!gmList.includes(userEmail)) {
+      return NextResponse.json({ error: 'Forbidden - GM access required' }, { status: 403 });
+    }
     // Fetch votes from main competitions only (exclude 202001, 202002, 202003)
     // Also exclude competitions with Mode: 'hide'
     const allYears = [2020, 2021, 2022, 2023, 2024, 2025, 2026];

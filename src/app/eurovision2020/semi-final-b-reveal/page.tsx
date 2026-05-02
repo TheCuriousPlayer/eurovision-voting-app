@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
-import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 import { eurovision2020DataGroupB, eurovision2020DataGroupFinal } from '@/data/eurovision2020';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { formatNumber } from '@/utils/formatNumber';
@@ -339,11 +338,23 @@ export default function Eurovision2020SemiFinalBRevealPage() {
   }
 
   // Access control helpers (derived from session)
-  const userEmail = session?.user?.email ?? '';
-  const gmList = VOTE_CONFIG?.['202001']?.GMs
-    ? VOTE_CONFIG['202001'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
-    : [];
-  const isGM = userEmail ? gmList.includes(userEmail.toLowerCase()) : false;
+  const [isGM, setIsGM] = useState<boolean>(false);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchVoteConfig() {
+      try {
+        const res = await fetch('/api/config/vote-config?year=202002');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted) setIsGM(Boolean(data?.isGM));
+      } catch (err) {
+        // ignore
+      }
+    }
+    fetchVoteConfig();
+    return () => { mounted = false; };
+  }, []);
 
   // Access control: show sign-in or denied messages for non-GMs
   if (status === 'loading') {

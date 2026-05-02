@@ -1,11 +1,23 @@
 ﻿﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 
 export const dynamic = 'force-dynamic';
 
 // Lightweight endpoint: returns only totalVotes per competition (no results/voteCounts JSON)
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized - Authentication required' }, { status: 401 });
+    }
+    const userEmail = session.user.email.toLowerCase();
+    const gmList = Object.values(VOTE_CONFIG).map(c => (c as any).GMs || '').join(',').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    if (!gmList.includes(userEmail)) {
+      return NextResponse.json({ error: 'Forbidden - GM access required' }, { status: 403 });
+    }
     const results = await prisma.cumulativeResult.findMany({
       select: {
         competitionId: true,

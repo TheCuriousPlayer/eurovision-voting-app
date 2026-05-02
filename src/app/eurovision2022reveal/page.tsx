@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
-import { VOTE_CONFIG } from '@/config/eurovisionvariables';
 import { eurovision2022Data } from '@/data/eurovision2022';
 
 type Results = {
@@ -238,11 +237,23 @@ export default function Eurovision2022RevealPage() {
   }
 
   // Access control helpers (derived from session)
-  const userEmail = session?.user?.email ?? '';
-  const gmList = VOTE_CONFIG?.['2022']?.GMs
-    ? VOTE_CONFIG['2022'].GMs.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
-    : [];
-  const isGM = userEmail ? gmList.includes(userEmail.toLowerCase()) : false;
+  const [isGM, setIsGM] = useState<boolean>(false);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchVoteConfig() {
+      try {
+        const res = await fetch('/api/config/vote-config?year=2022');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted) setIsGM(Boolean(data?.isGM));
+      } catch (err) {
+        // ignore - keep isGM false
+      }
+    }
+    fetchVoteConfig();
+    return () => { mounted = false; };
+  }, []);
 
   // Access control: show sign-in or denied messages for non-GMs
   if (status === 'loading') {

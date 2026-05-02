@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "check-api-auth": "node scripts/audit-api-routes.js",
+    "prebuild": "npm run check-api-auth",
     "build": "prisma generate && next build",
     "start": "next start -H 0.0.0.0",
     "start-local": "next start",
