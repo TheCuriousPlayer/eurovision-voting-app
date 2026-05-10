@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from 'next/server';
-import { withAuth } from 'next-auth/middleware';
+import { getToken } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
 import { UNDER_CONSTRUCTION, VOTE_CONFIG } from '@/config/eurovisionvariables';
 
@@ -47,7 +47,7 @@ function isRequestFromOurApp(request: NextRequest): boolean {
 }
 
   // API koruma proxy
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const now = new Date();
   
@@ -206,17 +206,12 @@ export function proxy(request: NextRequest) {
   
   // Admin ve Eurovision1955 sayfaları için auth koruması
   if (path.startsWith('/eurovision1955') || path.startsWith('/admin')) {
-    // withAuth fonksiyonu ile işleme devam et
-    // next-auth withAuth expects (request, options)
-    // Use a type-cast here to avoid TypeScript mismatch with NextRequestWithAuth
-    // The runtime call remains the same; this just satisfies the compiler.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (withAuth as any)(request as any, {
-      callbacks: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        authorized: ({ token }: any) => !!token
-      }
-    });
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      const signInUrl = new URL('/api/auth/signin', request.url);
+      signInUrl.searchParams.set('callbackUrl', request.url);
+      return NextResponse.redirect(signInUrl);
+    }
   }
   
   return NextResponse.next();
