@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+﻿// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -30,7 +30,6 @@ model Competition {
 // Model for individual user votes
 model Vote {
   id            String      @id @default(cuid())
-  userId        String      // User's email or ID
   userName      String?     // User's display name
   userEmail     String      // User's email
   competitionId String      // Which Eurovision year + stage
@@ -43,7 +42,7 @@ model Vote {
   competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   
   // Each user can only vote once per competition (year + stage combination)
-  @@unique([userId, competitionId])
+  @@unique([userEmail, competitionId])
   @@map("votes")
 }
 

@@ -18,27 +18,27 @@ export async function POST() {
       // Get all votes for this competition
       const votes = await prisma.vote.findMany({
         where: { competitionId: competition.id },
-        select: { id: true, userId: true, createdAt: true, points: true }
+        select: { id: true, userEmail: true, createdAt: true, points: true }
       });
 
       console.log(`Competition ${competition.year} has ${votes.length} votes`);
 
-      // Check for actual duplicates (same userId in same competition)
-      const userVoteMap = new Map<string, { id: string; userId: string; createdAt: Date }>();
+      // Check for actual duplicates (same userEmail in same competition)
+      const userVoteMap = new Map<string, { id: string; userEmail: string; createdAt: Date }>();
       const duplicates: string[] = [];
       
       votes.forEach(vote => {
-        if (userVoteMap.has(vote.userId)) {
+        if (userVoteMap.has(vote.userEmail)) {
           // This is a duplicate - keep the newer one
-          const existingVote = userVoteMap.get(vote.userId);
+          const existingVote = userVoteMap.get(vote.userEmail);
           if (existingVote && vote.createdAt > existingVote.createdAt) {
             duplicates.push(existingVote.id);
-            userVoteMap.set(vote.userId, vote);
+            userVoteMap.set(vote.userEmail, vote);
           } else if (existingVote) {
             duplicates.push(vote.id);
           }
         } else {
-          userVoteMap.set(vote.userId, vote);
+          userVoteMap.set(vote.userEmail, vote);
         }
       });
 

@@ -52,8 +52,8 @@ class DatabaseStorage {
       // Get old vote BEFORE upserting (for incremental cumulative update)
       const oldVote = await prisma.vote.findUnique({
         where: {
-          userId_competitionId: {
-            userId: vote.userId,
+          userEmail_competitionId: {
+            userEmail: vote.userEmail,
             competitionId: competition.id
           }
         },
@@ -63,8 +63,8 @@ class DatabaseStorage {
       // Upsert vote
       await prisma.vote.upsert({
         where: {
-          userId_competitionId: {
-            userId: vote.userId,
+          userEmail_competitionId: {
+            userEmail: vote.userEmail,
             competitionId: competition.id
           }
         },
@@ -75,7 +75,6 @@ class DatabaseStorage {
           points: points
         },
         create: {
-          userId: vote.userId,
           userName: vote.userName,
           userEmail: vote.userEmail,
           votes: vote.votes,
@@ -87,8 +86,13 @@ class DatabaseStorage {
       // Incremental cumulative update (avoids re-fetching all votes)
       const isNewVote = !oldVote;
       const oldPoints = (oldVote?.points as { [country: string]: number }) || {};
-      await this.incrementalUpdateCumulativeResults(competition.id, oldPoints, points, isNewVote, competition.countries as string[]);
-
+      try {
+        await this.incrementalUpdateCumulativeResults(competition.id, oldPoints, points, isNewVote, competition.countries as string[]);
+      } catch (incrementalError) {
+        // Incremental update failed — fall back to full recompute
+        console.error(`Incremental update failed for year ${yearCode}, falling back to full recompute:`, incrementalError);
+        await this.updateCumulativeResults(yearCode);
+      }
 
     } catch (error) {
       console.error('Error adding/updating vote:', error);
@@ -96,7 +100,7 @@ class DatabaseStorage {
     }
   }
 
-  async getUserVote(userId: string, yearCode: number) {
+  async getUserVote(userEmail: string, yearCode: number) {
     try {
       const competition = await prisma.competition.findFirst({
         where: { 
@@ -109,8 +113,8 @@ class DatabaseStorage {
 
       const vote = await prisma.vote.findUnique({
         where: {
-          userId_competitionId: {
-            userId,
+          userEmail_competitionId: {
+            userEmail,
             competitionId: competition.id
           }
         }
@@ -119,7 +123,7 @@ class DatabaseStorage {
       if (!vote) return null;
 
       return {
-        userId: vote.userId,
+        userId: vote.userEmail,
         userName: vote.userName || vote.userEmail, // Fallback to email if userName is null
         userEmail: vote.userEmail,
         votes: vote.votes as string[],
@@ -152,20 +156,11 @@ class DatabaseStorage {
 
       if (cached) {
         
-        // Double-check if cached shows 0 but votes exist
+        // Double-check if cached shows 0 but votes exist (e.g. after initial setup or failed incremental update)
         if (cached.totalVotes === 0) {
-          // Count only votes that contain at least one non-empty entry
-          const rawCount = await prisma.$queryRaw<Array<{ cnt: number }>>`
-            SELECT COUNT(*)::int AS cnt
-            FROM votes v
-            WHERE v."competitionId" = ${competition.id}
-              AND (
-                SELECT COUNT(*)
-                FROM jsonb_array_elements_text(v.votes::jsonb) AS x
-                WHERE x <> ''
-              ) > 0
-          `;
-          const actualVoteCount = Array.isArray(rawCount) && rawCount.length > 0 && typeof rawCount[0].cnt === 'number' ? rawCount[0].cnt : 0;
+          const actualVoteCount = await prisma.vote.count({
+            where: { competitionId: competition.id }
+          });
           if (actualVoteCount > 0) {
             return await this.updateCumulativeResults(yearCode);
           }
@@ -248,6 +243,11 @@ class DatabaseStorage {
       // Parse existing vote counts
       const voteCounts = (cached.voteCounts as { [country: string]: number }) || {};
 
+      // Ensure voteCounts has entries for all known countries (avoid undefined skips)
+      countries.forEach(country => {
+        if (voteCounts[country] === undefined) voteCounts[country] = 0;
+      });
+
       // Subtract old points
       Object.entries(oldPoints).forEach(([country, pts]) => {
         if (breakdown[country]) {
@@ -280,7 +280,15 @@ class DatabaseStorage {
         updatedResults[country] = vals.join(',');
       });
 
-      const newTotalVotes = isNewVote ? cached.totalVotes + 1 : cached.totalVotes;
+      // Recompute totalVotes increment based on whether the old/new vote actually contained points
+      const oldHasPoints = oldPoints && Object.keys(oldPoints).length > 0;
+      const newHasPoints = newPoints && Object.keys(newPoints).length > 0;
+      let newTotalVotes = cached.totalVotes || 0;
+      if (!oldHasPoints && newHasPoints) {
+        newTotalVotes = newTotalVotes + 1;
+      } else if (oldHasPoints && !newHasPoints) {
+        newTotalVotes = Math.max(0, newTotalVotes - 1);
+      }
 
       await prisma.cumulativeResult.update({
         where: { competitionId },
@@ -295,6 +303,7 @@ class DatabaseStorage {
 
     } catch (error) {
       console.error('Error in incremental cumulative update:', error);
+      throw error; // Re-throw so addOrUpdateVote can catch and log properly
     }
   }
 
