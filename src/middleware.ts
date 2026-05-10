@@ -45,16 +45,9 @@ function isRequestFromOurApp(request: NextRequest): boolean {
   return false;
 }
 
-  // API koruma proxy
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const now = new Date();
-  
-  // Debug için bilgileri yazdır
-  
-  // Log the matcher check for root Eurovision paths
-  if (path === '/eurovision2020' || path === '/eurovision2021' || path === '/eurovision2022' || path === '/eurovision2023' || path === '/eurovision2024' || path === '/eurovision2025' || path === '/eurovision2026') {
-  }
   
   // vote-config API için yıl parametresini ekle (middleware'den geçirerek)
   if (path === '/api/config/vote-config') {
@@ -67,7 +60,9 @@ export function proxy(request: NextRequest) {
       // İşlem devam edebilir, koruma kontrolü sonraki adımlarda
       return;
     }
-  }  // Under Construction kontrolü
+  }
+
+  // Under Construction kontrolü
   // Bakım modundaki Eurovision yıllarını kontrol et
   const yearMatch = path.match(/\/eurovision(20\d{2})/);
   if (yearMatch) {
@@ -165,23 +160,19 @@ export function proxy(request: NextRequest) {
           // Hedef tarih - dikkat month 0 tabanlı
           const targetDate = new Date(yearNum, month - 1, day, hours, minutes);
           
-          // Debug için tarihleri logla
-          
           // Milisaniye cinsinden karşılaştır
           const nowMs = now.getTime();
           const targetMs = targetDate.getTime();
           const isBeforeTarget = nowMs < targetMs;
-          
           
           // Eğer hedef tarih henüz gelmediyse, countdown sayfasına yönlendir
           if (isBeforeTarget) {
             return NextResponse.rewrite(
               new URL(`/eurovision${year}/countdown`, request.url)
             );
-          } else {
           }
         } catch (error) {
-          console.error(`[Proxy] Tarih parse hatası (${year}):`, error);
+          console.error(`[Middleware] Tarih parse hatası (${year}):`, error);
         }
       }
     }
@@ -216,13 +207,13 @@ export const config = {
     '/admin/:path*',
     '/debug',
     '/debug/:path*',
-    '/eurovision2020',       // Add exact root path for Eurovision 2020
-    '/eurovision2021',       // Add exact root path for Eurovision 2021
-    '/eurovision2022',       // Add exact root path for Eurovision 2022
-    '/eurovision2023',       // Add exact root path for Eurovision 2023
-    '/eurovision2024',       // Add exact root path for Eurovision 2024
-    '/eurovision2025',       // Add exact root path for Eurovision 2025
-    '/eurovision2026',       // Add exact root path for Eurovision 2026
+    '/eurovision2020',
+    '/eurovision2021',
+    '/eurovision2022',
+    '/eurovision2023',
+    '/eurovision2024',
+    '/eurovision2025',
+    '/eurovision2026',
     '/eurovision2020/:path*', 
     '/eurovision2021/:path*',
     '/eurovision2022/:path*',
