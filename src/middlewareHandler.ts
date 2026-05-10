@@ -3,8 +3,6 @@ import { withAuth } from 'next-auth/middleware';
 import { NextRequest } from 'next/server';
 import { UNDER_CONSTRUCTION, VOTE_CONFIG } from '@/config/eurovisionvariables';
 
-export const runtime = 'edge';
-
 // Oylama sayfaları için yapılandırmayı merkezi config dosyasından al
 const VotePages_variables = VOTE_CONFIG;
 
