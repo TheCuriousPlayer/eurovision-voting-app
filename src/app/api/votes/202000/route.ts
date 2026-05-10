@@ -28,7 +28,6 @@ export async function POST(request: Request) {
     await dbStorage.initializeCompetitions();
 
     const vote: Vote = {
-      userId: session.user.email!,
       userName: session.user.name!,
       userEmail: session.user.email!,
       votes: votes,

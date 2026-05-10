@@ -61,3 +61,7 @@ client_secret*.json
 OAuthClientID.txt
 *.secret
 *.key
+
+WindVideoEditor.dist/
+WindVideoEditor.build/
+WindVideoEditor.onefile-build/

@@ -63,8 +63,23 @@ export async function GET() {
       });
     }
 
+    // Normalize stored `results` which may be either detailed string breakdowns
+    // ("total,12,10,...") or simple numeric totals. Convert to numeric totals.
+    const rawResults = cumulativeResult?.results || {};
+    const countryPoints: { [country: string]: number } = {};
+    Object.entries(rawResults).forEach(([country, val]) => {
+      if (typeof val === 'string') {
+        const parsed = parseInt((val as string).split(',')[0], 10);
+        countryPoints[country] = isNaN(parsed) ? 0 : parsed;
+      } else if (typeof val === 'number') {
+        countryPoints[country] = val;
+      } else {
+        countryPoints[country] = 0;
+      }
+    });
+
     const responsePayload = {
-      countryPoints: cumulativeResult?.results || {},
+      countryPoints,
       countryVoteCounts: cumulativeResult?.voteCounts || {},
       totalVotes: cumulativeResult?.totalVotes || 0,
       userVote: userVoteData || null,

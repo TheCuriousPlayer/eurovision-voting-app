@@ -9,7 +9,6 @@ interface Vote {
 }
 
 interface UserVote {
-  userId: string;
   vote: Vote;
   timestamp: string;
 }

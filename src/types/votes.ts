@@ -1,5 +1,4 @@
 export interface Vote {
-  userId: string;
   userName: string;
   userEmail: string;
   votes: string[];

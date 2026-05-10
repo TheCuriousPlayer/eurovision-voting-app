@@ -2,7 +2,6 @@
 // This will work until the serverless function restarts
 
 interface Vote {
-  userId: string;
   userName: string;
   userEmail: string;
   votes: string[];
@@ -14,13 +13,13 @@ interface CumulativeResults {
 }
 
 // In-memory storage
-const votes: { [userId: string]: Vote } = {};
+const votes: { [userEmail: string]: Vote } = {};
 let cumulativeResults: CumulativeResults = {};
 let lastUpdated: string = new Date().toISOString();
 
 export function addOrUpdateVote(vote: Vote) {
-  console.log('Memory Storage: Adding vote for', vote.userId);
-  votes[vote.userId] = vote;
+  console.log('Memory Storage: Adding vote for', vote.userEmail);
+  votes[vote.userEmail] = vote;
   
   // Recalculate cumulative results
   calculateCumulative();
@@ -28,8 +27,8 @@ export function addOrUpdateVote(vote: Vote) {
   console.log('Memory Storage: Vote added. Total votes:', Object.keys(votes).length);
 }
 
-export function getUserVote(userId: string): Vote | null {
-  return votes[userId] || null;
+export function getUserVote(userEmail: string): Vote | null {
+  return votes[userEmail] || null;
 }
 
 export function getCumulativeResults() {

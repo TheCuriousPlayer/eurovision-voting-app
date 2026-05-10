@@ -116,10 +116,9 @@ export async function POST(request: Request) {
         }
       });
     } else {
-      // Create new vote (userId can be the email or a generated ID)
+      // Create new vote
       await prisma.vote.create({
         data: {
-          userId: session.user.email, // Using email as userId
           userName: session.user.name || session.user.email,
           userEmail: session.user.email,
           competitionId: competition.id,

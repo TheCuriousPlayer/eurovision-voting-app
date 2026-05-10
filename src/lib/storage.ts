@@ -16,7 +16,7 @@ class VoteStorage {
   // Save individual user vote to their own file
   addOrUpdateVote(vote: Vote): void {
     try {
-      const userFile = join(VOTES_DIR, `${vote.userId.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+      const userFile = join(VOTES_DIR, `${vote.userEmail.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
       console.log('Saving user vote to:', userFile);
       console.log('User vote first country:', vote.votes[0]);
       
@@ -28,9 +28,9 @@ class VoteStorage {
   }
 
   // Get individual user vote from their file
-  getUserVote(userId: string): Vote | null {
+  getUserVote(userEmail: string): Vote | null {
     try {
-      const userFile = join(VOTES_DIR, `${userId.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+      const userFile = join(VOTES_DIR, `${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
       
       if (existsSync(userFile)) {
         const data = readFileSync(userFile, 'utf-8');

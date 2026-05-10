@@ -294,7 +294,6 @@ export default function Eurovision2021() {
 
     // Create updated user vote with the full 10-element array (including empty slots)
     const updatedUserVote = {
-      userId: results.userVote?.userId || 'temp',
       userName: results.userVote?.userName || 'temp',
       userEmail: results.userVote?.userEmail || 'temp',
       votes: selectedCountries, // Send the full array with empty strings

@@ -57,13 +57,13 @@ export const VOTE_CONFIG = {
     Status: false, 
     ShowCountDown: VOTE_DATES['2023'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: '' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2024': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2024'], 
     Mode: 'visible', // 'visible' | 'hide'
-    GMs: '' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2025': { 
     Status: false, 
@@ -81,7 +81,7 @@ export const VOTE_CONFIG = {
     Status: true, 
     ShowCountDown: VOTE_DATES['2026'], 
     Mode: 'hide', // 'visible' | 'hide'
-    GMs: '' 
+    GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   }
 };
 
