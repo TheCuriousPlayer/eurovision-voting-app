@@ -4,10 +4,8 @@ import { Pool } from 'pg';
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  migrate: {
-    async adapter(env) {
-      const pool = new Pool({ connectionString: env.DIRECT_URL });
-      return new PrismaPg(pool);
-    },
+  adapter: async () => {
+    const pool = new Pool({ connectionString: process.env.DIRECT_URL });
+    return new PrismaPg(pool);
   },
 });
