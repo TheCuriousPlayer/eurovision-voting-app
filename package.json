@@ -8,6 +8,7 @@
     "check-subagent-model": "node scripts/enforce-subagent-model.js",
     "prebuild": "npm run check-api-auth",
     "build": "prisma generate && next build",
+    "build:cf": "prisma generate && npx @opennextjs/cloudflare build",
     "start": "next start -H 0.0.0.0",
     "start-local": "next start",
     "lint": "next lint",
@@ -18,6 +19,8 @@
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
+    "@opennextjs/cloudflare": "^1.19.8",
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^6.14.0",
     "@vercel/kv": "^3.0.0",
     "framer-motion": "^12.23.24",
@@ -25,6 +28,7 @@
     "js-cookie": "^3.0.5",
     "next": "^16.1.6",
     "next-auth": "^4.24.11",
+    "pg": "^8.20.0",
     "prisma": "^6.14.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -37,12 +41,14 @@
     "@tailwindcss/postcss": "^4",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-simple-maps": "^3.0.6",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.90.0"
   }
 }
