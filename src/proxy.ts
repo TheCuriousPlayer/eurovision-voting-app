@@ -1,5 +1,4 @@
 ﻿import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
 import { UNDER_CONSTRUCTION, VOTE_CONFIG } from '@/config/eurovisionvariables';
 
@@ -47,7 +46,7 @@ function isRequestFromOurApp(request: NextRequest): boolean {
 }
 
   // API koruma proxy
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const now = new Date();
   
@@ -204,22 +203,11 @@ export async function proxy(request: NextRequest) {
     }
   }
   
-  // Admin ve Eurovision1955 sayfaları için auth koruması
-  if (path.startsWith('/eurovision1955') || path.startsWith('/admin')) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      const signInUrl = new URL('/api/auth/signin', request.url);
-      signInUrl.searchParams.set('callbackUrl', request.url);
-      return NextResponse.redirect(signInUrl);
-    }
-  }
-  
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    '/eurovision1955/:path*',
     '/api/votes/:year/simple/:path*',
     '/api/votes/:year/public/:path*',
     '/api/config/vote-config',
