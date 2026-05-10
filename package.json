@@ -8,7 +8,7 @@
     "check-subagent-model": "node scripts/enforce-subagent-model.js",
     "prebuild": "npm run check-api-auth",
     "build": "prisma generate && next build",
-    "build:cf": "prisma generate && npx @opennextjs/cloudflare build",
+    "build:cf": "prisma generate && npx @opennextjs/cloudflare build && cp .open-next/worker.js .open-next/assets/_worker.js",
     "start": "next start -H 0.0.0.0",
     "start-local": "next start",
     "lint": "next lint",
