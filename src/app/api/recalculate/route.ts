@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
+import { buildDetailedResultsFromVotes } from '@/lib/database-storage';
 
 export async function POST() {
   try {
@@ -19,47 +20,33 @@ export async function POST() {
       // Get all votes for this competition (don't delete anything)
       const votes = await prisma.vote.findMany({
         where: { competitionId: competition.id },
-        select: { points: true }
+        select: { points: true, votes: true }
       });
 
       console.log(`Competition ${competition.year} has ${votes.length} actual votes`);
 
-      // Just recalculate the cumulative results
-      const countryPoints: { [country: string]: number } = {};
-      
-      // Initialize all countries to 0
-      competition.countries.forEach(country => {
-        countryPoints[country as string] = 0;
-      });
+      const { results: detailedResults, voteCounts, totalVotes, countryPoints } = buildDetailedResultsFromVotes(competition.countries, votes);
 
-      // Sum up all votes
-      votes.forEach(vote => {
-        const points = vote.points as { [country: string]: number };
-        Object.entries(points).forEach(([country, pointsValue]) => {
-          if (countryPoints[country] !== undefined) {
-            countryPoints[country] += pointsValue;
-          }
-        });
-      });
-
-      // Update cumulative results with correct count
       await prisma.cumulativeResult.upsert({
         where: { competitionId: competition.id },
         update: {
-          results: countryPoints,
-          totalVotes: votes.length, // Use actual vote count
+          results: detailedResults,
+          voteCounts,
+          totalVotes,
           lastUpdated: new Date()
         },
         create: {
           competitionId: competition.id,
-          results: countryPoints,
-          totalVotes: votes.length
+          results: detailedResults,
+          voteCounts,
+          totalVotes,
+          lastUpdated: new Date()
         }
       });
 
       results.push({
         year: competition.year,
-        actualVotes: votes.length,
+        actualVotes: totalVotes,
         topCountries: Object.entries(countryPoints)
           .filter(([, points]) => points > 0)
           .sort(([, a], [, b]) => b - a)

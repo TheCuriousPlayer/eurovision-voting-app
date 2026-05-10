@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
+import { buildDetailedResultsFromVotes } from '@/lib/database-storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,34 +27,23 @@ export async function POST() {
     // Fetch votes separately with select to reduce data transfer
     const votes = await prisma.vote.findMany({
       where: { competitionId: competition.id },
-      select: { userName: true, points: true }
+      select: { userName: true, points: true, votes: true }
     });
 
     console.log(`Force repair: Found competition with ${votes.length} votes`);
 
-    // Calculate fresh cumulative points
-    const countryPoints: Record<string, number> = {};
-    
-    // Initialize all countries to 0
-    competition.countries.forEach(country => {
-      countryPoints[country] = 0;
-    });
-
-    // Sum up all votes
     let totalProcessed = 0;
     votes.forEach(vote => {
       const points = vote.points as Record<string, number>;
       console.log(`Processing vote from ${vote.userName}:`, points);
-      
-      Object.entries(points).forEach(([country, pointsValue]) => {
-        if (countryPoints[country] !== undefined) {
-          countryPoints[country] += pointsValue;
-          totalProcessed++;
-        }
-      });
+      totalProcessed += Object.values(points).filter(pt => pt !== 0).length;
     });
 
-    const totalVotes = votes.length;
+    const { results, voteCounts, totalVotes, countryPoints } = buildDetailedResultsFromVotes(
+      competition.countries,
+      votes.map(vote => ({ points: vote.points as Record<string, unknown>, votes: vote.votes as string[] }))
+    );
+
     console.log(`Force repair: Calculated ${totalVotes} votes, processed ${totalProcessed} point entries`);
     console.log('Calculated country points:', countryPoints);
 
@@ -61,13 +51,15 @@ export async function POST() {
     const updated = await prisma.cumulativeResult.upsert({
       where: { competitionId: competition.id },
       update: {
-        results: countryPoints,
+        results,
+        voteCounts,
         totalVotes,
         lastUpdated: new Date()
       },
       create: {
         competitionId: competition.id,
-        results: countryPoints,
+        results,
+        voteCounts,
         totalVotes
       }
     });

@@ -50,7 +50,7 @@ model Vote {
 model CumulativeResult {
   id            String      @id @default(cuid())
   competitionId String      @unique
-  results       Json        // JSON object of country -> total points
+  results       Json        // JSON object of country -> total points (country -> "total,12pts,10pts,8pts,7pts,6pts,5pts,4pts,3pts,2pts,1pts")
   voteCounts    Json?       // JSON object of country -> vote count (how many users voted for it)
   totalVotes    Int         @default(0)
   lastUpdated   DateTime    @default(now())

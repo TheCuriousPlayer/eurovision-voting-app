@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
+import { formatTotalsAsDetailedResults } from '@/lib/database-storage';
 
 const EUROVISION_2026_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',
@@ -52,10 +53,12 @@ export async function POST() {
       countryPoints[country] = 0;
     });
 
+    const formattedResults = formatTotalsAsDetailedResults(countryPoints);
+
     const cumulativeResult = await prisma.cumulativeResult.create({
       data: {
         competitionId: competition.id,
-        results: countryPoints,
+        results: formattedResults,
         voteCounts: {},
         totalVotes: 0
       }

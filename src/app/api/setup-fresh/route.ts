@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
+import { formatTotalsAsDetailedResults } from '@/lib/database-storage';
 
 const EUROVISION_2023_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
@@ -69,11 +70,13 @@ export async function POST() {
       countryPoints2023[country] = yourData2023[country as keyof typeof yourData2023] || 0;
     });
 
+    const formattedResults2023 = formatTotalsAsDetailedResults(countryPoints2023);
+
     // Create cumulative results for 2023
     const cumulativeResult2023 = await prisma.cumulativeResult.create({
       data: {
         competitionId: competition2023.id,
-        results: countryPoints2023,
+        results: formattedResults2023,
         totalVotes: 1
       }
     });
@@ -98,11 +101,13 @@ export async function POST() {
       countryPoints2026Preview[country] = 0;
     });
 
+    const formattedResults2026Preview = formatTotalsAsDetailedResults(countryPoints2026Preview);
+
     // Create cumulative results for 2026 Preview
     const cumulativeResult2026Preview = await prisma.cumulativeResult.create({
       data: {
         competitionId: competition2026Preview.id,
-        results: countryPoints2026Preview,
+        results: formattedResults2026Preview,
         voteCounts: {},
         totalVotes: 0
       }

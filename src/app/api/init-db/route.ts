@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
+import { formatTotalsAsDetailedResults } from '@/lib/database-storage';
 
 const EUROVISION_2023_COUNTRIES = [
   'Albania', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Belgium', 'Croatia',
@@ -51,16 +52,18 @@ export async function POST() {
       countryPoints[country] = yourData[country as keyof typeof yourData] || 0;
     });
 
+    const formattedResults = formatTotalsAsDetailedResults(countryPoints);
+
     await prisma.cumulativeResult.upsert({
       where: { competitionId: competition2023.id },
       update: {
-        results: countryPoints,
-        totalVotes: 1, // Assuming this represents 1 vote that generated these points
+        results: formattedResults,
+        totalVotes: 1,
         lastUpdated: new Date()
       },
       create: {
         competitionId: competition2023.id,
-        results: countryPoints,
+        results: formattedResults,
         totalVotes: 1
       }
     });

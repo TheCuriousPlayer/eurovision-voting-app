@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
+import { buildDetailedResultsFromVotes } from '@/lib/database-storage';
 
 export async function POST() {
   try {
@@ -55,39 +56,25 @@ export async function POST() {
       // Get remaining votes after cleanup
       const cleanVotes = await prisma.vote.findMany({
         where: { competitionId: competition.id },
-        select: { points: true }
+        select: { points: true, votes: true }
       });
 
-      // Recalculate cumulative results with clean data
-      const countryPoints: { [country: string]: number } = {};
-      
-      // Initialize all countries to 0
-      competition.countries.forEach(country => {
-        countryPoints[country as string] = 0;
-      });
+      const { results, voteCounts, totalVotes } = buildDetailedResultsFromVotes(competition.countries, cleanVotes);
 
-      // Sum up all clean votes
-      cleanVotes.forEach(vote => {
-        const points = vote.points as { [country: string]: number };
-        Object.entries(points).forEach(([country, pointsValue]) => {
-          if (countryPoints[country] !== undefined) {
-            countryPoints[country] += pointsValue;
-          }
-        });
-      });
-
-      // Update cumulative results
       await prisma.cumulativeResult.upsert({
         where: { competitionId: competition.id },
         update: {
-          results: countryPoints,
-          totalVotes: cleanVotes.length,
+          results,
+          voteCounts,
+          totalVotes,
           lastUpdated: new Date()
         },
         create: {
           competitionId: competition.id,
-          results: countryPoints,
-          totalVotes: cleanVotes.length
+          results,
+          voteCounts,
+          totalVotes,
+          lastUpdated: new Date()
         }
       });
 
