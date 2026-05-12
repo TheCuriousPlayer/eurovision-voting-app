@@ -1,4 +1,4 @@
-import type { NextAuthOptions } from 'next-auth';
+﻿import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
 if (!process.env.NEXTAUTH_SECRET) {
@@ -53,11 +53,24 @@ export const isAdmin = (email: string | null | undefined): boolean => {
 // Helper to check if a user is a GM (game master). This reads the
 // `GM_EMAILS_DEFAULT` environment variable and also treats any email
 // in `ADMIN_EMAILS` as a GM (admins implicitly have GM privileges).
-export const isGM = (email: string | null | undefined): boolean => {
-  if (!email) return false;
+export const getIsGMCheckData = (email: string | null | undefined) => {
   const gmEmails = process.env.GM_EMAILS_DEFAULT?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean) ?? [];
   const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean) ?? [];
-  const normalized = email.trim().toLowerCase();
+  const normalized = email?.trim().toLowerCase() ?? '';
+  return { gmEmails, adminEmails, normalized };
+};
+
+export const getIsGMCheckMessage = (email: string | null | undefined): string => {
+  const { gmEmails, adminEmails, normalized } = getIsGMCheckData(email);
+  return `isGM check:\n` +
+    `gmEmails=${gmEmails.join(', ')}\n` +
+    `adminEmails=${adminEmails.join(', ')}\n` +
+    `normalized=${normalized}`;
+};
+
+export const isGM = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  const { gmEmails, adminEmails, normalized } = getIsGMCheckData(email);
   return gmEmails.includes(normalized) || adminEmails.includes(normalized);
 };
 

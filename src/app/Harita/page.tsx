@@ -556,7 +556,7 @@ export default function HaritaPage() {
                                   <img
                                     src={`/flags/${country}_${code}.png`}
                                     alt={country}
-                                    className="w-8 h-6 object-cover rounded shadow"
+                                    className="w-8 h-auto object-cover rounded shadow"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
                                     }}
@@ -601,7 +601,7 @@ export default function HaritaPage() {
                                 <img
                                   src={`/flags/${country}_${code}.png`}
                                   alt={country}
-                                  className="w-8 h-6 object-cover rounded shadow"
+                                  className="w-8 h-auto object-cover rounded shadow"
                                 />
                               ) : (
                                 <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">?</div>
@@ -662,7 +662,7 @@ export default function HaritaPage() {
                                     <img
                                       src={`/flags/${country}_${code}.png`}
                                       alt={country}
-                                      className="w-8 h-6 object-cover rounded shadow"
+                                        className="w-8 h-auto object-cover rounded shadow"
                                       onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                       }}
@@ -707,7 +707,7 @@ export default function HaritaPage() {
                                   <img
                                     src={`/flags/${country}_${code}.png`}
                                     alt={country}
-                                    className="w-8 h-6 object-cover rounded shadow"
+                                    className="w-8 h-auto object-cover rounded shadow"
                                   />
                                 ) : (
                                   <div className="w-8 h-6 flex items-center justify-center bg-gray-600 rounded text-xs text-white">?</div>

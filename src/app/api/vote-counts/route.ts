@@ -13,11 +13,6 @@ export async function GET() {
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized - Authentication required' }, { status: 401 });
     }
-    const userEmail = session.user.email.toLowerCase();
-    const gmList = Object.values(VOTE_CONFIG).map(c => (c as any).GMs || '').join(',').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-    if (!gmList.includes(userEmail)) {
-      return NextResponse.json({ error: 'Forbidden - GM access required' }, { status: 403 });
-    }
     const results = await prisma.cumulativeResult.findMany({
       select: {
         competitionId: true,

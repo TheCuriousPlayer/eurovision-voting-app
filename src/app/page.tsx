@@ -11,21 +11,28 @@ export default function Home() {
   const [voteCounts, setVoteCounts] = useState<{ [year: string]: number }>({});
 
   useEffect(() => {
-    // Fetch vote counts for all years in a single lightweight request
+    if (status !== 'authenticated') {
+      setVoteCounts({});
+      return;
+    }
+
     const fetchVoteCounts = async () => {
       try {
         const response = await fetch('/api/vote-counts');
         if (response.ok) {
           const counts = await response.json();
           setVoteCounts(counts);
+        } else {
+          setVoteCounts({});
         }
       } catch (error) {
         console.error('Error fetching vote counts:', error);
+        setVoteCounts({});
       }
     };
-    
+
     fetchVoteCounts();
-  }, []);
+  }, [status]);
 
   if (String(status) === 'loading') {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
