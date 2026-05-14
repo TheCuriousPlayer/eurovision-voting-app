@@ -68,8 +68,7 @@ export default function ClientPage() {
   const containerStyle: CSSProperties = layoutMode === 'vertical'
     ? { display: 'flex', flexDirection: 'column', gap: 5 }
     : { display: 'flex', flexDirection: 'row', gap: 5, flexWrap: 'wrap', alignItems: 'flex-start' };
-  const cardWidth = layoutMode === 'vertical' ? 490 : 214;
-  const entries = Object.entries(eurovision2026SF1Songs);
+  const cardWidth = layoutMode === 'vertical' ? 490 : 214;  const cardImageFlex = layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto';  const entries = Object.entries(eurovision2026SF1Songs);
 
   useEffect(() => {
     const onMouseMove = (event: MouseEvent) => {
@@ -312,9 +311,7 @@ export default function ClientPage() {
                 // Inner glow color (inset) for revealed cards
                 const innerGlowColor = isQualified ? 'rgba(16,225,129,0.22)' : 'rgba(220,38,38,0.22)';
 
-                const innerFlexStyle: CSSProperties = layoutMode === 'horizontal'
-                  ? { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }
-                  : { display: 'flex', gap: 8, alignItems: 'center' };
+                const innerFlexStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' };
 
                 // Use the same visible width as vertical mode (210px) so thumbnails match
                 const imgContainerStyle: CSSProperties = {
@@ -323,16 +320,12 @@ export default function ClientPage() {
                   borderRadius: 6,
                   overflow: 'hidden',
                   background: '#111',
-                  flex: layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto'
+                  flex: cardImageFlex
                 };
 
-                const imgStyle: CSSProperties = layoutMode === 'horizontal'
-                  ? { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' }
-                  : { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' };
+                const imgStyle: CSSProperties = { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' };
 
-                const textContainerStyle: CSSProperties = layoutMode === 'horizontal'
-                  ? { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', paddingTop: 8, color: '#e5e7eb', minWidth: 0 }
-                  : { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 8, color: '#e5e7eb', minWidth: 0 };
+                const textContainerStyle: CSSProperties = { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', paddingTop: 8, color: '#e5e7eb', minWidth: 0 };
 
                 return (
                   <article
@@ -406,9 +399,7 @@ export default function ClientPage() {
           // Inner glow color (inset) for revealed cards
           const innerGlowColor = isQualified ? 'rgba(16,225,129,0.22)' : 'rgba(220,38,38,0.22)';
 
-          const innerFlexStyle: CSSProperties = layoutMode === 'horizontal'
-            ? { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }
-            : { display: 'flex', gap: 8, alignItems: 'center' };
+          const innerFlexStyle: CSSProperties = { display: 'flex', gap: 8, alignItems: 'center' };
 
           // Use the same visible width as vertical mode (210px) so thumbnails match
           const imgContainerStyle: CSSProperties = {
@@ -417,16 +408,12 @@ export default function ClientPage() {
             borderRadius: 6,
             overflow: 'hidden',
             background: '#111',
-            flex: layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto'
+            flex: cardImageFlex
           };
 
-          const imgStyle: CSSProperties = layoutMode === 'horizontal'
-            ? { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' }
-            : { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' };
+          const imgStyle: CSSProperties = { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' };
 
-          const textContainerStyle: CSSProperties = layoutMode === 'horizontal'
-            ? { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', paddingTop: 8, color: '#e5e7eb', minWidth: 0 }
-            : { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 8, color: '#e5e7eb', minWidth: 0 };
+          const textContainerStyle: CSSProperties = { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 8, color: '#e5e7eb', minWidth: 0 };
 
           return (
             <article

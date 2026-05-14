@@ -107,6 +107,7 @@ export default function ClientPage() {
     ? { display: 'flex', flexDirection: 'column', gap: 5 }
     : { display: 'flex', flexDirection: 'row', gap: 5, flexWrap: 'wrap', alignItems: 'flex-start' };
   const cardWidth = layoutMode === 'vertical' ? 490 : 214;
+  const cardImageFlex = layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto';
   const entries = Object.entries(eurovision2026PreviewSongs);
 
   useEffect(() => {
@@ -361,7 +362,7 @@ export default function ClientPage() {
                     borderRadius: 6,
                     overflow: 'hidden',
                     background: '#111',
-                    flex: layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto'
+                    flex: cardImageFlex
                   };
 
                   const imgStyle: CSSProperties = {
@@ -447,9 +448,7 @@ export default function ClientPage() {
               const glowColor = 'rgba(37,99,235,0.22)';
               const innerGlowColor = 'rgba(59,130,246,0.22)';
 
-              const innerFlexStyle: CSSProperties = layoutMode === 'horizontal'
-                ? { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }
-                : { display: 'flex', gap: 8, alignItems: 'center' };
+              const innerFlexStyle: CSSProperties = { display: 'flex', gap: 8, alignItems: 'center' };
 
               const imgContainerStyle: CSSProperties = {
                 width: 210,
@@ -457,7 +456,7 @@ export default function ClientPage() {
                 borderRadius: 6,
                 overflow: 'hidden',
                 background: '#111',
-                flex: layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto'
+                flex: cardImageFlex
               };
 
               const imgStyle: CSSProperties = {
@@ -469,9 +468,7 @@ export default function ClientPage() {
                 transition: 'filter 160ms ease'
               };
 
-              const textContainerStyle: CSSProperties = layoutMode === 'horizontal'
-                ? { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', paddingTop: 8, color: '#e5e7eb', minWidth: 0 }
-                : { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 8, color: '#e5e7eb', minWidth: 0 };
+              const textContainerStyle: CSSProperties = { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 8, color: '#e5e7eb', minWidth: 0 };
 
               return (
                 <article
