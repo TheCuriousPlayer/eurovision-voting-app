@@ -57,12 +57,87 @@ export default function ClientPage() {
   const SetRevealedCardToggle = (country: string) => {
     setRevealedCards((prev) => ({ ...prev, [country]: !prev[country] }));
   };
-  const [layoutMode, setLayoutMode] = useState<'vertical' | 'horizontal'>('vertical');
+  const [layoutMode, setLayoutMode] = useState<'vertical' | 'horizontal'>('horizontal');
+  const [islandRect, setIslandRect] = useState({ x: 50, y: 50, w: 1120, h: 630 });
+  const dragStateRef = useRef<{
+    mode: 'move' | 'resize';
+    startX: number;
+    startY: number;
+    startRect: { x: number; y: number; w: number; h: number };
+  } | null>(null);
   const containerStyle: CSSProperties = layoutMode === 'vertical'
     ? { display: 'flex', flexDirection: 'column', gap: 5 }
     : { display: 'flex', flexDirection: 'row', gap: 5, flexWrap: 'wrap', alignItems: 'flex-start' };
   const cardWidth = layoutMode === 'vertical' ? 490 : 214;
   const entries = Object.entries(eurovision2026SF1Songs);
+
+  useEffect(() => {
+    const onMouseMove = (event: MouseEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState) return;
+
+      const dx = event.clientX - dragState.startX;
+      const dy = event.clientY - dragState.startY;
+
+      if (dragState.mode === 'move') {
+        setIslandRect({
+          x: Math.max(0, dragState.startRect.x + dx),
+          y: Math.max(0, dragState.startRect.y + dy),
+          w: dragState.startRect.w,
+          h: dragState.startRect.h
+        });
+        return;
+      }
+
+      setIslandRect({
+        x: dragState.startRect.x,
+        y: dragState.startRect.y,
+        w: Math.max(300, dragState.startRect.w + dx),
+        h: Math.max(200, dragState.startRect.h + dy)
+      });
+    };
+
+    const onMouseUp = () => {
+      if (!dragStateRef.current) return;
+      dragStateRef.current = null;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
+
+  const startIslandMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    dragStateRef.current = {
+      mode: 'move',
+      startX: event.clientX,
+      startY: event.clientY,
+      startRect: islandRect
+    };
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'move';
+  };
+
+  const startIslandResize = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragStateRef.current = {
+      mode: 'resize',
+      startX: event.clientX,
+      startY: event.clientY,
+      startRect: islandRect
+    };
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'nwse-resize';
+  };
 
   function ShrinkText({ children, style, minFontPx = 10, layoutDep }: { children: React.ReactNode; style?: CSSProperties; minFontPx?: number; layoutDep?: any }) {
     const ref = useRef<HTMLDivElement | null>(null);
@@ -180,7 +255,143 @@ export default function ClientPage() {
             </button>
           </div>
         </div>
-        <div style={containerStyle}>
+        {layoutMode === 'horizontal' ? (
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              minHeight: Math.max(720, islandRect.y + islandRect.h + 24),
+              border: '1px dashed #374151',
+              borderRadius: 8
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                left: islandRect.x,
+                top: islandRect.y,
+                width: islandRect.w,
+                height: islandRect.h,
+                padding: 6,
+                overflow: 'auto',
+                border: '1px solid #4b5563',
+                borderRadius: 8,
+                background: 'rgba(17,24,39,0.65)',
+                backdropFilter: 'blur(2px)'
+              }}
+            >
+              <div
+                onMouseDown={startIslandMove}
+                style={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 2,
+                  margin: '-6px -6px 8px',
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  color: '#cbd5e1',
+                  cursor: 'move',
+                  background: 'rgba(15,23,42,0.85)',
+                  borderBottom: '1px solid #475569'
+                }}
+              >
+                Island x:{Math.round(islandRect.x)} y:{Math.round(islandRect.y)} w:{Math.round(islandRect.w)} h:{Math.round(islandRect.h)}
+              </div>
+              <div style={containerStyle}>
+              {entries.map(([country, s]) => {
+                const isActive = !!revealedCards[country];
+                const isQualified = /qualified/i.test(s.result) && !/not|non/i.test(s.result);
+                const borderColor = isActive ? (isQualified ? '#16a34a' : '#dc2626') : '#e6e6e6';
+
+                // Default (hidden) background — cards start grey for reveal page
+                const defaultBg = '#374151';
+                // When revealed (isActive) set green or red background depending on result
+                const cardBg = isActive ? (isQualified ? '#063f2a' : '#4c0513') : defaultBg;
+                // Glow color for box-shadow (used only when active)
+                const glowColor = isQualified ? 'rgba(16,185,129,0.22)' : 'rgba(220,38,38,0.22)';
+                // Inner glow color (inset) for revealed cards
+                const innerGlowColor = isQualified ? 'rgba(16,225,129,0.22)' : 'rgba(220,38,38,0.22)';
+
+                const innerFlexStyle: CSSProperties = layoutMode === 'horizontal'
+                  ? { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }
+                  : { display: 'flex', gap: 8, alignItems: 'center' };
+
+                // Use the same visible width as vertical mode (210px) so thumbnails match
+                const imgContainerStyle: CSSProperties = {
+                  width: 210,
+                  height: 115,
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  background: '#111',
+                  flex: layoutMode === 'vertical' ? '0 0 210px' : '0 0 auto'
+                };
+
+                const imgStyle: CSSProperties = layoutMode === 'horizontal'
+                  ? { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' }
+                  : { width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: isActive ? 'none' : 'grayscale(100%)', transition: 'filter 160ms ease' };
+
+                const textContainerStyle: CSSProperties = layoutMode === 'horizontal'
+                  ? { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', paddingTop: 8, color: '#e5e7eb', minWidth: 0 }
+                  : { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 8, color: '#e5e7eb', minWidth: 0 };
+
+                return (
+                  <article
+                    key={country}
+                    aria-label={`${country} (${s.code})`}
+                    onClick={() => SetRevealedCardToggle(country)}
+                    className={`sf1-card ${isActive ? 'sf1-card--active pulse' : ''}`}
+                    style={{
+                      width: cardWidth,
+                      boxSizing: 'border-box',
+                      border: `2px solid ${borderColor}`,
+                      borderRadius: 8,
+                      padding: 0,
+                      background: cardBg,
+                      cursor: 'pointer',
+                      transition: 'border-color 160ms ease, background-color 180ms ease, box-shadow 180ms ease',
+                      // CSS variables for dynamic colors
+                      ['--inner-glow-color']: innerGlowColor,
+                      ['--outer-glow-color']: glowColor
+                    } as any}
+                  >
+                    <div style={innerFlexStyle}>
+                      <div style={imgContainerStyle}>
+                        <img
+                          src={`https://img.youtube.com/vi/${s.youtubeId}/hqdefault.jpg`}
+                          alt={`${country} thumbnail`}
+                          style={imgStyle}
+                        />
+                      </div>
+
+                      <div style={textContainerStyle}>
+                        <ShrinkText layoutDep={layoutMode} style={{ fontSize: '0.95rem', marginBottom: 6, fontWeight: 700, textAlign: 'center' }}>{s.performer}</ShrinkText>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <ShrinkText layoutDep={layoutMode} style={{ fontSize: '0.95rem', textAlign: 'center' }}>{s.song}</ShrinkText>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+              <div
+                onMouseDown={startIslandResize}
+                aria-label="Resize island"
+                style={{
+                  position: 'absolute',
+                  right: 4,
+                  bottom: 4,
+                  width: 16,
+                  height: 16,
+                  borderRadius: 3,
+                  cursor: 'nwse-resize',
+                  background: 'linear-gradient(135deg, transparent 0%, transparent 40%, #94a3b8 40%, #94a3b8 60%, transparent 60%)'
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div style={containerStyle}>
         {entries.map(([country, s]) => {
           const isActive = !!revealedCards[country];
           const isQualified = /qualified/i.test(s.result) && !/not|non/i.test(s.result);
@@ -257,6 +468,7 @@ export default function ClientPage() {
           );
         })}
       </div>
+        )}
     </div>
 
       {showYouTubeModal && (

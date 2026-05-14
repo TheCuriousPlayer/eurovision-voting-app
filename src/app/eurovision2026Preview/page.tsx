@@ -75,6 +75,7 @@ export default function Eurovision2026Preview() {
   const [loading, setLoading] = useState(true);
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
   const [showResults, setShowResults] = useState(false); // Toggle for showing results with points
+  const [showTwelvePointsRanking, setShowTwelvePointsRanking] = useState(false);
   const [voteConfig, setVoteConfig] = useState({ 
     status: true, 
     showCountDown: '', 
@@ -735,6 +736,9 @@ export default function Eurovision2026Preview() {
     
     const newShowResults = !showResults;
     setShowResults(newShowResults);
+    if (!newShowResults) {
+      setShowTwelvePointsRanking(false);
+    }
     localStorage.setItem('eurovision2026Preview_showResults', JSON.stringify(newShowResults));
     
     if (newShowResults) {
@@ -853,18 +857,32 @@ export default function Eurovision2026Preview() {
           return null;
         }
         
-        // Render the button
+        // Render the buttons
         return (
-          <button
-            onClick={toggleShowResults}
-            className={`mt-4 w-full py-2 px-4 rounded font-medium transition-colors ${
-              showResults 
-                ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
-                : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
-            }`}
-          >
-            {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={toggleShowResults}
+              className={`w-full py-2 px-4 rounded font-medium transition-colors ${
+                showResults 
+                  ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
+                  : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
+              }`}
+            >
+              {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
+            </button>
+            {results.detailedResults && showResults && (
+              <button
+                onClick={() => setShowTwelvePointsRanking(prev => !prev)}
+                className={`w-full py-2 px-4 rounded font-medium transition-colors ${
+                  showTwelvePointsRanking 
+                    ? 'bg-[#9b59b6] hover:bg-[#8e44ad] text-white' 
+                    : 'bg-[#f1c40f] hover:bg-[#f39c12] text-black'
+                }`}
+              >
+                {showTwelvePointsRanking ? 'Toplam Sıralamaya Dön' : '12 Puan Sıralaması'}
+              </button>
+            )}
+          </div>
         );
       })()}
     </div>
@@ -872,24 +890,46 @@ export default function Eurovision2026Preview() {
 
   // Get all countries from the eurovision2026PreviewSongs mapping
   const allCountries = Object.keys(eurovision2026PreviewSongs);
-  
-  // Create array of all countries with their points (including 0 points)
-  // Sort alphabetically when results are hidden, by points when shown
-  const sortedCountries: [string, number][] = showResults 
+  const twelvePointsAvailable = !!results.detailedResults;
+
+  const getTwelvePointsTotal = (country: string): number => {
+    const breakdown = results.detailedResults?.[country];
+    if (!breakdown) return 0;
+    const parts = breakdown.split(',').map(part => parseInt(part, 10));
+    return parts.length > 1 && !Number.isNaN(parts[1]) ? parts[1] : 0;
+  };
+
+  const sortedCountries: [string, number][] = showResults && showTwelvePointsRanking && twelvePointsAvailable
     ? allCountries
-        .map(country => [country, results.countryPoints[country] || 0] as [string, number])
+        .map(country => [country, getTwelvePointsTotal(country)] as [string, number])
         .sort(([countryA, pointsA], [countryB, pointsB]) => {
-          // First, sort by points (descending)
           if (pointsB !== pointsA) return pointsB - pointsA;
-          
-          // If points are equal, sort by vote count (descending)
+          const totalA = results.countryPoints[countryA] || 0;
+          const totalB = results.countryPoints[countryB] || 0;
+          if (totalB !== totalA) return totalB - totalA;
           const voteCountA = results?.countryVoteCounts?.[countryA] || 0;
           const voteCountB = results?.countryVoteCounts?.[countryB] || 0;
           return voteCountB - voteCountA;
         })
-    : allCountries
-        .map(country => [country, results.countryPoints[country] || 0] as [string, number])
-        .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
+    : showResults
+        ? allCountries
+            .map(country => [country, results.countryPoints[country] || 0] as [string, number])
+            .sort(([countryA, pointsA], [countryB, pointsB]) => {
+              if (pointsB !== pointsA) return pointsB - pointsA;
+              const voteCountA = results?.countryVoteCounts?.[countryA] || 0;
+              const voteCountB = results?.countryVoteCounts?.[countryB] || 0;
+              return voteCountB - voteCountA;
+            })
+        : allCountries
+            .map(country => [country, results.countryPoints[country] || 0] as [string, number])
+            .sort(([countryA], [countryB]) => countryA.localeCompare(countryB));
+
+  const resultsTitle = showTwelvePointsRanking
+    ? '12 Puan Sıralaması'
+    : showResults
+      ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})`
+      : 'Ülkeler (Alfabetik)';
+  const pointsLabel = showTwelvePointsRanking ? '12 puan' : 'points';
 
   // If you want to temporarily disable the page, toggle UNDER_CONSTRUCTION at top of file.
   // Keep small no-op references so linters don't flag the helpers as unused.
@@ -1058,16 +1098,30 @@ export default function Eurovision2026Preview() {
                     }
                     
                     return (
-                      <button
-                        onClick={toggleShowResults}
-                        className={`mt-4 w-full py-2 px-4 rounded font-medium transition-colors ${
-                          showResults 
-                            ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
-                            : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
-                        }`}
-                      >
-                        {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
-                      </button>
+                      <div className="space-y-3">
+                        <button
+                          onClick={toggleShowResults}
+                          className={`w-full py-2 px-4 rounded font-medium transition-colors ${
+                            showResults 
+                              ? 'bg-[#e74c3c] hover:bg-[#c0392b] text-white' 
+                              : 'bg-[#3498db] hover:bg-[#2980b9] text-white'
+                          }`}
+                        >
+                          {showResults ? 'Sonuçları Gizle' : 'Sonuçları Göster'}
+                        </button>
+                        {results.detailedResults && showResults && (
+                          <button
+                            onClick={() => setShowTwelvePointsRanking(prev => !prev)}
+                            className={`w-full py-2 px-4 rounded font-medium transition-colors ${
+                              showTwelvePointsRanking 
+                                ? 'bg-[#9b59b6] hover:bg-[#8e44ad] text-white' 
+                                : 'bg-[#f1c40f] hover:bg-[#f39c12] text-black'
+                            }`}
+                          >
+                            {showTwelvePointsRanking ? 'Toplam Sıralamaya Dön' : '12 Puan Sıralaması'}
+                          </button>
+                        )}
+                      </div>
                     );
                   })()}
                 </div>
@@ -1095,10 +1149,7 @@ export default function Eurovision2026Preview() {
                       </button>
                     )}
                     <h2 className="text-2xl font-bold text-white">
-                      {showResults 
-                        ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})` 
-                        : 'Ülkeler (Alfabetik)'
-                      }
+                      {resultsTitle}
                     </h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
@@ -1199,7 +1250,7 @@ export default function Eurovision2026Preview() {
                                       }`}>
                                         <div className="ml-2 whitespace-nowrap text-right">
                                           <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                            {formatNumber(points)} points
+                                            {showTwelvePointsRanking ? `${formatNumber(Math.round(points / 12))} x 12 puan` : `${formatNumber(points)} ${pointsLabel}`}
                                           </div>
                                           {preferences.showWeightPercentage && (
 
@@ -1341,7 +1392,7 @@ export default function Eurovision2026Preview() {
                                       }`}>
                                         <div className="ml-2 whitespace-nowrap text-right">
                                           <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                            {formatNumber(points)} points
+                                            {showTwelvePointsRanking ? `${formatNumber(Math.round(points / 12))} x 12 puan` : `${formatNumber(points)} ${pointsLabel}`}
                                           </div>
                                           {preferences.showWeightPercentage && (
 
@@ -1418,10 +1469,7 @@ export default function Eurovision2026Preview() {
                     </button>
                   )}
                   <h2 className="text-2xl font-bold text-white">
-                    {showResults 
-                      ? `Sonuçlar (Toplam Kullanıcı: ${formatNumber(results.totalVotes)})` 
-                      : 'Ülkeler (Alfabetik)'
-                    }
+                    {resultsTitle}
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
@@ -1486,7 +1534,7 @@ export default function Eurovision2026Preview() {
                           }`}>
                             <div className="ml-2 whitespace-nowrap text-right">
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                {formatNumber(points)} points
+                                {showTwelvePointsRanking ? `${formatNumber(Math.round(points / 12))} x 12 puan` : `${formatNumber(points)} ${pointsLabel}`}
                               </div>
                               {preferences.showWeightPercentage && (
 
@@ -1585,7 +1633,7 @@ export default function Eurovision2026Preview() {
                           }`}>
                             <div className="ml-2 whitespace-nowrap text-right">
                               <div className={`font-bold ${points > 0 ? 'text-white' : 'text-gray-400'}`}>
-                                {formatNumber(points)} points
+                                {showTwelvePointsRanking ? `${formatNumber(Math.round(points / 12))} x 12 puan` : `${formatNumber(points)} ${pointsLabel}`}
                               </div>
                               {preferences.showWeightPercentage && (
 
@@ -1709,5 +1757,7 @@ export default function Eurovision2026Preview() {
     </div>
   );
 }
+
+
 
 
