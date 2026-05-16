@@ -73,7 +73,7 @@ export default function Eurovision2026GrandFinal() {
   const [loading, setLoading] = useState(true);
   const [selectedCountries, setSelectedCountries] = useState<string[]>(Array(10).fill(''));
   const [showResults, setShowResults] = useState(true); // always on — per-card reveal via isRevealed
-  const [showTwelvePointsRanking] = useState(false);
+  const [showTwelvePointsRanking, setShowTwelvePointsRanking] = useState(false);
   const [revealedResults, setRevealedResults] = useState<Record<string, boolean>>({});
   const [glowingCard, setGlowingCard] = useState<string | null>(null);
   const [fadingCard, setFadingCard] = useState<string | null>(null);
@@ -858,9 +858,9 @@ export default function Eurovision2026GrandFinal() {
 
   const getMedalStyle = (rank: number, hasResults: boolean) => {
     if (!hasResults) return { badge: 'bg-white/10 text-gray-500', border: 'border-white/10', glow: '', bar: 'bg-blue-500' };
-    if (rank === 1) return { badge: 'bg-yellow-500 text-yellow-900', border: 'border-yellow-500/60', glow: 'shadow-yellow-500/25', bar: 'bg-yellow-400' };
-    if (rank === 2) return { badge: 'bg-gray-300 text-gray-800', border: 'border-gray-300/40', glow: 'shadow-gray-300/15', bar: 'bg-gray-300' };
-    if (rank === 3) return { badge: 'bg-amber-600 text-amber-100', border: 'border-amber-600/40', glow: 'shadow-amber-500/15', bar: 'bg-amber-500' };
+    if (rank === 1) return { badge: 'bg-yellow-0 text-yellow-900', border: 'border-yellow-500/60', glow: 'shadow-yellow-500/25', bar: 'bg-yellow-400' };
+    if (rank === 2) return { badge: 'bg-gray-0 text-gray-800', border: 'border-gray-300/40', glow: 'shadow-gray-300/15', bar: 'bg-gray-300' };
+    if (rank === 3) return { badge: 'bg-amber-0 text-amber-100', border: 'border-amber-600/40', glow: 'shadow-amber-500/15', bar: 'bg-amber-500' };
     if (rank <= 10) return { badge: 'bg-blue-900/60 text-blue-300', border: 'border-blue-500/20', glow: '', bar: 'bg-blue-400' };
     return { badge: 'bg-white/5 text-gray-500', border: 'border-white/8', glow: '', bar: 'bg-slate-500' };
   };
@@ -996,10 +996,10 @@ export default function Eurovision2026GrandFinal() {
               >
                 {/* Rank badge */}
                 <div
-                  className={`flex-shrink-0 ${isTop3 ? 'w-11 h-11 text-lg' : 'w-9 h-9 text-sm'} flex items-center justify-center rounded-full font-bold ${medal.badge}`}
+                  className={`flex-shrink-0 ${isTop3 ? 'w-11 h-11 text-[50px]' : 'w-9 h-9 text-sm'} flex items-center justify-center rounded-full font-bold ${medal.badge}`}
                 >
                   {revealed
-                    ? rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank
+                    ? rank === 1 ? '🏆' : rank === 2 ? '💎' : rank === 3 ? '🔥' : rank
                     : index - revealedCount + 1}
                 </div>
 
@@ -1083,7 +1083,7 @@ export default function Eurovision2026GrandFinal() {
                       })()}
                       {twelvePointsAvailable && (
                         <div className="text-xs text-gray-600">
-                          {formatNumber(Math.round(getTwelvePointsTotal(country) / 12))} × 12
+                          {formatNumber(Math.round(getTwelvePointsTotal(country) / 12))} × 12 Points
                         </div>
                       )}
                     </div>
