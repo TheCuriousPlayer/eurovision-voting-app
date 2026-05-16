@@ -44,7 +44,7 @@ export const VOTE_CONFIG = {
   '2021': { 
     Status: false,
     ShowCountDown: VOTE_DATES['2021'],
-    Mode: 'hide', // 'visible' | 'hide'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2022': { 
@@ -74,11 +74,11 @@ export const VOTE_CONFIG = {
   '202600': { 
     Status: false, 
     ShowCountDown: VOTE_DATES['2026'], 
-    Mode: 'hide', // 'visible' | 'hide'
+    Mode: 'visible', // 'visible' | 'hide'
     GMs: process.env.GM_EMAILS_DEFAULT ?? '' 
   },
   '2026': { 
-    Status: true, 
+    Status: false, 
     ShowCountDown: VOTE_DATES['2026'], 
     Mode: 'visible', // 'visible' | 'hide'
     GMs: process.env.GM_EMAILS_DEFAULT ?? '' 

@@ -969,7 +969,7 @@ export default function Eurovision2026GrandFinal() {
           </h2>
           <div className="flex items-center justify-center gap-4 text-gray-500 text-xs tracking-widest">
             <span>✦</span>
-            <span>Basel, İsviçre</span>
+            <span>Vienna, Austria</span>
             <span>✦</span>
             <span>17 Mayıs 2026</span>
             <span>✦</span>
