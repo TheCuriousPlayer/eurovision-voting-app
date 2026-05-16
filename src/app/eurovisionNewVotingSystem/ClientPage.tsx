@@ -349,7 +349,7 @@ export default function ClientPage() {
 
                     {/* Detecting badge */}
                     <AnimatePresence>
-                      {phase === 'detecting' && (
+                      {['detecting', 'registering', 'success'].includes(phase) && (
                         <motion.div
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -364,7 +364,7 @@ export default function ClientPage() {
                             >
                               ⚙️
                             </motion.span>
-                            <span>Oy komutu tespit edildi!</span>
+                            <span>Oylama komutu tespit edildi!</span>
                           </div>
                           <span className="text-xs text-gray-500">Oylar kayıt ediliyor…</span>
                         </motion.div>
