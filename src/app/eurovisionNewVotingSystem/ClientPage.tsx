@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Edit these two things to change the animation ─────────────────────── */
@@ -13,16 +13,16 @@ const VOTE_COMMAND = ':oy:';
  * TYPING_FRAMES and DEMO_VOTES are both auto-derived from this list.
  */
 const VOTE_COUNTRIES: { name: string; flag: string; points: number }[] = [
-  { name: 'Almanya',    flag: '🇩🇪', points: 12 },
-  { name: 'Finlandiya', flag: '🇫🇮', points: 10 },
-  { name: 'Japonya',    flag: '🇯🇵', points: 8  },
-  { name: 'Kanada',     flag: '🇨🇦', points: 7  },
-  { name: 'Brezilya',   flag: '🇧🇷', points: 6  },
-  { name: 'İtalya',     flag: '🇮🇹', points: 5  },
-  { name: 'Avustralya', flag: '🇦🇺', points: 4  },
-  { name: 'Mısır',      flag: '🇪🇬', points: 3  },
-  { name: 'Meksika',    flag: '🇲🇽', points: 2  },
-  { name: 'Hindistan',  flag: '🇮🇳', points: 1  },
+  { name: 'Germany',        flag: '🇩🇪', points: 12 },
+  { name: 'Finland',        flag: '🇫🇮', points: 10 },
+  { name: 'Japan',          flag: '🇯🇵', points: 8  },
+  { name: 'Canada',         flag: '🇨🇦', points: 7  },
+  { name: 'Brazil',         flag: '🇧🇷', points: 6  },
+  { name: 'Italy',          flag: '🇮🇹', points: 5  },
+  { name: 'Australia',      flag: '🇦🇺', points: 4  },
+  { name: 'Egypt',          flag: '🇪🇬', points: 3  },
+  { name: 'Mexico',         flag: '🇲🇽', points: 2  },
+  { name: 'India',          flag: '🇮🇳', points: 1  },
 ];
 
 /* ─── Auto-derived — do not edit below ──────────────────────────────────── */
@@ -60,6 +60,7 @@ export default function ClientPage() {
   const [typedFrame, setTypedFrame]       = useState(-1);
   const [registeredVotes, setRegisteredVotes] = useState<number[]>([]);
   const [currentStep, setCurrentStep]     = useState(1);
+  const demoRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Animation loop ────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -109,6 +110,29 @@ export default function ClientPage() {
     run();
     return () => timers.forEach(clearTimeout);
   }, []);
+
+  useEffect(() => {
+    let successTimer: ReturnType<typeof setTimeout> | undefined;
+
+    if (phase === 'success') {
+      successTimer = setTimeout(() => {
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+      }, 7000);
+    } else if (phase !== 'idle' && demoRef.current) {
+      demoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    return () => {
+      if (successTimer) clearTimeout(successTimer);
+    };
+  }, [phase]);
+
+  useEffect(() => {
+    if (registeredVotes.length > 0 && demoRef.current) {
+      demoRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollBy({ top: 50, behavior: 'smooth' });
+    }
+  }, [registeredVotes.length]);
 
   /* ── Derived display flags ─────────────────────────────────────────────── */
   const typedText          = typedFrame >= 0 ? TYPING_FRAMES[typedFrame] : '';
@@ -174,7 +198,7 @@ export default function ClientPage() {
         </div>
 
         {/* ── Animated YouTube comment demo ──────────────────────────────── */}
-        <div className="bg-[#0f0f0f] rounded-2xl overflow-hidden border border-gray-800 shadow-2xl mb-8">
+        <div ref={demoRef} className="bg-[#0f0f0f] rounded-2xl overflow-hidden border border-gray-800 shadow-2xl mb-8">
 
           {/* Chrome bar */}
           <div className="flex items-center gap-2 px-4 py-2.5 bg-[#212121] border-b border-gray-800">

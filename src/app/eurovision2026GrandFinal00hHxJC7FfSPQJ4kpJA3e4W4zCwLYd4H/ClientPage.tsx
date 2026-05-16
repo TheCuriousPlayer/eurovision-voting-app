@@ -231,11 +231,33 @@ export default function Eurovision2026GrandFinal() {
     if (!country || !revealedResults[country]) return;
     const el = cardRefs.current[country];
     if (!el) return;
+
+    const smoothScrollTo = (targetY: number, duration: number) => {
+      const startY = window.scrollY;
+      const distance = targetY - startY;
+      const startTime = performance.now();
+
+      const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+
+      const step = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        window.scrollTo(0, startY + distance * easeInOutQuad(progress));
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      };
+
+      requestAnimationFrame(step);
+    };
+
     // Defer until after DOM re-sort paint
     const id = setTimeout(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const rect = el.getBoundingClientRect();
+      const targetY = window.scrollY + rect.top - window.innerHeight / 2 + rect.height / 2;
+      smoothScrollTo(targetY, 1900);
       lastRevealedRef.current = null;
-    }, 50);
+    }, 100);
     return () => clearTimeout(id);
   }, [revealedResults]);
 
@@ -880,10 +902,26 @@ export default function Eurovision2026GrandFinal() {
           from { box-shadow: 0 0 0 2px rgba(250,204,21,0.7), 0 0 30px 8px rgba(250,204,21,0.45), 0 0 60px 16px rgba(250,204,21,0.2); border-color: rgba(250,204,21,0.7); }
           to   { box-shadow: 0 0 0 0 transparent; border-color: rgba(255,255,255,0.06); }
         }
+        @keyframes skyBlink {
+          0%, 100% { opacity: 0.04; }
+          40% { opacity: 0.12; }
+          70% { opacity: 0.08; }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.12; transform: scale(0.95); }
+          50% { opacity: 0.9; transform: scale(1.25); }
+        }
       `}</style>
 
       {/* Animated background stars */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(circle at 28% 22%, rgba(168, 212, 255, 0.12), transparent 22%), radial-gradient(circle at 80% 30%, rgba(184, 98, 255, 0.08), transparent 18%)',
+            animation: 'skyBlink 18s ease-in-out infinite',
+          }}
+        />
         {[...Array(60)].map((_, i) => (
           <div
             key={i}
@@ -893,8 +931,8 @@ export default function Eurovision2026GrandFinal() {
               height: Math.random() * 2 + 1 + 'px',
               top: Math.random() * 100 + '%',
               left: Math.random() * 100 + '%',
-              opacity: Math.random() * 0.6 + 0.1,
-              animation: `pulse ${Math.random() * 3 + 2}s ease-in-out infinite`,
+              opacity: Math.random() * 0.4 + 0.08,
+              animation: `twinkle ${Math.random() * 2 + 2}s ease-in-out infinite`,
               animationDelay: Math.random() * 4 + 's',
             }}
           />
@@ -938,6 +976,23 @@ export default function Eurovision2026GrandFinal() {
           </div>
         </div>
 
+        <div className="mx-auto mb-8 w-full max-w-3xl rounded-3xl border border-cyan-500/20 bg-cyan-950/10 p-5 text-left shadow-xl shadow-cyan-500/10 sm:flex sm:items-center sm:justify-between sm:gap-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.35em] text-cyan-300 mb-2">
+              Yeni Oylama Sistemi Tanıtımı
+            </p>
+            <p className="text-sm text-gray-300">
+              Bu sayfa, yeni YouTube yorumlarıyla oy kaydetme sürecini adım adım gösterir.
+            </p>
+          </div>
+          <a
+            href="/eurovisionNewVotingSystem"
+            className="inline-flex rounded-full bg-cyan-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-cyan-400"
+          >
+            Tanıtımı Gör
+          </a>
+        </div>
+
         {/* Control Bar */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
           <button
@@ -963,7 +1018,7 @@ export default function Eurovision2026GrandFinal() {
           <div className="bg-white/5 backdrop-blur-sm border border-white/15 rounded-full px-6 py-2 text-sm text-gray-400">
             Toplam{' '}
             <span className="text-white font-bold">{formatNumber(results.totalVotes)}</span>{' '}
-            oy • Karta tıklayarak sonucu aç
+            oy • Sonuçları görmek için ülke kartlarına tıkla.
           </div>
         </div>
 
