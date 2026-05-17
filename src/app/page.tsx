@@ -106,7 +106,7 @@ export default function Home() {
                     <div className="group">
                       <Link
                         href="/eurovision2026"
-                        className="block relative overflow-hidden rounded-xl p-6 bg-[#2c3e50] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                        className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#249e57] to-[#11816b] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                       >
                         <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                           <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -118,7 +118,7 @@ export default function Home() {
                         </h2>
                         <div className="flex items-end justify-between">
                           <div className="text-gray-300 text-sm">
-                            <span>Eklenecek...</span>
+                            <span>Aktif</span>
                           </div>
                           {voteCounts[2026] !== undefined && (
                             <div className="text-gray-200 text-xs">
@@ -133,7 +133,7 @@ export default function Home() {
                     <div className="group">
                       <Link
                         href="/eurovision2026Preview"
-                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#b45309] to-[#92400e] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                        className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                       >
                         <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                           <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -143,13 +143,13 @@ export default function Home() {
                         <h2 className="text-xl font-bold text-white">
                           Eurovision 2026
                         </h2>
-                        <h3 className="text-sm font-semibold text-amber-200">
-                          Preview
+                        <h3 className="text-sm font-semibold text-white">
+                          Ön Oylama / Preview
                         </h3>
                         <div className="flex items-end justify-between mt-1">
-                          <span className="text-amber-100 text-xs">Ön Oylama</span>
+                          <span className="text-sm font-semibold text-white">Oylama Tamamlandı</span>
                           {voteCounts['202600'] !== undefined && (
-                            <div className="text-amber-200 text-xs">
+                            <div className="text-gray-200 text-xs">
                               <span>{voteCounts['202600'] === 0 ? '⌛' : `${formatNumber(voteCounts['202600'])} oy`}</span>
                             </div>
                           )}
@@ -317,7 +317,7 @@ export default function Home() {
                     
                     <div className="flex items-end justify-between">
                       <div className="text-gray-300 text-sm">
-                        {year < 2026 && year > 2020 ? (
+                          {year <= 2026 && year > 2020 ? (
                           <span>Aktif</span>
                         ) : (
                           <span>Eklenecek...</span>
@@ -399,7 +399,7 @@ export default function Home() {
                   <div className="group">
                     <Link
                       href="/eurovision2026"
-                      className="block relative overflow-hidden rounded-xl p-6 bg-[#2c3e50] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      className="block relative overflow-hidden rounded-xl p-6 bg-gradient-to-r from-[#249e57] to-[#11816b] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                     >
                       <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                         <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -411,7 +411,7 @@ export default function Home() {
                       </h2>
                       <div className="flex items-end justify-between">
                         <div className="text-gray-300 text-sm">
-                          <span>Eklenecek...</span>
+                          <span>Aktif</span>
                         </div>
                         {voteCounts[2026] !== undefined && (
                           <div className="text-gray-200 text-xs">
@@ -426,7 +426,7 @@ export default function Home() {
                   <div className="group">
                     <Link
                       href="/eurovision2026Preview"
-                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#b45309] to-[#92400e] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
+                      className="block relative overflow-hidden rounded-xl p-5 pl-6 bg-gradient-to-r from-[#194a6b] to-[#092d46] transform transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-xl"
                     >
                       <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                         <div className="transform rotate-45 translate-x-8 -translate-y-8">
@@ -436,13 +436,13 @@ export default function Home() {
                       <h2 className="text-xl font-bold text-white">
                         Eurovision 2026
                       </h2>
-                      <h3 className="text-sm font-semibold text-amber-200">
-                        Preview
+                      <h3 className="text-sm font-semibold text-white">
+                        Ön Oylama / Preview
                       </h3>
                       <div className="flex items-end justify-between mt-1">
-                        <span className="text-amber-100 text-xs">Ön Oylama</span>
+                        <span className="text-sm font-semibold text-white">Oylama Tamamlandı</span>
                         {voteCounts['202600'] !== undefined && (
-                          <div className="text-amber-200 text-xs">
+                          <div className="text-gray-200 text-xs">
                             <span>{voteCounts['202600'] === 0 ? '⌛' : `${formatNumber(voteCounts['202600'])} oy`}</span>
                           </div>
                         )}
@@ -610,7 +610,7 @@ export default function Home() {
                   
                   <div className="flex items-end justify-between">
                     <div className="text-gray-300 text-sm">
-                      {year < 2026 && year > 2020 ? (
+                      {year <= 2026 && year > 2020 ? (
                         <span>Aktif</span>
                       ) : (
                         <span>Eklenecek...</span>

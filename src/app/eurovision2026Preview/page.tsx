@@ -951,10 +951,10 @@ export default function Eurovision2026Preview() {
               🔒 Oylama Kapandı / Voting Closed
             </h2>
             <p className="text-gray-300 text-sm">
-              2026 önizleme için oylama dönemi sona ermiştir. Oylar artık değiştirilemez ve yeni oy eklenemez. Resmi Eurovision yayınında oylama penceresi açıldığı zaman, 2026 yılına oy vermek için <a href="/eurovision2026" className="underline text-blue-300 hover:text-blue-500">Eurovision 2026</a> linkine gidin.
+              2026 önizleme için oylama dönemi sona ermiştir. 2026 yılına oy vermek için <a href="/eurovision2026" className="underline text-blue-300 hover:text-blue-500">Eurovision 2026</a> linkine gidin.
             </p>
             <p className="text-gray-400 text-xs mt-2">
-              The voting period for the 2026 preview has ended. Votes can no longer be changed or added. When the voting window opens on the official Eurovision broadcast, go to the <a href="/eurovision2026" className="underline text-blue-300 hover:text-blue-500">Eurovision 2026</a> link to vote.
+              The voting period for the 2026 preview has ended. Go to the <a href="/eurovision2026" className="underline text-blue-300 hover:text-blue-500">Eurovision 2026</a> link to vote.
             </p>
           </div>
         </div>
@@ -965,7 +965,7 @@ export default function Eurovision2026Preview() {
               {/* Oylarım Section - Show voting if authenticated, sign-in prompt if not */}
               <div className="w-full lg:w-[420px]">
                 <div className="bg-[#2c3e50] rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4 gap-3">
                     <div className="flex items-center gap-2">
                       <h2 className="text-2xl font-bold text-white mb-0">Oylarım</h2>
                       <div className="relative" ref={infoTooltipRef}>
@@ -992,7 +992,18 @@ export default function Eurovision2026Preview() {
                         )}
                       </div>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href="/eurovision2026GrandFinal"
+                        className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#0f172a] border border-white/10 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#111a33]"
+                      >
+                        <span className="flex items-center justify-center gap-1 text-center w-full">
+                          <span className="text-yellow-300 animate-pulse">✦</span>
+                          <span className="inline-block group-hover:hidden">2026 Ön Oylama Sonuçları</span>
+                          <span className="hidden group-hover:inline-block">See the 2026 Preview Results</span>
+                          <span className="text-yellow-300 animate-pulse">✦</span>
+                        </span>
+                      </a>
                       {pendingSave ? (
                         <div className="bg-red-600 text-white text-sm px-3 py-1 rounded">Sayfadan ayrılmayın...</div>
                       ) : selectedCountries.some(country => country !== '') ? (
