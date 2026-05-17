@@ -965,7 +965,7 @@ export default function Eurovision2026GrandFinal() {
             className="text-2xl md:text-3xl font-bold tracking-[0.2em] mb-5"
             style={{ color: '#FFD700', textShadow: '0 0 30px rgba(255,215,0,0.4)' }}
           >
-            GRAND FINAL
+            GRAND FINAL PREVIEW RESULTS
           </h2>
           <div className="flex items-center justify-center gap-4 text-gray-500 text-xs tracking-widest">
             <span>✦</span>
